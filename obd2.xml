@@ -193,20 +193,445 @@
 	
 	<parameters address="Default">
 		
-		<parameter data="0x01 0x00 0x00 0x00 0x00 0x00 0x00" name="PIDs Supported 0x01-0x20" numbytes="4">
-			<conversion expr="MAPPED"/>
-		</parameter>
-		<parameter data="0x01 0x01 0x00 0x00 0x00 0x00 0x00" name="Monitor Status Since DTCs Cleared" numbytes="4">
-			<conversion expr="MAPPED"/>
-		</parameter>
-		<parameter data="0x01 0x02 0x00 0x00 0x00 0x00 0x00" name="Freeze DTC" numbytes="2">
+		<parameter name="PIDs Supported 0x01-0x20" 
+			request="0x01 0x00" response.prefix="0x41 0x00" response.bytes="4">
 			<conversion expr="MAPPED" />
 		</parameter>
-		<parameter data="0x01 0x03 0x00 0x00 0x00 0x00 0x00" name="Fuel System Status" numbytes="2">
+		
+		<parameter name="Monitor Status Since DTCs Cleared"
+			request="0x01 0x01" response.prefix="0x41 0x01" response.bytes="4">
 			<conversion expr="MAPPED" />
 		</parameter>
-		<parameter data="0x01 0x04 0x00 0x00 0x00 0x00 0x00" name="Calculated Engine Load Value" numbytes="1">
-			<conversion units="%" expr="x*100/255" min="0" max="100"/>
+		
+		<parameter name="Freeze DTC"
+			request="0x01 0x02" response.prefix="0x41 0x02" response.bytes="2">
+			<conversion expr="MAPPED" />
+		</parameter>
+		
+		<parameter name="Fuel System Status"
+			request="0x01 0x03" response.prefix="0x41 0x03" response.bytes="2">
+			<conversion expr="MAPPED" />
+		</parameter>
+
+		<parameter name="Calculated Engine Load Value"
+			request="0x01 0x04" response.prefix="0x41 0x04" response.bytes="1">			
+			<conversion units="%" expr="A*100/255" min="0" max="100"/>
+		</parameter>
+		
+		<parameter name="Engine Coolant Temperature"
+			request="0x01 0x05" response.prefix="0x41 0x05" response.bytes="1">			
+			<conversion units="C" default="true" expr="A-40" min="-40" max="215" />
+		</parameter>
+		
+		<parameter name="Short Term Fuel % Trim - Bank 1"
+			request="0x01 0x06" response.prefix="0x41 0x06" response.bytes="1">			
+			<conversion units="%" expr="(A-128)*(100/128)" min="-100" max="100" />
+		</parameter>
+
+		<parameter name="Long Term Fuel % Trim - Bank 1"
+			request="0x01 0x07" response.prefix="0x41 0x07" response.bytes="1">			
+			<conversion units="%" expr="(A-128)*(100/128)" min="-100" max="100" />
+		</parameter>
+		
+		<parameter name="Long Term Fuel % Trim - Bank 2"
+			request="0x01 0x08" response.prefix="0x41 0x08" response.bytes="1">			
+			<conversion units="%" expr="(A-128)*(100/128)" min="-100" max="100" />
+		</parameter>
+		
+		<parameter name="Long Term Fuel % Trim - Bank 2"
+			request="0x01 0x09" response.prefix="0x41 0x09" response.bytes="1">			
+			<conversion units="%" expr="(A-128)*(100/128)" min="-100" max="100" />
+		</parameter>
+		
+		<parameter name="Fuel Pressure"
+			request="0x01 0x0A" response.prefix="0x41 0x0A" response.bytes="1">			
+			<conversion units="kPa (gauge)" expr="A*3" min="0" max="765" />
+		</parameter>
+
+		<parameter name="Intake Manifold Absolute Pressure"
+			request="0x01 0x0B" response.prefix="0x41 0x0B" response.bytes="1">			
+			<conversion units="kPa (absolute)" expr="A" min="0" max="255"/>
+		</parameter>
+
+		<parameter name="Engine RPM"
+			request="0x01 0x0C" response.prefix="0x41 0x0C" response.bytes="2">
+			<conversion units="rpm" expr="((A*256)+B)/4" min="0" max="16383.75" />
+		</parameter>
+		
+		<parameter name="Vehicle Speed"
+			request="0x01 0x0D" response.prefix="0x41 0x0D" response.bytes="1">
+			<conversion units="km/h" expr="A" min="0" max="255" />
+		</parameter>
+		
+		<parameter name="Timing Advance"
+			request="0x01 0x0E" response.prefix="0x41 0x0E" response.bytes="1">
+			<conversion units="deg" expr="(A/2)-64" min="-64" max="63.5" />
+		</parameter>
+
+		<parameter name="Intake Air Temperature"
+			request="0x01 0x0F" response.prefix="0x41 0x0F" response.bytes="1">
+			<conversion units="C" expr="A-40" max="-40" max="215" />
+		</parameter>
+
+		<parameter name="MAF Air Flow Rate"
+			request="0x01 0x10" response.prefix="0x41 0x10" response.bytes="2">
+			<conversion units="g/s" expr="((A*256)+B)/100" min="0" max="655.35" />
+		</parameter>
+
+		<parameter name="Throttle Position"
+			request="0x01 0x11" response.prefix="0x41 0x11" response.bytes="1">
+			<conversion units="%" expr="A*100/255" min="0" max="100" />
+		</parameter>
+		
+		<parameter name="Commanded Secondary Air Status"
+			request="0x01 0x12" response.prefix="0x41 0x12" response.bytes="1">
+			<conversion expr="MAPPED" />
+		</parameter>
+		
+		<parameter name="Oxygen Sensors Present"
+			request="0x01 0x13" response.prefix="0x41 0x13" response.bytes="1">
+			<conversion expr="MAPPED" />
+		</parameter>
+		
+		<parameter name="Bank 1, Sensor 1: Oxygen Sensor Voltage, Short Term Fuel Trim"
+			request="0x01 0x14" response.prefix="0x41 0x14" response.bytes="2">
+			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+			<conversion units="V" expr="A/200" min="0" max="1.275" />
+			<conversion units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
+		</parameter>
+
+		<parameter name="Bank 1, Sensor 2: Oxygen Sensor Voltage, Short Term Fuel Trim"
+			request="0x01 0x15" response.prefix="0x41 0x15" response.bytes="2">
+			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+			<conversion units="V" expr="A/200" min="0" max="1.275" />
+			<conversion units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
+		</parameter>
+		
+		<parameter name="Bank 1, Sensor 3: Oxygen Sensor Voltage, Short Term Fuel Trim"
+			request="0x01 0x16" response.prefix="0x41 0x16" response.bytes="2">
+			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+			<conversion units="V" expr="A/200" min="0" max="1.275" />
+			<conversion units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
+		</parameter>
+		
+		<parameter name="Bank 1, Sensor 4: Oxygen Sensor Voltage, Short Term Fuel Trim"
+			request="0x01 0x17" response.prefix="0x41 0x17" response.bytes="2">
+			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+			<conversion units="V" expr="A/200" min="0" max="1.275" />
+			<conversion units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
+		</parameter>
+		
+		<parameter name="Bank 2, Sensor 1: Oxygen Sensor Voltage, Short Term Fuel Trim"
+			request="0x01 0x18" response.prefix="0x41 0x18" response.bytes="2">
+			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+			<conversion units="V" expr="A/200" min="0" max="1.275" />
+			<conversion units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
+		</parameter>
+		
+		<parameter name="Bank 2, Sensor 2: Oxygen Sensor Voltage, Short Term Fuel Trim"
+			request="0x01 0x19" response.prefix="0x41 0x19" response.bytes="2">
+			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+			<conversion units="V" expr="A/200" min="0" max="1.275" />
+			<conversion units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
+		</parameter>
+		
+		<parameter name="Bank 2, Sensor 3: Oxygen Sensor Voltage, Short Term Fuel Trim"
+			request="0x01 0x1A" response.prefix="0x41 0x1A" response.bytes="2">
+			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+			<conversion units="V" expr="A/200" min="0" max="1.275" />
+			<conversion units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
+		</parameter>
+		
+		<parameter name="Bank 2, Sensor 4: Oxygen Sensor Voltage, Short Term Fuel Trim"
+			request="0x01 0x1B" response.prefix="0x41 0x1B" response.bytes="2">
+			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+			<conversion units="V" expr="A/200" min="0" max="1.275" />
+			<conversion units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
+		</parameter>
+		
+		<parameter name="OBD Standards This Vehicle Conforms To"
+			request="0x01 0x1C" response.prefix="0x41 0x18" response.bytes="1">
+			<conversion expr="MAPPED" />
+		</parameter>
+		
+		<parameter name="Number of Oxygen Sensors Present"
+			request="0x01 0x1D" response.prefix="0x41 0x1D" response.bytes="1">
+			<conversion expr="MAPPED" />
+		</parameter>
+		
+		<parameter name="Auxiliary Input Status"
+			request="0x01 0x1E" response.prefix="0x41 0x1E" response.bytes="1">
+			<conversion expr="MAPPED" />
+		</parameter>
+		
+		<parameter name="Runtime Since Engine Start"
+			request="0x01 0x1F" response.prefix="0x41 0x1F" response.bytes="2">
+			<conversion units="seconds" expr="(A*256)+B" min="0" max="65535" />
+		</parameter>
+
+		<parameter name="PIDs Supported 0x21-0x40"
+			request="0x01 0x20" response.prefix="0x41 0x20" response.bytes="4">
+			<conversion expr="MAPPED" />
+		</parameter>
+		
+		<parameter name="Distance Travelled with MIL On"
+			request="0x01 0x21" response.prefix="0x41 0x21" response.bytes="2">
+			<conversion units="km" expr="(A*256)+B" min="0" max="65535" />
+		</parameter>
+
+		<parameter name="Fuel Rail Pressure"
+			request="0x01 0x22" response.prefix="0x41 0x22" response.bytes="2">
+			<conversion units="kPa" expr="(((A*256)+B) * 10) / 128" min="0" max="5177.265" />
+		</parameter>
+		
+		<parameter name="Fuel Rail Pressure (Diesel or Gasoline Direct Injection)"
+			request="0x01 0x23" response.prefix="0x41 0x23" response.bytes="2">
+			<conversion units="kPa (gauge)" expr="((A*256)+B) * 10" min="0" max="655350" />
+		</parameter>
+
+		<parameter name="O2S1_WR_lambda(1): Equivalence Ratio, Voltage"
+			request="0x01 0x24" response.prefix="0x41 0x23" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
+			<conversion units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
+		</parameter>
+		
+		<parameter name="O2S2_WR_lambda(1): Equivalence Ratio, Voltage"
+			request="0x01 0x25" response.prefix="0x41 0x25" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
+			<conversion units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
+		</parameter>
+		
+		<parameter name="O2S3_WR_lambda(1): Equivalence Ratio, Voltage"
+			request="0x01 0x26" response.prefix="0x41 0x26" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
+			<conversion units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
+		</parameter>
+		
+		<parameter name="O2S4_WR_lambda(1): Equivalence Ratio, Voltage"
+			request="0x01 0x27" response.prefix="0x41 0x27" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
+			<conversion units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
+		</parameter>
+		
+		<parameter name="O2S5_WR_lambda(1): Equivalence Ratio, Voltage"
+			request="0x01 0x28" response.prefix="0x41 0x28" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
+			<conversion units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
+		</parameter>
+		
+		<parameter name="O2S6_WR_lambda(1): Equivalence Ratio, Voltage"
+			request="0x01 0x29" response.prefix="0x41 0x29" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
+			<conversion units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
+		</parameter>
+		
+		<parameter name="O2S7_WR_lambda(1): Equivalence Ratio, Voltage"
+			request="0x01 0x2A" response.prefix="0x41 0x2A" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
+			<conversion units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
+		</parameter>
+		
+		<parameter name="O2S8_WR_lambda(1): Equivalence Ratio, Voltage"
+			request="0x01 0x2B" response.prefix="0x41 0x2B" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
+			<conversion units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
+		</parameter>
+		
+		<parameter name="Commanded EGR"
+			request="0x01 0x2C" response.prefix="0x41 0x2C" response.bytes="1">
+			<conversion units="%" expr="100*A/255" min="0" max="100" />
+		</parameter>
+		
+		<parameter name="EGR Error"
+			request="0x01 0x2D" response.prefix="0x41 0x2D" response.bytes="1">
+			<conversion units="%" expr="(A-128)*100/128" min="-100" max="99.2" />
+		</parameter>
+		
+		<parameter name="Commanded Evaporative Purge"
+			request="0x01 0x2E" response.prefix="0x41 0x2E" response.bytes="1">
+			<conversion units="%" expr="100*A/255" min="0" max="100" />
+		</parameter>
+		
+		<parameter name="Fuel Level Input"
+			request="0x01 0x2F" response.prefix="0x41 0x2F" response.bytes="1">
+			<conversion units="%" expr="100*A/255" min="0" max="100" />
+		</parameter>
+
+		<parameter name="Number of Warm Ups Since Codes Cleared"
+			request="0x01 0x30" response.prefix="0x41 0x30" response.bytes="1">
+			<conversion units="number" expr="A" min="0" max="255" />
+		</parameter>
+
+		<parameter name="Distance Traveled Since Codes Cleared"
+			request="0x01 0x31" response.prefix="0x41 0x31" response.bytes="2">
+			<conversion units="km" expr="(A*256)+B" min="0" max="65535" />
+		</parameter>
+		
+		<parameter name="Evaporative System Vapor Pressure"
+			request="0x01 0x32" response.prefix="0x41 0x32" response.bytes="2">
+			<conversion units="Pa" expr="((A*256)+B)/4" min="-8192" max="8192" />
+		</parameter>
+
+		<parameter name="Barometric Pressure"
+			request="0x01 0x33" response.prefix="0x41 0x33" response.bytes="1">
+			<conversion units="kPa" expr="A" gauge_min="0" gauge_max="255" />
+		</parameter>
+
+		<parameter name="O2S1_WR_lambda(1): Equivalence Ratio, Current"
+			request="0x01 0x34" response.prefix="0x41 0x34" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
+			<conversion units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
+		</parameter>
+
+		<parameter name="O2S2_WR_lambda(1): Equivalence Ratio, Current"
+			request="0x01 0x35" response.prefix="0x41 0x35" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
+			<conversion units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
+		</parameter>
+
+		<parameter name="O2S3_WR_lambda(1): Equivalence Ratio, Current"
+			request="0x01 0x36" response.prefix="0x41 0x36" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
+			<conversion units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
+		</parameter>
+
+		<parameter name="O2S4_WR_lambda(1): Equivalence Ratio, Current"
+			request="0x01 0x37" response.prefix="0x41 0x37" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
+			<conversion units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
+		</parameter>
+		
+		<parameter name="O2S5_WR_lambda(1): Equivalence Ratio, Current"
+			request="0x01 0x38" response.prefix="0x41 0x38" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
+			<conversion units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
+		</parameter>
+		
+		<parameter name="O2S6_WR_lambda(1): Equivalence Ratio, Current"
+			request="0x01 0x39" response.prefix="0x41 0x39" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
+			<conversion units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
+		</parameter>
+		
+		<parameter name="O2S7_WR_lambda(1): Equivalence Ratio, Current"
+			request="0x01 0x3A" response.prefix="0x41 0x3A" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
+			<conversion units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
+		</parameter>
+		
+		<parameter name="O2S8_WR_lambda(1): Equivalence Ratio, Current"
+			request="0x01 0x3B" response.prefix="0x41 0x3B" response.bytes="4">
+			<conversion units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
+			<conversion units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
+		</parameter>
+		
+		<parameter name="Catalyst Temperature Bank 1, Sensor 1"
+			request="0x01 0x3C" response.prefix="0x41 0x3C" response.bytes="2">
+			<conversion units="C" expr="((A*256)+B)/10 - 40" min="-40" max="6513.5" />
+		</parameter>
+		
+		<parameter name="Catalyst Temperature Bank 2, Sensor 1"
+			request="0x01 0x3D" response.prefix="0x41 0x3D" response.bytes="2">
+			<conversion units="C" expr="((A*256)+B)/10 - 40" min="-40" max="6513.5" />
+		</parameter>
+		
+		<parameter name="Catalyst Temperature Bank 1, Sensor 2"
+			request="0x01 0x3E" response.prefix="0x41 0x3E" response.bytes="2">
+			<conversion units="C" expr="((A*256)+B)/10 - 40" min="-40" max="6513.5" />
+		</parameter>
+
+		<parameter name="Catalyst Temperature Bank 2, Sensor 2"
+			request="0x01 0x3F" response.prefix="0x41 0x3F" response.bytes="2">
+			<conversion units="C" expr="((A*256)+B)/10 - 40" min="-40" max="6513.5" />
+		</parameter>
+
+		<parameter name="PIDs Supported 0x41-0x60"
+			request="0x01 0x40" response.prefix="0x41 0x40" response.bytes="2">
+			<conversion expr="MAPPED" />
+		</parameter>
+
+		<parameter name="Monitor Status this Drive Cycle"
+			request="0x01 0x41" response.prefix="0x41 0x41" response.bytes="2">
+			<conversion expr="MAPPED" />
+		</parameter>
+
+		<parameter name="Control Module Voltage"
+			request="0x01 0x42" response.prefix="0x41 0x42" response.bytes="2">
+			<conversion units="V" expr="((A*256)+B)/1000" min="0" max="65.535" />
+		</parameter>
+
+		<parameter name="Absolute Load Value"
+			request="0x01 0x43" response.prefix="0x41 0x43" response.bytes="2">
+			<conversion units="%" expr="((x*256)+y)*100/255" min="0" max="25700" />
+		</parameter>
+
+		<parameter name="Command Equivalence Ratio"
+			request="0x01 0x44" response.prefix="0x41 0x44" response.bytes="2">
+			<conversion units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
+		</parameter>
+
+		<parameter name="Relative Throttle Position"
+			request="0x01 0x45" response.prefix="0x41 0x45" response.bytes="1">
+			<conversion units="%" expr="A*100/255" min="0" max="100" />
+		</parameter>
+		
+		<parameter name="Ambient Air Temperature"
+			request="0x01 0x46" response.prefix="0x41 0x46" response.bytes="1">
+			<conversion units="C" expr="A-40" min="-40" max="215" />
+		</parameter>
+		
+		<parameter name="Absolute Throttle Position B"
+			request="0x01 0x47" response.prefix="0x41 0x47" response.bytes="1">
+			<conversion units="%" expr="A*100/255" min="0" max="100" />
+		</parameter>
+
+		<parameter name="Absolute Throttle Position C"
+			request="0x01 0x48" response.prefix="0x41 0x48" response.bytes="1">
+			<conversion units="%" expr="A*100/255" min="0" max="100" />
+		</parameter>
+		
+		<parameter name="Absolute Throttle Position D"
+			request="0x01 0x49" response.prefix="0x41 0x49" response.bytes="1">
+			<conversion units="%" expr="A*100/255" min="0" max="100" />
+		</parameter>
+		
+		<parameter name="Absolute Throttle Position E"
+			request="0x01 0x4A" response.prefix="0x41 0x4A" response.bytes="1">
+			<conversion units="%" expr="A*100/255" min="0" max="100" />
+		</parameter>
+		
+		<parameter name="Absolute Throttle Position F"
+			request="0x01 0x4B" response.prefix="0x41 0x4B" response.bytes="1">
+			<conversion units="%" expr="A*100/255" min="0" max="100" />
+		</parameter>
+
+		<parameter name="Commanded Throttle Actuator"
+			request="0x01 0x4C" response.prefix="0x41 0x4C" response.bytes="1">
+			<conversion units="%" expr="A*100/255" min="0" max="100" />
+		</parameter>
+		
+		<parameter name="Time Run with MIL On"
+			request="0x01 0x4D" response.prefix="0x41 0x4D" response.bytes="2">
+			<conversion units="minutes" expr="(A*256)+B" min="0" max="65535" />
+		</parameter>
+
+		<parameter name="Time Since Trouble Codes Cleared"
+			request="0x01 0x4E" response.prefix="0x41 0x4E" response.bytes="2">
+			<conversion units="minutes" expr="(A*256)+B" min="0" max="65535" />
+		</parameter>
+
+		<parameter name="Maximum Value for Equivalence Ratio, Oxygen Sensor Voltage,
+								Oxygen Sensor Current, and Intake Manifold Absolute Pressure"
+			request="0x01 0x4F" response.prefix="0x41 0x4F" response.bytes="4">
+			<conversion units="ratio" expr="A" min="0" max="255" />
+			<conversion units="V" expr="B" min="0" max="255" />
+			<conversion units="mA" expr="C" min="0" max="255" />
+			<conversion units="kPa" expr="D*10" min="0" max="2550" />
+		</parameter>
+
+		<parameter name="Maximum value for Air Flow Rate from Mass Air Flow Sensor"
+			request="0x01 0x50" response.prefix="0x41 0x50" response.bytes="4">
+			<conversion units="g/s" expr="A*10" min="0" max="2550" />
 		</parameter>
 		
 	</parameters>
