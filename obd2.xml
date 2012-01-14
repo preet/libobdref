@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--	Document Description -->
+
+<!--	Document Sources:
+
+		A list of sources that most of the information in
+		this document has been compiled from (please add
+		to this list as more data is added).
+		
+		http://elmelectronics.com/DSheets/ELM327DS.pdf
+		http://obddiagnostics.com/obdinfo/msg_struct.html
+		http://en.wikipedia.org/wiki/On-board_diagnostics
+		http://en.wikipedia.org/wiki/OBD-II_PIDs
+		
+		-->
+
+<spec name="SAEJ1979" desc="OBDII Standard PIDs">
+	
+	<protocol name="SAE J1850 PWM">
+		<baudrate value="41600" />
+		<address name="Default">
+		<!--	Default J1850 PWM OBD message headers
+				for functional request/response from scan tool: -->
+				
+		<!--	Note: Scan tool might be in range 0xF0-0xFD if
+				default 0xF1 doesn't work -->
+				
+		<!--	Request Params:
+				prio:			0x61: Default OBD Request Priority
+				target:		0x6A: Functional Request 
+				source:		0xF1: External Scan Tool	-->
+			<request prio="0x61" target="0x6A" source="0xF1" />
+			
+		<!--	Response Params:
+				prio: 		0x41: Default OBD Response Priority
+				target: 		0x6B: Functional Response -->
+			<response prio="0x41" target="0x6B" />			
+		</address>
+	</protocol>
+	
+	<protocol name="SAE J1850 VPW">		
+		<baudrate value="10400" />
+		<address name="Default">
+		<!--	Default J1850 VPW OBD message headers
+				for functional request/response from scan tool: -->
+				
+		<!--	Note: Scan tool might be in range 0xF0-0xFD if
+				default 0xF1 doesn't work -->
+				
+		<!--	Request Params:
+				prio:			0x68: Default OBD Request Priority
+				target:		0x6A: Functional Request 
+				source:		0xF1: External Scan Tool	-->
+			<request prio="0x68" target="0x6A" source="0xF1" />
+			
+		<!--	Response Params:
+				prio: 		0x48: Default OBD Response Priority
+				target: 		0x6B: Functional Response -->
+			<response prio="0x48" target="0x6B" />
+		</address>
+	</protocol>
+	
+	<protocol name="ISO 9141-2">
+		<baudrate value="10400" />
+		<address name="Default">			
+		<!--	Default ISO 9141-2 OBD message headers
+				for functional request/response from scan tool: -->
+				
+		<!--	Note: Scan tool might be in range 0xF0-0xFD if
+				default 0xF1 doesn't work -->
+				
+		<!--	Request Params:
+				prio:			0x68: Default OBD Request Priority
+				target:		0x6A: Functional Request 
+				source:		0xF1: External Scan Tool	-->
+			<request prio="0x68" target="0x6A" source="0xF1" />
+			
+		<!--	Response Params:
+				prio: 		0x48: Default OBD Response Priority
+				target: 		0x6B: Functional Response -->
+			<response prio="0x48" target="0x6B" />
+		</address>
+	</protocol>
+	
+	<protocol name="ISO 14230-4">
+		<baudrate value="10400" />
+		<address name="Default">
+		<!--	Default ISO 14230-4 OBD message headers
+				for functional request/response from scan tool: -->
+				
+		<!--	Note: Scan tool might be in range 0xF0-0xFD if
+				default 0xF1 doesn't work -->
+				
+		<!--	Note: LLLLLL is a 6 bit number representing the
+				length of the data byte section of the message	-->
+				
+		<!--	Request Params:
+				prio:			0b11LLLLLL: Mode (functional) and data length
+				target:		0x33: Functional Request 
+				source:		0xF1: External Scan Tool	-->
+			<request prio="0b11LLLLLL" target="0x33" source="0xF1" />
+			
+		<!--	Response Params:
+				prio:			0b10LLLLLL: Mode (physical) and data length -->
+			<response prio="0b10LLLLLL" target="0xF1" />
+		</address>
+	</protocol>
+	
+	<protocol name="ISO 15765-4 (29-bit id)">
+		<baudrate value="250000" />
+		<baudrate value="500000" />
+		<!--	Identifier Format: [prio] [format] [target] [source] -->
+		
+		<address name="Default">
+		<!--	Default ISO 15765 29-bit OBD message identifier
+				for functional request/response from scan tool: -->
+				
+		<!-- 	Request Params:
+				prio:			0x18: Default OBD Request Priority
+				format:		0xDB: Functional Message
+				target:		0x33: Functional Request
+				source:		0xF1: External Scan Tool	-->
+			<request prio="0x18" format="0xDB" target="0x33" source="0xF1" />
+
+		<!--	Response Params:
+				format:		0xDA: Physical Message	-->
+			<response prio="0x18" format="0xDA" target="0xF1" />
+		</address>
+	</protocol>
+	
+	<protocol name="ISO 15765-4 (11-bit id)">
+		<baudrate value="250000" />
+		<baudrate value="500000" />
+		<!--	Identifier Format: [11-bit identifier]
+		
+		<!--	Note: CAN 11-bit identifiers are not mapped to the
+				default "priority,target,source" style header found 
+				in typical OBD messages. Instead, they use a single
+				address for their identifier, which may represent a
+				physical node or functional group -->
+				
+		<address name="Default">
+		<!--	Default ISO 15765 11-bit OBD message identifier
+				for functional request from scan tool: -->
+		<!--	Request Params:
+				identifier:	0x7DF: id for functional request from scan tool	-->
+			<request identifier="0x7DF" />
+		</address>
+		
+		<!--	Physical Request/Response Identifiers for ECUs
+				in the vehicle. 11-bit CAN allows for 8 ECUs in all. -->
+		<address name="ECU1">
+			<request identifier="0x7E0" />
+			<response identifier="0x7E8" />
+		</address>
+		
+		<address name="ECU2">
+			<request identifier="0x7E1" />
+			<response identifier="0x7E9" />
+		</address>
+		
+		<address name="ECU3">
+			<request identifier="0x7E2" />
+			<response identifier="0x7EA" />
+		</address>
+		
+		<address name="ECU4">
+			<request identifier="0x7E3" />
+			<response identifier="0x7EB" />
+		</address>
+		
+		<address name="ECU5">
+			<request identifier="0x7E4" />
+			<response identifier="0x7EC" />
+		</address>
+		
+		<address name="ECU6">
+			<request identifier="0x7E5" />
+			<response identifier="0x7ED" />
+		</address>
+		
+		<address name="ECU7">
+			<request identifier="0x7E6" />
+			<response identifier="0x7EE" />
+		</address>
+		
+		<address name="ECU8">
+			<request identifier="0x7E7" />
+			<response identifier="0x7EF" />
+		</address>
+	</protocol>
+	
+	<parameters address="Default">
+		
+		<parameter data="0x01 0x00 0x00 0x00 0x00 0x00 0x00" name="PIDs Supported 0x01-0x20" numbytes="4">
+			<conversion expr="MAPPED"/>
+		</parameter>
+		<parameter data="0x01 0x01 0x00 0x00 0x00 0x00 0x00" name="Monitor Status Since DTCs Cleared" numbytes="4">
+			<conversion expr="MAPPED"/>
+		</parameter>
+		<parameter data="0x01 0x02 0x00 0x00 0x00 0x00 0x00" name="Freeze DTC" numbytes="2">
+			<conversion expr="MAPPED" />
+		</parameter>
+		<parameter data="0x01 0x03 0x00 0x00 0x00 0x00 0x00" name="Fuel System Status" numbytes="2">
+			<conversion expr="MAPPED" />
+		</parameter>
+		<parameter data="0x01 0x04 0x00 0x00 0x00 0x00 0x00" name="Calculated Engine Load Value" numbytes="1">
+			<conversion units="%" expr="x*100/255" min="0" max="100"/>
+		</parameter>
+		
+	</parameters>
+	
+</spec>
+
+<spec name="NCON3" desc="Nissan Consult III">
+</spec>
+
+<spec name="SSM3" desc="Subaru Select Monitor III">
+</spec>
+
+<spec name="GMLAN" desc="General Motors Local Area Network">
+</spec>
+
+<spec name="MMDS" desc="Mazda Modular Diagnostic System">
+</spec>
