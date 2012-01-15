@@ -12,6 +12,7 @@
 		http://obddiagnostics.com/obdinfo/msg_struct.html
 		http://en.wikipedia.org/wiki/On-board_diagnostics
 		http://en.wikipedia.org/wiki/OBD-II_PIDs
+		http://freediag.sourceforge.net
 		
 		-->
 
@@ -88,6 +89,9 @@
 		<address name="Default">
 		<!--	Default ISO 14230-4 OBD message headers
 				for functional request/response from scan tool: -->
+				
+		<!--  Note: ISO 14230-4 supports longer data frames and
+				faster init communication with the ECU -->
 				
 		<!--	Note: Scan tool might be in range 0xF0-0xFD if
 				default 0xF1 doesn't work -->
@@ -193,6 +197,8 @@
 	
 	<parameters address="Default">
 		
+		<!-- START MODE $01 PIDs -->
+		
 		<parameter name="PIDs Supported 0x01-0x20" 
 			request="0x01 0x00" response.prefix="0x41 0x00" response.bytes="4">
 			<conversion expr="A7" true="PID 0x01 Supported" false="PID 0x01 Unsupported" />
@@ -234,13 +240,10 @@
 		
 		<parameter name="Monitor Status Since DTCs Cleared"
 			request="0x01 0x01" response.prefix="0x41 0x01" response.bytes="4">
-			
-			<!--	Note: OBDDiagnostics site and Wikipedia list conflicting information on this
-							parameter. Needs to be verified! -->
-			
+					
 			<conversion expr="A7" true="MIL/CEL is ON" false="MIL/CEL is OFF" />
 			
-			<conversion units="number" expr="(A && 0b01111111)" min="0" max="127"
+			<conversion units="number" expr="(A & 0b01111111)" min="0" max="127"
 				desc="Number of confirmed emissions-related DTCs available for display" />
 				
 			<conversion expr="B3" true="Compression Ignition Monitors" false="Spark Ignition Monitors" />
@@ -252,11 +255,7 @@
 			<conversion expr="B4" true="Misfire Test Incomplete" false="Misfire Test Complete" />
 			<conversion expr="B5" true="Fuel System Test Incomplete" false="Fuel System Test Complete" />
 			<conversion expr="B6" true="Components Test Incomplete" false="Components Test Complete" />
-			
-			<!--	Note: 
-					Test is Available when relevant bit (Cx) is TRUE
-					Test is Incomplete when relevant bit (Dx) is TRUE -->
-			
+					
 			<conversion expr="B3 && C0" true="NMHC Cat Test Available" />
 			<conversion expr="B3 && C1" true="NOx/SCR Monitor Test Available" />
 			<conversion expr="B3 && C3" true="Boost Pressure Test Available" />
@@ -265,11 +264,11 @@
 			<conversion expr="B3 && C7" true="EGR and/or VVT System Test Available" />
 			
 			<conversion expr="B3 && !C0" true="NMHC Cat Test Unavailable" />
-			<conversion expr="B3 && !C1" true="NOx/SCR Monitor Test Available" />
-			<conversion expr="B3 && !C3" true="Boost Pressure Test Available" />
-			<conversion expr="B3 && !C5" true="Exhaust Gas Sensor Test Available" />
-			<conversion expr="B3 && !C6" true="PM Filter Monitoring Test Available" />
-			<conversion expr="B3 && !C7" true="EGR and/or VVT System Test Available" />
+			<conversion expr="B3 && !C1" true="NOx/SCR Monitor Test Unavailable" />
+			<conversion expr="B3 && !C3" true="Boost Pressure Test Unavailable" />
+			<conversion expr="B3 && !C5" true="Exhaust Gas Sensor Test Unavailable" />
+			<conversion expr="B3 && !C6" true="PM Filter Monitoring Test Unavailable" />
+			<conversion expr="B3 && !C7" true="EGR and/or VVT System Test Unavailable" />
 			
 			<conversion expr="B3 && D0" true="NMHC Cat Test Incomplete" />
 			<conversion expr="B3 && D1" true="NOx/SCR Monitor Test Incomplete" />
@@ -320,11 +319,6 @@
 			<conversion expr="!B3 && !D5" true="Oxygen Sensor Test Complete" />
 			<conversion expr="!B3 && !D6" true="Oxygen Sensor Heater Test Complete" />
 			<conversion expr="!B3 && !D7" true="EGR System Test Complete" />
-		</parameter>
-		
-		<parameter name="Freeze DTC"
-			request="0x01 0x02" response.prefix="0x41 0x02" response.bytes="2">
-			<conversion expr="MAPPED" />
 		</parameter>
 		
 		<parameter name="Fuel System Status"
@@ -421,9 +415,16 @@
 			<conversion expr="A2" true="From the outside atmosphere or off" />
 		</parameter>
 		
-		<parameter name="Oxygen Sensors Present"
+		<parameter name="Oxygen Sensors Present (Banks 1-2)"
 			request="0x01 0x13" response.prefix="0x41 0x13" response.bytes="1">
-			<conversion expr="MAPPED" />
+			<conversion expr="A0" true="Bank 1, Sensor 1 Present" />
+			<conversion expr="A1" true="Bank 1, Sensor 2 Present" />
+			<conversion expr="A2" true="Bank 1, Sensor 3 Present" />
+			<conversion expr="A3" true="Bank 1, Sensor 4 Present" />
+			<conversion expr="A4" true="Bank 2, Sensor 1 Present" />
+			<conversion expr="A5" true="Bank 2, Sensor 2 Present" />
+			<conversion expr="A6" true="Bank 2, Sensor 3 Present" />
+			<conversion expr="A7" true="Bank 2, Sensor 4 Present" />
 		</parameter>
 		
 		<parameter name="Bank 1, Sensor 1: Oxygen Sensor Voltage, Short Term Fuel Trim"
@@ -499,14 +500,21 @@
 			<conversion expr="A == 0x0D" true="JOBD, EOBD and OBDII"/>
 		</parameter>
 		
-		<parameter name="Number of Oxygen Sensors Present"
+		<parameter name="Oxygen Sensors Present (Banks 1-4)"
 			request="0x01 0x1D" response.prefix="0x41 0x1D" response.bytes="1">
-			<conversion expr="MAPPED" />
+			<conversion expr="A0" true="Bank 1, Sensor 1 Present" />
+			<conversion expr="A1" true="Bank 1, Sensor 2 Present" />
+			<conversion expr="A2" true="Bank 2, Sensor 1 Present" />
+			<conversion expr="A3" true="Bank 2, Sensor 2 Present" />
+			<conversion expr="A4" true="Bank 3, Sensor 1 Present" />
+			<conversion expr="A5" true="Bank 3, Sensor 2 Present" />
+			<conversion expr="A6" true="Bank 4, Sensor 1 Present" />
+			<conversion expr="A7" true="Bank 4, Sensor 2 Present" />
 		</parameter>
 		
 		<parameter name="Auxiliary Input Status"
 			request="0x01 0x1E" response.prefix="0x41 0x1E" response.bytes="1">
-			<conversion expr="MAPPED" />
+			<conversion expr="A0" true="Power Take Off Active" />
 		</parameter>
 		
 		<parameter name="Runtime Since Engine Start"
@@ -516,7 +524,41 @@
 
 		<parameter name="PIDs Supported 0x21-0x40"
 			request="0x01 0x20" response.prefix="0x41 0x20" response.bytes="4">
-			<conversion expr="MAPPED" />
+			<conversion expr="A7" true="PID 0x21 Supported" false="PID 0x21 Unsupported" />
+			<conversion expr="A6" true="PID 0x22 Supported" false="PID 0x22 Unsupported" />
+			<conversion expr="A5" true="PID 0x23 Supported" false="PID 0x23 Unsupported" />
+			<conversion expr="A4" true="PID 0x24 Supported" false="PID 0x24 Unsupported" />
+			<conversion expr="A3" true="PID 0x25 Supported" false="PID 0x25 Unsupported" />
+			<conversion expr="A2" true="PID 0x26 Supported" false="PID 0x26 Unsupported" />
+			<conversion expr="A1" true="PID 0x27 Supported" false="PID 0x27 Unsupported" />
+			<conversion expr="A0" true="PID 0x28 Supported" false="PID 0x28 Unsupported" />
+			
+			<conversion expr="B7" true="PID 0x29 Supported" false="PID 0x29 Unsupported" />
+			<conversion expr="B6" true="PID 0x2A Supported" false="PID 0x2A Unsupported" />
+			<conversion expr="B5" true="PID 0x2B Supported" false="PID 0x2B Unsupported" />
+			<conversion expr="B4" true="PID 0x2C Supported" false="PID 0x2C Unsupported" />
+			<conversion expr="B3" true="PID 0x2D Supported" false="PID 0x2D Unsupported" />
+			<conversion expr="B2" true="PID 0x2E Supported" false="PID 0x2E Unsupported" />
+			<conversion expr="B1" true="PID 0x2F Supported" false="PID 0x2F Unsupported" />
+			<conversion expr="B0" true="PID 0x30 Supported" false="PID 0x30 Unsupported" />
+			
+			<conversion expr="C7" true="PID 0x31 Supported" false="PID 0x31 Unsupported" />
+			<conversion expr="C6" true="PID 0x32 Supported" false="PID 0x32 Unsupported" />
+			<conversion expr="C5" true="PID 0x33 Supported" false="PID 0x33 Unsupported" />
+			<conversion expr="C4" true="PID 0x34 Supported" false="PID 0x34 Unsupported" />
+			<conversion expr="C3" true="PID 0x35 Supported" false="PID 0x35 Unsupported" />
+			<conversion expr="C2" true="PID 0x36 Supported" false="PID 0x36 Unsupported" />
+			<conversion expr="C1" true="PID 0x37 Supported" false="PID 0x37 Unsupported" />
+			<conversion expr="C0" true="PID 0x38 Supported" false="PID 0x38 Unsupported" />
+			
+			<conversion expr="D7" true="PID 0x39 Supported" false="PID 0x39 Unsupported" />
+			<conversion expr="D6" true="PID 0x3A Supported" false="PID 0x3A Unsupported" />
+			<conversion expr="D5" true="PID 0x3B Supported" false="PID 0x3B Unsupported" />
+			<conversion expr="D4" true="PID 0x3C Supported" false="PID 0x3C Unsupported" />
+			<conversion expr="D3" true="PID 0x3D Supported" false="PID 0x3D Unsupported" />
+			<conversion expr="D2" true="PID 0x3E Supported" false="PID 0x3E Unsupported" />
+			<conversion expr="D1" true="PID 0x3F Supported" false="PID 0x3F Unsupported" />
+			<conversion expr="D0" true="PID 0x40 Supported" false="PID 0x40 Unsupported" />
 		</parameter>
 		
 		<parameter name="Distance Travelled with MIL On"
@@ -692,7 +734,41 @@
 
 		<parameter name="PIDs Supported 0x41-0x60"
 			request="0x01 0x40" response.prefix="0x41 0x40" response.bytes="2">
-			<conversion expr="MAPPED" />
+			<conversion expr="A7" true="PID 0x41 Supported" false="PID 0x41 Unsupported" />
+			<conversion expr="A6" true="PID 0x42 Supported" false="PID 0x42 Unsupported" />
+			<conversion expr="A5" true="PID 0x43 Supported" false="PID 0x43 Unsupported" />
+			<conversion expr="A4" true="PID 0x44 Supported" false="PID 0x44 Unsupported" />
+			<conversion expr="A3" true="PID 0x45 Supported" false="PID 0x45 Unsupported" />
+			<conversion expr="A2" true="PID 0x46 Supported" false="PID 0x46 Unsupported" />
+			<conversion expr="A1" true="PID 0x47 Supported" false="PID 0x47 Unsupported" />
+			<conversion expr="A0" true="PID 0x48 Supported" false="PID 0x48 Unsupported" />
+			
+			<conversion expr="B7" true="PID 0x49 Supported" false="PID 0x49 Unsupported" />
+			<conversion expr="B6" true="PID 0x4A Supported" false="PID 0x4A Unsupported" />
+			<conversion expr="B5" true="PID 0x4B Supported" false="PID 0x4B Unsupported" />
+			<conversion expr="B4" true="PID 0x4C Supported" false="PID 0x4C Unsupported" />
+			<conversion expr="B3" true="PID 0x4D Supported" false="PID 0x4D Unsupported" />
+			<conversion expr="B2" true="PID 0x4E Supported" false="PID 0x4E Unsupported" />
+			<conversion expr="B1" true="PID 0x4F Supported" false="PID 0x4F Unsupported" />
+			<conversion expr="B0" true="PID 0x50 Supported" false="PID 0x50 Unsupported" />
+			
+			<conversion expr="C7" true="PID 0x51 Supported" false="PID 0x51 Unsupported" />
+			<conversion expr="C6" true="PID 0x52 Supported" false="PID 0x52 Unsupported" />
+			<conversion expr="C5" true="PID 0x53 Supported" false="PID 0x53 Unsupported" />
+			<conversion expr="C4" true="PID 0x54 Supported" false="PID 0x54 Unsupported" />
+			<conversion expr="C3" true="PID 0x55 Supported" false="PID 0x55 Unsupported" />
+			<conversion expr="C2" true="PID 0x56 Supported" false="PID 0x56 Unsupported" />
+			<conversion expr="C1" true="PID 0x57 Supported" false="PID 0x57 Unsupported" />
+			<conversion expr="C0" true="PID 0x58 Supported" false="PID 0x58 Unsupported" />
+			
+			<conversion expr="D7" true="PID 0x59 Supported" false="PID 0x59 Unsupported" />
+			<conversion expr="D6" true="PID 0x5A Supported" false="PID 0x5A Unsupported" />
+			<conversion expr="D5" true="PID 0x5B Supported" false="PID 0x5B Unsupported" />
+			<conversion expr="D4" true="PID 0x5C Supported" false="PID 0x5C Unsupported" />
+			<conversion expr="D3" true="PID 0x5D Supported" false="PID 0x5D Unsupported" />
+			<conversion expr="D2" true="PID 0x5E Supported" false="PID 0x5E Unsupported" />
+			<conversion expr="D1" true="PID 0x5F Supported" false="PID 0x5F Unsupported" />
+			<conversion expr="D0" true="PID 0x60 Supported" false="PID 0x60 Unsupported" />
 		</parameter>
 
 		<parameter name="Monitor Status this Drive Cycle"
@@ -725,7 +801,6 @@
 			<conversion expr="D5" true="Oxygen Sensor monitoring incomplete" false="Oxygen Sensor monitoring complete" />
 			<conversion expr="D6" true="Oxygen Sensor Heater monitoring incomplete" false="Oxygen Sensor Heater monitoring complete" />
 			<conversion expr="D7" true="EGR System monitoring incomplete" false="EGR System monitoring complete" />
-			
 		</parameter>
 
 		<parameter name="Control Module Voltage"
@@ -807,8 +882,25 @@
 			<conversion units="g/s" expr="A*10" min="0" max="2550" />
 		</parameter>
 		
+		<!-- END MODE $01 PIDs -->
+		
+		<!-- START MODE $02 PIDs -->
+		<parameter name="Freeze DTC"
+			request="0x02 0x02" response.prefix="0x42 0x02" response.bytes="2">
+			<!--	0x02 0x02 returns the DTC which caused the freeze frame data
+					available in Mode $02 to be saved -->
+			<conversion expr="(A && 0b11000000) == 0" true="P" desc="First DTC Character is P (Powertrain)" />
+			<conversion expr="(A && 0b11000000) == 0" true="C" desc="First DTC Character is C (Chassis)" />
+			<conversion expr="(A && 0b11000000) == 0" true="B" desc="First DTC Character is B (Body)" />
+			<conversion expr="(A && 0b11000000) == 0" true="U" desc="First DTC Character is U (Network)" />
+			<conversion expr="(A && 0b00110000)" min="0" max="3" desc="Second DTC Character" />
+			<conversion expr="(A && 0b00001111)" min="0" max="F" desc="Third DTC Character" />
+			<conversion expr="(B && 0b11110000)" min="0" max="F" desc="Fourth DTC Character" />
+			<conversion expr="(B && 0b00001111)" min="0" max="F" desc="Fifth DTC Character" />
+		</parameter>
+		<!-- END MODE $02 PIDs -->
+		
 	</parameters>
-	
 </spec>
 
 <spec name="NCON3" desc="Nissan Consult III">
