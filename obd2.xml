@@ -947,6 +947,55 @@
 			</condition>
 		</parameter>
 		
+		<parameter name="Short Term Secondary Oxygen Sensor Fuel Trim - Bank 1 [and Bank 3]"
+			request="0x01 0x55" response.prefix="0x41 0x55" response.bytes="N">
+			<conversion units="%" expr="(A-128)*100/128" min="-100" max="99.22" />
+		</parameter>
+		
+		<parameter name="Long Term Secondary Oxygen Sensor Fuel Trim - Bank 1 [and Bank 3]"
+			request="0x01 0x56" response.prefix="0x41 0x56" response.bytes="N">
+			<conversion units="%" expr="(A-128)*100/128" min="-100" max="99.22" />
+		</parameter>
+		
+		<parameter name="Short Term Secondary Oxygen Sensor Fuel Trim - Bank 2 [and Bank 4]"
+			request="0x01 0x57" response.prefix="0x41 0x57" response.bytes="N">
+			<conversion units="%" expr="(A-128)*100/128" min="-100" max="99.22" />
+		</parameter>
+		
+		<parameter name="Long Term Secondary Oxygen Sensor Fuel Trim - Bank 2 [and Bank 4]"
+			request="0x01 0x58" response.prefix="0x41 0x58" response.bytes="N">
+			<conversion units="%" expr="(A-128)*100/128" min="-100" max="99.22" />
+		</parameter>
+		
+		<parameter name="Fuel Rail Pressure (Absolute)"
+			request="0x01 0x59" response.prefix="0x41 0x59" response.bytes="2">
+			<conversion units="kPa" expr="((A*256)+B)*10" min="0" max="655350" />
+		</parameter>
+		
+		<parameter name="Relative Accelerator Pedal Position"
+			request="0x01 0x5A" response.prefix="0x41 0x5A" response.bytes="1">
+			<conversion units="%" expr="A*100/255" min="0" max="100" />
+		</parameter>
+		
+		<parameter name="Hybrid Battery Pack Remaining Life"
+			request="0x01 0x5B" response.prefix="0x41 0x5B" response.bytes="1">
+			<conversion units="%" expr="A*100/255" min="0" max="100" />
+		</parameter>
+		
+		<parameter name="Engine Oil Temperature" 
+			request="0x01 0x5C" response.prefix="0x41 0x5C" response.bytes="1">
+			<conversion units="C" expr="A-40" min="-40" max="210" />
+		</parameter>
+		
+		<parameter name="Fuel Injection Timing" 
+			request="0x01 0x5D" response.prefix="0x41 0x5D" response.bytes="2">
+			<conversion units="degrees" expr="(((A*256)+B)-26,880)/128" min="-210" max="301.992" />
+		</parameter>
+		
+		<parameter name="Engine Fuel Rate" 
+			request="0x01 0x5E" response.prefix="0x41 0x5E" response.bytes="2">
+			<conversion units="L/h" expr="((A*256)+B)*0.05" min="0" max="3212.75" />
+		</parameter>
 		<!-- END MODE $01 PIDs -->
 		
 		<!-- START MODE $02 PIDs -->
