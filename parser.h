@@ -11,8 +11,22 @@ namespace obdref
 class Parser
 {
 public:
-    Parser(QString const &pathToXmlData);
-    ~Parser();
+    Parser(QString const &filePath, bool &parsedOk);
+
+    bool BuildRequest(QString const &specName,
+                      QString const &protocolName,
+                      QString const &addressName,
+                      QString const &paramName,
+                      Message &requestMsg);
+
+    bool ParseMessage(Message const &parseMsg,
+                      QString &jsonStr);
+
+private:
+    void walkParameterParseTree(pugi::xml_node &nodeParameter);
+
+    QString m_xmlFilePath;
+    pugi::xml_document m_xmlDoc;
 };
 }
 #endif // PARSER_H
