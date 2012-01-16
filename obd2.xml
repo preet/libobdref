@@ -13,6 +13,8 @@
 		http://en.wikipedia.org/wiki/On-board_diagnostics
 		http://en.wikipedia.org/wiki/OBD-II_PIDs
 		http://freediag.sourceforge.net
+		http://www.canobd2.com/Articles/ArticleDisplay.aspx?ArticleId=f3ea9f25589e4bf28f7e980ebefded20&nsl=Tech+Info%2cOBD+Knowledge&ReturnUrl=%2fArticles%2fArticleDisplay.aspx%3fArticleId%3d1efd0812b59d4b189e2420295b377631%26nsl%3dTech%2bInfo%252cOBD%2bKnowledge
+		http://www.peak-system.com/produktcd/Pdf/English/PCAN-GPRS_Link_UserMan_eng.pdf
 		
 		-->
 
@@ -654,9 +656,20 @@
 			<conversion units="km" expr="(A*256)+B" min="0" max="65535" />
 		</parameter>
 		
-		<parameter name="Evaporative System Vapor Pressure"
+		<parameter name="Evaporative System Vapour Pressure (1)"
 			request="0x01 0x32" response.prefix="0x41 0x32" response.bytes="2">
-			<conversion units="Pa" expr="((A*256)+B)/4" min="-8192" max="8192" />
+			<!--	A is signed (+ve) with (I THINK) 2's complement -- needs to be VERIFIED
+					min, max are different than values listed on Wikipedia since they don't
+					make sense to me if the value is signed with 2's complement  -->
+			<condition expr="(A & 0b10000000) == 0"> 
+				<conversion units="Pa" expr="((A*256)+B)/4" min="-8192" max="8192" />
+			</condition>
+			<!--	A is signed (-ve) with (I THINK) 2's complement -- needs to be VERIFIED
+					min, max are different than values listed on Wikipedia since they don't
+					make sense to me if the value is signed with 2's complement  -->
+			<condition expr="(A & 0b10000000) == 1">
+				<conversion units="Pa" expr="(((~(A-1))*256)+B)/4" min="-8192" max="8192" />
+			</condition>
 		</parameter>
 
 		<parameter name="Barometric Pressure"
@@ -882,23 +895,108 @@
 			<conversion units="g/s" expr="A*10" min="0" max="2550" />
 		</parameter>
 		
+		<parameter name="Fuel Type"
+			request="0x01 0x51" response.prefix="0x41 0x51" response.bytes="1">
+			<conversion expr="A == 0x01" true="Gasoline" />
+			<conversion expr="A == 0x02" true="Methanol" />
+			<conversion expr="A == 0x03" true="Ethanol" />
+			<conversion expr="A == 0x04" true="Diesel" />
+			<conversion expr="A == 0x05" true="LPG" /> 			<!-- LPG: Liquified Petroleum Gas -->
+			<conversion expr="A == 0x06" true="CNG" /> 			<!-- CNG: Compressed Natural Gas -->
+			<conversion expr="A == 0x07" true="Propane" /> 		<!-- and propane accessories -->
+			<conversion expr="A == 0x08" true="Electric" />
+			<conversion expr="A == 0x09" true="Bifuel running Gasoline" />
+			<conversion expr="A == 0x0A" true="Bifuel running Methanol" />
+			<conversion expr="A == 0x0B" true="Bifuel running Ethanol" />
+			<conversion expr="A == 0x0C" true="Bifuel running LPG" />
+			<conversion expr="A == 0x0D" true="Bifuel running CNG" />
+			<conversion expr="A == 0x0E" true="Bifuel running Propane" />
+			<conversion expr="A == 0x0F" true="Bifuel running Electricity" />
+			<conversion expr="A == 0x10" true="Bifuel Mixed Gas/Electric" />
+			<conversion expr="A == 0x11" true="Hybrid Gasoline" />
+			<conversion expr="A == 0x12" true="Hybrid Ethanol" />
+			<conversion expr="A == 0x13" true="Hybrid Diesel" />
+			<conversion expr="A == 0x14" true="Hybrid Electric" />
+			<conversion expr="A == 0x15" true="Hybrid Mixed Fuel" />
+			<conversion expr="A == 0x16" true="Hybrid Regenerative" />
+		</parameter>
+		
+		<parameter name="Ethanol Fuel %"
+			request="0x01 0x52" response.prefix="0x41 0x52" response.bytes="1">
+			<conversion units="%" expr="A*100/255" min="0" max="100" />
+		</parameter>
+		
+		<parameter name="Absolute Evaporative System Vapour Pressure"
+			request="0x01 0x53" response.prefix="0x41 0x53" response.bytes="2">
+			<conversion units="kPa" expr="((A*256)+B)*0.005" min="0" max="327.675" />
+		</parameter>
+		
+		<parameter name="Evaporative System Vapour Pressure (2)"
+			request="0x01 0x54" response.prefix="0x41 0x54" response.bytes="2">
+			<!--	A is signed (+ve) with (I THINK) 2's complement -- needs to be VERIFIED
+					min, max are different than values listed on Wikipedia since they don't
+					make sense to me if the value is signed with 2's complement  -->
+			<condition expr="(A & 0b10000000) == 0"> 
+				<conversion units="Pa" expr="(A*256)+B" min="-32768" max="32767" />
+			</condition>
+			<!--	A is signed (-ve) with (I THINK) 2's complement -- needs to be VERIFIED
+					min, max are different than values listed on Wikipedia since they don't
+					make sense to me if the value is signed with 2's complement  -->
+			<condition expr="(A & 0b10000000) == 1">
+				<conversion units="Pa" expr="((~(A-1))*256) + B" min="-32768" max="32767" />
+			</condition>
+		</parameter>
+		
 		<!-- END MODE $01 PIDs -->
 		
 		<!-- START MODE $02 PIDs -->
-		<parameter name="Freeze DTC"
-			request="0x02 0x02" response.prefix="0x42 0x02" response.bytes="2">
-			<!--	0x02 0x02 returns the DTC which caused the freeze frame data
-					available in Mode $02 to be saved -->
-			<conversion expr="(A && 0b11000000) == 0" true="P" desc="First DTC Character is P (Powertrain)" />
-			<conversion expr="(A && 0b11000000) == 0" true="C" desc="First DTC Character is C (Chassis)" />
-			<conversion expr="(A && 0b11000000) == 0" true="B" desc="First DTC Character is B (Body)" />
-			<conversion expr="(A && 0b11000000) == 0" true="U" desc="First DTC Character is U (Network)" />
-			<conversion expr="(A && 0b00110000)" min="0" max="3" desc="Second DTC Character" />
-			<conversion expr="(A && 0b00001111)" min="0" max="F" desc="Third DTC Character" />
-			<conversion expr="(B && 0b11110000)" min="0" max="F" desc="Fourth DTC Character" />
-			<conversion expr="(B && 0b00001111)" min="0" max="F" desc="Fifth DTC Character" />
+		<parameter name="Freeze Frame DTC"
+			request="0x02 0x02 0x00" response.prefix="0x42 0x02 0x00" response.bytes="2">
+			<!--	0x02 0x02 0x00 returns the DTC which caused the freeze frame data
+					available in Mode $02 to be saved. Freeze frame 0x00 is set the
+					generic frame set by default -- any other frames set are
+					manufacturer specific, so we request 0x00.
+					
+			<!--	Note: If nothing is returned, it may indicate that no freeze
+							frame data is available -->
+							
+			<conversion expr="!(A || B)" true="No Freeze Frame Data Available" />
+			<condition expr="(A || B)">
+				<conversion expr="(A & 0b11000000) == 0" true="P" desc="First DTC Character is P (Powertrain)" />
+				<conversion expr="(A & 0b11000000) == 1" true="C" desc="First DTC Character is C (Chassis)" />
+				<conversion expr="(A & 0b11000000) == 2" true="B" desc="First DTC Character is B (Body)" />
+				<conversion expr="(A & 0b11000000) == 3" true="U" desc="First DTC Character is U (Network)" />
+				<conversion expr="(A & 0b00110000)" min="0" max="3" desc="Second DTC Character" />
+				<conversion expr="(A & 0b00001111)" min="0" max="F" desc="Third DTC Character" />
+				<conversion expr="(B & 0b11110000)" min="0" max="F" desc="Fourth DTC Character" />
+				<conversion expr="(B & 0b00001111)" min="0" max="F" desc="Fifth DTC Character" />
+			</condition>
 		</parameter>
 		<!-- END MODE $02 PIDs -->
+		
+		<!-- START MODE $03 -->
+		<parameter name="Request Stored Diagnostic Trouble Codes"
+			request="0x03" response.prefix="0x43" response.bytes="2N">
+
+			<!--	Mode $03 is to request stored DTCs. The vehicle returns 2*N bytes excluding
+					the response prefix, with each set of 2 bytes specifying a single DTC.
+					If no DTCs are stored, the vehicle might respond with (0x00 0x00) for each
+					possible DTC that would fit into a frame (3 DTCs, 6 bytes all 0x00 in a
+					single standard OBD frame), or the vehicle may not respond at all. -->
+							
+			<conversion expr="!(A || B)" true="No DTCs Stored" />
+			<condition expr="(A || B)">
+				<conversion expr="(A & 0b11000000) == 0" true="P" desc="First DTC Character is P (Powertrain)" />
+				<conversion expr="(A & 0b11000000) == 1" true="C" desc="First DTC Character is C (Chassis)" />
+				<conversion expr="(A & 0b11000000) == 2" true="B" desc="First DTC Character is B (Body)" />
+				<conversion expr="(A & 0b11000000) == 3" true="U" desc="First DTC Character is U (Network)" />
+				<conversion expr="(A & 0b00110000)" min="0" max="3" desc="Second DTC Character" />
+				<conversion expr="(A & 0b00001111)" min="0" max="F" desc="Third DTC Character" />
+				<conversion expr="(B & 0b11110000)" min="0" max="F" desc="Fourth DTC Character" />
+				<conversion expr="(B & 0b00001111)" min="0" max="F" desc="Fifth DTC Character" />
+			</condition>
+		</parameter>
+		
 		
 	</parameters>
 </spec>
