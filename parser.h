@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <QString>
+#include <QDebug>
 #include "pugixml/pugixml.hpp"
 #include "message.h"
 
@@ -13,7 +14,7 @@ class Parser
 public:
     Parser(QString const &filePath, bool &parsedOk);
 
-    bool BuildRequest(QString const &specName,
+    bool BuildMessage(QString const &specName,
                       QString const &protocolName,
                       QString const &addressName,
                       QString const &paramName,
@@ -23,7 +24,9 @@ public:
                       QString &jsonStr);
 
 private:
-    void walkParameterParseTree(pugi::xml_node &nodeParameter);
+    void walkConditionTree(pugi::xml_node &nodeParameter,
+                           QStringList &listConditions,
+                           Message &requestMsg);
 
     QString m_xmlFilePath;
     pugi::xml_document m_xmlDoc;

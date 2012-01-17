@@ -9,8 +9,8 @@ int main()
     obdref::Parser myParser(filePath,parsedOk);
 
     obdref::Message someMsg;
-    myParser.BuildRequest("SAEJ1979","ISO 15765-4 (11-bit id)",
-                          "Default","Engine RPM",someMsg);
+    myParser.BuildMessage("SAEJ1979","ISO 15765-4 (11-bit id)",
+                          "Default","Vehicle Speed",someMsg);
 
     return 0;
 }

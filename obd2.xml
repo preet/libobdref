@@ -997,25 +997,6 @@
 			<parse units="L/h" expr="((A*256)+B)*0.05" min="0" max="3212.75" />
 		</parameter>
 		
-		<parameter name="Some Magic Param"
-			request="0x01 0x99" response.prefix="0x41 0x99" response.bytes="1">
-			<condition expr="">
-				<condition expr="">
-					<parse />
-					<parse />
-				</condition>
-				<condition expr="">
-					<parse />
-				</condition>
-				<parse />
-			</condition>
-			<condition expr="">
-				<parse />
-				<condition expr="">
-					<parse />
-				</condition>
-			</condition>
-		</parameter>
 		<!-- END MODE $01 PIDs -->
 		
 		<!-- START MODE $02 PIDs -->
