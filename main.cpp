@@ -10,7 +10,7 @@ int main()
 
     obdref::Message someMsg;
     myParser.BuildMessage("SAEJ1979","ISO 14230-4",
-                          "Default","Vehicle Speed",someMsg);
+                          "Default","Evaporative System Vapour Pressure (1)",someMsg);
 
     return 0;
 }

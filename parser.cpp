@@ -253,7 +253,39 @@ namespace obdref
                                 pugi::xml_node parseChild = nodeParameter.child("parse");
                                 for(parseChild; parseChild; parseChild = parseChild.next_sibling("parse"))
                                 {
-                                    // SAVE PARSE EXPR
+                                    // SAVE PARSE EXPR                                    
+                                    QString pExpr(parseChild.attribute("expr").value());
+                                    if(!pExpr.isEmpty())
+                                    {
+                                        ParseInfo parseInfo;
+                                        parseInfo.expr = pExpr;
+
+                                        QString pExprTrue(parseChild.attribute("true").value());
+                                        QString pExprFalse(parseChild.attribute("false").value());
+                                        if(pExprTrue.isEmpty() && pExprFalse.isEmpty())
+                                        {   // assume value is numerical
+                                            parseInfo.isNumerical = true;
+                                            if(parseChild.attribute("min"))
+                                            {
+                                                parseInfo.hasMin = true;
+                                                parseInfo.valueMin = parseChild.attribute("min").as_double();
+                                            }
+                                            if(parseChild.attribute("max"))
+                                            {
+                                                parseInfo.hasMax = true;
+                                                parseInfo.valueMax = parseChild.attribute("max").as_double();
+                                            }
+                                        }
+                                        else
+                                        {   // assume value is a boolean flag
+                                            parseInfo.isFlag = true;
+                                            parseInfo.valueIfTrue = pExprTrue;
+                                            parseInfo.valueIfFalse = pExprFalse;
+                                        }
+
+                                        // save parse info
+                                        requestMsg.listParseInfo.append(parseInfo);
+                                    }
                                 }
 
                                 // call walkConditionTree on <condition> children this parameter has
@@ -263,6 +295,25 @@ namespace obdref
                                 {
                                     walkConditionTree(condChild, listConditionExprs, requestMsg);
                                 }
+
+                                #ifdef OBDREF_DEBUG_ON
+                                std::cerr << "OBDREF_DEBUG: " << specName.toStdString() << ", "
+                                          << protocolName.toStdString() << ", " << addressName.toStdString()
+                                          << ", " << paramName.toStdString() << ":" << std::endl;
+
+                                for(int i=0; i < requestMsg.listParseInfo.size(); i++)
+                                {
+                                    std::cerr << "OBDREF_DEBUG: \t";
+                                    for(int j=0; j < requestMsg.listParseInfo.at(i).listConditions.size(); j++)
+                                    {
+                                        std::cerr << "Condition: { ";
+                                        std::cerr << requestMsg.listParseInfo.at(i).listConditions.at(j).toStdString()
+                                                  << " }, ";
+                                    }
+                                    std::cerr << "Eval: { " << requestMsg.listParseInfo.at(i).expr.toStdString() << " }"
+                                              << std::endl;
+                                }
+                                #endif
 
                                 return true;
                             }
@@ -298,6 +349,7 @@ namespace obdref
             std::cerr << "OBDREF_DEBUG: Error: Could not find parameter "
                       << paramName.toStdString() << std::endl;
         }
+
         #endif
 
         return false;
@@ -316,14 +368,47 @@ namespace obdref
         for(parseChild; parseChild; parseChild = parseChild.next_sibling("parse"))
         {
             // SAVE PARSE EXPR WITH CONDITION LIST
+            QString pExpr(parseChild.attribute("expr").value());
+            if(!pExpr.isEmpty())
+            {
+                ParseInfo parseInfo;
+                parseInfo.expr = pExpr;
 
-            #ifdef OBDREF_DEBUG_ON
-            std::cerr << "OBDREF_DEBUG: Conditions: ";
-            for(int i=0; i < listConditionExprs.size(); i++)
-            {   std::cerr << listConditionExprs.at(i).toStdString() << ", ";   }
-            std::cerr << " Parse Expr: " << parseChild.attribute("expr").value();
-            std::cerr << std::endl;
-            #endif
+                QString pExprTrue(parseChild.attribute("true").value());
+                QString pExprFalse(parseChild.attribute("false").value());
+                if(pExprTrue.isEmpty() && pExprFalse.isEmpty())
+                {   // assume value is numerical
+                    parseInfo.isNumerical = true;
+                    if(parseChild.attribute("min"))
+                    {
+                        parseInfo.hasMin = true;
+                        parseInfo.valueMin = parseChild.attribute("min").as_double();
+                    }
+                    if(parseChild.attribute("max"))
+                    {
+                        parseInfo.hasMax = true;
+                        parseInfo.valueMax = parseChild.attribute("max").as_double();
+                    }
+                }
+                else
+                {   // assume value is a boolean flag
+                    parseInfo.isFlag = true;
+                    parseInfo.valueIfTrue = pExprTrue;
+                    parseInfo.valueIfFalse = pExprFalse;
+                }
+
+                // save parse info (with conditions!)
+                parseInfo.listConditions = listConditionExprs;
+                requestMsg.listParseInfo.append(parseInfo);
+            }
+
+//            #ifdef OBDREF_DEBUG_ON
+//            std::cerr << "OBDREF_DEBUG: Conditions: ";
+//            for(int i=0; i < listConditionExprs.size(); i++)
+//            {   std::cerr << listConditionExprs.at(i).toStdString() << ", ";   }
+//            std::cerr << " Parse Expr: " << parseChild.attribute("expr").value();
+//            std::cerr << std::endl;
+//            #endif
         }
 
         // call walkConditionTree recursively on <condition>

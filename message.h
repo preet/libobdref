@@ -12,9 +12,12 @@ public:
     QString expr;
 
     bool isNumerical;
+
+    bool hasMin;
     double valueMin;
+
+    bool hasMax;
     double valueMax;
-    double valueIfNumber;
 
     bool isFlag;
     QString valueIfTrue;
