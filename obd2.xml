@@ -15,6 +15,7 @@
 		http://freediag.sourceforge.net
 		http://www.canobd2.com/Articles/ArticleDisplay.aspx?ArticleId=f3ea9f25589e4bf28f7e980ebefded20&nsl=Tech+Info%2cOBD+Knowledge&ReturnUrl=%2fArticles%2fArticleDisplay.aspx%3fArticleId%3d1efd0812b59d4b189e2420295b377631%26nsl%3dTech%2bInfo%252cOBD%2bKnowledge
 		http://www.peak-system.com/produktcd/Pdf/English/PCAN-GPRS_Link_UserMan_eng.pdf
+		http://www.drewtech.com/support/obd2/message.html
 		
 		-->
 
@@ -105,15 +106,15 @@
 				prio:			0b11LLLLLL: Mode (functional) and data length
 				target:		0x33: Functional Request 
 				source:		0xF1: External Scan Tool	-->
-			<request prio="0b11LLLLLL" target="0x33" source="0xF1" />
+			<request prio="0b11000000" target="0x33" source="0xF1" />
 			
 		<!--	Response Params:
 				prio:			0b10LLLLLL: Mode (physical) and data length -->
-			<response prio="0b10LLLLLL" target="0xF1" />
+			<response prio="0b10000000" target="0xF1" />
 		</address>
 	</protocol>
 	
-	<protocol name="ISO 15765-4 (29-bit id)">
+	<protocol name="ISO 15765-4 Extended">
 		<baudrate value="250000" />
 		<baudrate value="500000" />
 		<!--	Identifier Format: [prio] [format] [target] [source] -->
@@ -135,7 +136,7 @@
 		</address>
 	</protocol>
 	
-	<protocol name="ISO 15765-4 (11-bit id)">
+	<protocol name="ISO 15765-4 Standard">
 		<baudrate value="250000" />
 		<baudrate value="500000" />
 		<!--	Identifier Format: [11-bit identifier]

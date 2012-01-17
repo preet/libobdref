@@ -62,20 +62,145 @@ namespace obdref
 
                                 // BUILD HEADER HERE
 
-                                // special case 1: ISO 14230-4
-                                // we have to embed the number of data bytes being
-                                // sent out in the prio byte of the header -- this
-                                // must be done later on
+                                // special case 1: ISO 15765-4 (11-bit id)
+                                // store 11-bits in two bytes
+                                if(protocolName == "ISO 15765-4 Standard")
+                                {
+                                    pugi::xml_node nodeReq = nodeAddress.child("request");
+                                    if(nodeReq)
+                                    {
+                                        QString myHeader(nodeReq.attribute("identifier").value());
+                                        if(!myHeader.isEmpty())
+                                        {
+                                            bool convOk = false;
+                                            uint headerVal = stringToUInt(convOk,myHeader);
+                                            uint upperByte = headerVal & 3840;      // 0b0000111100000000 = 3840
+                                            uint lowerByte = headerVal & 255;       // 0b0000000011111111 = 255
 
-                                // special case 2: ISO 15765-4 (11-bit id)
-                                // we're given one and a half bytes to represent
-                                // 11-bit headers (ie. 0x7DF), how should this be stored?
+                                            requestMsg.requestHeaderBytes.append(char(upperByte));
+                                            requestMsg.requestHeaderBytes.append(char(lowerByte));
+                                        }
+                                    }
 
-                                // special case 3: ISO 15765-4 (29-bit id)
+                                    pugi::xml_node nodeResp = nodeAddress.child("response");
+                                    if(nodeResp)
+                                    {
+                                        QString myHeader(nodeResp.attribute("identifier").value());
+                                        if(!myHeader.isEmpty())
+                                        {
+                                            bool convOk = false;
+                                            uint headerVal = stringToUInt(convOk,myHeader);
+                                            uint upperByte = headerVal & 3840;      // 0b0000111100000000 = 3840
+                                            uint lowerByte = headerVal & 255;       // 0b0000000011111111 = 255
+
+                                            requestMsg.expectedHeaderBytes.append(char(upperByte));
+                                            requestMsg.expectedHeaderBytes.append(char(lowerByte));
+                                        }
+                                    }
+                                }
+
+                                // special case 2: ISO 15765-4 (29-bit id)
                                 // we have to include the special 'format' byte
                                 // that differentiates between physical and functional
                                 // addressing, so this header is made up of four bytes:
                                 // [prio] [format] [target] [source]
+                                else if(protocolName == "ISO 15765-4 Extended")
+                                {
+                                    pugi::xml_node nodeReq = nodeAddress.child("request");
+                                    if(nodeReq)
+                                    {
+                                        QString headerPrio(nodeReq.attribute("prio").value());
+                                        QString headerFormat(nodeReq.attribute("format").value());
+                                        QString headerTarget(nodeReq.attribute("target").value());
+                                        QString headerSource(nodeReq.attribute("source").value());
+
+                                        bool convOk = false;
+
+                                        uint prioByte = stringToUInt(convOk,headerPrio);
+                                        requestMsg.requestHeaderBytes.append(char(prioByte));
+
+                                        uint formatByte = stringToUInt(convOk,headerFormat);
+                                        requestMsg.requestHeaderBytes.append(char(formatByte));
+
+                                        uint targetByte = stringToUInt(convOk,headerTarget);
+                                        requestMsg.requestHeaderBytes.append(char(targetByte));
+
+                                        uint sourceByte = stringToUInt(convOk,headerSource);
+                                        requestMsg.requestHeaderBytes.append(char(sourceByte));
+                                    }
+
+                                    pugi::xml_node nodeResp = nodeAddress.child("response");
+                                    if(nodeResp)
+                                    {
+                                        QString headerPrio(nodeResp.attribute("prio").value());
+                                        QString headerFormat(nodeResp.attribute("format").value());
+                                        QString headerTarget(nodeResp.attribute("target").value());
+                                        QString headerSource(nodeResp.attribute("source").value());
+
+                                        bool convOk = false;
+
+                                        uint prioByte = stringToUInt(convOk,headerPrio);
+                                        requestMsg.expectedHeaderBytes.append(char(prioByte));
+
+                                        uint formatByte = stringToUInt(convOk,headerFormat);
+                                        requestMsg.expectedHeaderBytes.append(char(formatByte));
+
+                                        uint targetByte = stringToUInt(convOk,headerTarget);
+                                        requestMsg.expectedHeaderBytes.append(char(targetByte));
+
+                                        if(!headerSource.isEmpty())
+                                        {
+                                            uint sourceByte = stringToUInt(convOk,headerSource);
+                                            requestMsg.expectedHeaderBytes.append(char(sourceByte));
+                                        }
+                                    }
+                                }
+
+                                else
+                                {
+                                    // special case 3/note: ISO 14230-4
+                                    // the data length needs to be inserted into the
+                                    // priority byte (has to be done later)
+
+                                    pugi::xml_node nodeReq = nodeAddress.child("request");
+                                    if(nodeReq)
+                                    {
+                                        QString headerPrio(nodeReq.attribute("prio").value());
+                                        QString headerTarget(nodeReq.attribute("target").value());
+                                        QString headerSource(nodeReq.attribute("source").value());
+
+                                        bool convOk = false;
+                                        uint prioByte = stringToUInt(convOk,headerPrio);
+                                        requestMsg.requestHeaderBytes.append(char(prioByte));
+
+                                        uint targetByte = stringToUInt(convOk,headerTarget);
+                                        requestMsg.requestHeaderBytes.append(char(targetByte));
+
+                                        uint sourceByte = stringToUInt(convOk,headerSource);
+                                        requestMsg.requestHeaderBytes.append(char(sourceByte));
+                                    }
+
+                                    pugi::xml_node nodeResp = nodeAddress.child("response");
+                                    if(nodeResp)
+                                    {
+                                        QString headerPrio(nodeResp.attribute("prio").value());
+                                        QString headerTarget(nodeResp.attribute("target").value());
+                                        QString headerSource(nodeResp.attribute("source").value());
+
+                                        bool convOk = false;
+                                        uint prioByte = stringToUInt(convOk,headerPrio);
+                                        requestMsg.expectedHeaderBytes.append(char(prioByte));
+
+                                        uint targetByte = stringToUInt(convOk,headerTarget);
+                                        requestMsg.expectedHeaderBytes.append(char(targetByte));
+
+                                        if(!headerSource.isEmpty())
+                                        {
+                                            uint sourceByte = stringToUInt(convOk,headerSource);
+                                            requestMsg.expectedHeaderBytes.append(char(sourceByte));
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -100,8 +225,29 @@ namespace obdref
                                 foundParameter = true;
 
                                 // BUILD DATA BYTES HERE
+                                bool convOk = false;
 
-                                QStringList listConditionExprs;
+                                // data request bytes
+                                QString requestBytes(nodeParameter.attribute("request").value());
+                                QStringList listRequestBytes = requestBytes.split(" ");
+                                for(int i=0; i < listRequestBytes.size(); i++)
+                                {
+                                    uint dataByte = stringToUInt(convOk,listRequestBytes.at(i));
+                                    requestMsg.requestDataBytes.append(char(dataByte));
+                                }
+
+                                // expected response prefix
+                                QString respPrefix(nodeParameter.attribute("response.prefix").value());
+                                QStringList listRespPrefix = respPrefix.split(" ");
+                                for(int i=0; i < listRespPrefix.size(); i++)
+                                {
+                                    uint dataByte = stringToUInt(convOk,listRespPrefix.at(i));
+                                    requestMsg.expectedDataPrefix.append(char(dataByte));
+                                }
+
+                                // expected num response bytes
+                                QString respBytes(nodeParameter.attribute("response.bytes").value());
+                                requestMsg.expectedDataBytes = stringToUInt(convOk,respBytes);
 
                                 // save <parse /> children nodes this parameter has
                                 pugi::xml_node parseChild = nodeParameter.child("parse");
@@ -111,6 +257,7 @@ namespace obdref
                                 }
 
                                 // call walkConditionTree on <condition> children this parameter has
+                                QStringList listConditionExprs;
                                 pugi::xml_node condChild = nodeParameter.child("condition");
                                 for(condChild; condChild; condChild = condChild.next_sibling("condition"))
                                 {
@@ -189,5 +336,66 @@ namespace obdref
 
         // remove last condition expr added (since this is a DFS)
         listConditionExprs.removeLast();
+    }
+
+    uint Parser::stringToUInt(bool &convOk, const QString &parseStr)
+    {
+        // expect ONE token representing a number
+        // if str contains '0bXXXXX' -> parse as binary
+        // if str contains '0xXXXXX' -> parse as hex
+        // else parse as dec
+
+        bool conv;
+        QString myString(parseStr);
+
+        if(myString.contains("0b"))
+        {
+            myString.remove("0b");
+            uint myVal = myString.toUInt(&conv,2);
+            std::cerr << "BIN " << conv << " " << myString.toStdString() << ": " << myVal << std::endl;
+            if(conv)
+            {
+                convOk = conv;
+                return myVal;
+            }
+            else
+            {
+                convOk = false;
+                return 0;
+            }
+        }
+
+        else if(myString.contains("0x"))
+        {
+            myString.remove("0x");
+            uint myVal = myString.toUInt(&conv,16);
+            std::cerr << "HEX " << conv << " " << myString.toStdString() << ": " << myVal << std::endl;
+            if(conv)
+            {
+                convOk = conv;
+                return myVal;
+            }
+            else
+            {
+                convOk = false;
+                return 0;
+            }
+        }
+
+        else
+        {
+            uint myVal = myString.toUInt(&conv,10);
+            std::cerr << "DEC " << conv << " " << myString.toStdString() << ": " << myVal << std::endl;
+            if(conv)
+            {
+                convOk = conv;
+                return myVal;
+            }
+            else
+            {
+                convOk = false;
+                return 0;
+            }
+        }
     }
 }

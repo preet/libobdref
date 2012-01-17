@@ -28,6 +28,8 @@ private:
                            QStringList &listConditions,
                            Message &requestMsg);
 
+    uint stringToUInt(bool &convOk, QString const &parseStr);
+
     QString m_xmlFilePath;
     pugi::xml_document m_xmlDoc;
 };

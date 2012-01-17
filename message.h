@@ -38,7 +38,7 @@ public:
     // for response or monitored messages
     QByteArray expectedHeaderBytes;
     QByteArray expectedDataPrefix;
-    int expectedDataBytes;
+    uint expectedDataBytes;
 
     QList<ParseInfo> listParseInfo;
 };
