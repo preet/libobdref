@@ -8,14 +8,8 @@
 #include "muparser/muParser.h"
 #include "message.h"
 
-#define dValueOfBitPos0 1;
-#define dValueOfBitPos1 2;
-#define dValueOfBitPos2 4;
-#define dValueOfBitPos3 8;
-#define dValueOfBitPos4 16;
-#define dValueOfBitPos5 32;
-#define dValueOfBitPos6 64;
-#define dValueOfBitPos7 128;
+
+
 
 namespace obdref
 {

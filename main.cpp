@@ -7,10 +7,9 @@ int main()
     bool parsedOk;
     QString filePath = "/home/preet/Dev/obdref/obd2.xml";
     obdref::Parser myParser(filePath,parsedOk);
-
     obdref::Message someMsg;
-    someMsg.dataBytesSansPrefix.append(char(25));     // A
-    someMsg.dataBytesSansPrefix.append(char(11));     // B
+    someMsg.dataBytesSansPrefix.append(char(01));     // A
+    someMsg.dataBytesSansPrefix.append(char(25));     // B
     someMsg.dataBytesSansPrefix.append(char(75));     // C
     someMsg.dataBytesSansPrefix.append(char(34));     // D
     someMsg.dataBytesSansPrefix.append(char(58));     // E

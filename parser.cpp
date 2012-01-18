@@ -1,5 +1,49 @@
 #include "parser.h"
 
+
+mu::value_type muLogicalNot(mu::value_type fVal)
+{
+    std::cerr << "Called LogicalNot" << std::endl;
+
+    if(fVal == 0)
+    {   return 1;   }
+
+    else if(fVal == 1)
+    {   return 0;   }
+
+    else
+    {   throw mu::ParserError("LogicalNot: Argument is not 0 or 1");   }
+}
+
+mu::value_type muBitwiseNot(mu::value_type fVal)
+{
+    std::cerr << "Called BitwiseNot" << std::endl;
+
+    int iVal = (int)fVal;
+    iVal = ~iVal;
+    return mu::value_type(fVal);
+}
+
+mu::value_type muBitwiseAnd(mu::value_type fVal1, mu::value_type fVal2)
+{
+    std::cerr << "Called BitwiseAnd" << std::endl;
+
+    int iVal1 = (int)fVal1;
+    int iVal2 = (int)fVal2;
+    return double(iVal1 & iVal2);
+}
+
+mu::value_type muBitwiseOr(mu::value_type fVal1, mu::value_type fVal2)
+{
+    std::cerr << "Called BitwiseOr" << std::endl;
+
+    int iVal1 = (int)fVal1;
+    int iVal2 = (int)fVal2;
+    return double(iVal1 | iVal2);
+}
+
+
+
 namespace obdref
 {
     Parser::Parser(QString const &filePath, bool &parsedOk)
@@ -26,6 +70,12 @@ namespace obdref
         }
         #endif
 
+        // setup additional parser function
+        m_parser.DefineInfixOprt("!",muLogicalNot);
+        m_parser.DefineInfixOprt("~",muBitwiseNot);
+        m_parser.DefineOprt("&",muBitwiseAnd,3);
+        m_parser.DefineOprt("|",muBitwiseOr,3);
+
         // setup parser variables
         for(uint i=0; i < 26; i++)
         {
@@ -51,15 +101,6 @@ namespace obdref
         m_listDecValOfBitPos[5] = 32;
         m_listDecValOfBitPos[6] = 64;
         m_listDecValOfBitPos[7] = 128;
-
-//        catch(mu::Parser::exception_type &e)
-//        {
-//          std::cerr << "Message:  " << e.GetMsg() << "\n";
-//          std::cerr << "Formula:  " << e.GetExpr() << "\n";
-//          std::cerr << "Token:    " << e.GetToken() << "\n";
-//          std::cerr << "Position: " << e.GetPos() << "\n";
-//          std::cerr << "Errc:     " << e.GetCode() << "\n";
-//        }
     }
 
     bool Parser::BuildMessage(const QString &specName,
@@ -394,7 +435,7 @@ namespace obdref
     bool Parser::ParseMessage(const Message &parseMsg, QString &jsonStr)
     {
         QRegExp rx1; int pos=0; double fVal;
-        QString sampleExpr = "((A*256)+B5+F3)/32768";
+        QString sampleExpr = "A & B";
 
         // we mandate that the only variables allowed are bytes,
         // represented by a single capital letter, ie 'A' and
@@ -432,8 +473,21 @@ namespace obdref
         }
 
         // eval with muParser
-        m_parser.SetExpr(sampleExpr.toStdString());
-        fVal = m_parser.Eval();
+        try
+        {
+            m_parser.SetExpr(sampleExpr.toStdString());
+            fVal = m_parser.Eval();
+        }
+        catch(mu::Parser::exception_type &e)
+        {
+            std::cerr << "OBDREF_DEBUG: muParser: Message:  " << e.GetMsg() << "\n";
+            std::cerr << "OBDREF_DEBUG: muParser: Formula:  " << e.GetExpr() << "\n";
+            std::cerr << "OBDREF_DEBUG: muParser: Token:    " << e.GetToken() << "\n";
+            std::cerr << "OBDREF_DEBUG: muParser: Position: " << e.GetPos() << "\n";
+            std::cerr << "OBDREF_DEBUG: muParser: ErrC:     " << e.GetCode() << "\n";
+        }
+
+        qDebug() << "VALUE: " << fVal;
     }
 
     void Parser::walkConditionTree(pugi::xml_node &nodeCondition,
