@@ -4,6 +4,7 @@ namespace obdref
 {
     Parser::Parser(QString const &filePath, bool &parsedOk)
     {
+        // setup pugixml with xml source file
         m_xmlFilePath = filePath;
 
         pugi::xml_parse_result xmlParseResult;
@@ -306,9 +307,9 @@ namespace obdref
                                     std::cerr << "OBDREF_DEBUG: \t";
                                     for(int j=0; j < requestMsg.listParseInfo.at(i).listConditions.size(); j++)
                                     {
-                                        std::cerr << "Condition: { ";
+                                        std::cerr << " { ";
                                         std::cerr << requestMsg.listParseInfo.at(i).listConditions.at(j).toStdString()
-                                                  << " }, ";
+                                                  << " } | ";
                                     }
                                     std::cerr << "Eval: { " << requestMsg.listParseInfo.at(i).expr.toStdString() << " }"
                                               << std::endl;
@@ -353,6 +354,84 @@ namespace obdref
         #endif
 
         return false;
+    }
+
+    bool Parser::ParseMessage(const Message &parseMsg, QString &jsonStr)
+    {
+        QRegExp rx1; QRegExp rx2; int pos=0;
+        QString sampleExpr = "((A*256)+B5+F3)/32768";
+        QList<double> listVars;
+
+        // we mandate that the only variables allowed are bytes,
+        // represented by a single capital letter, ie 'A' and
+        // a given byte's individual bits, indicated by a number
+        // after the byte's letter, ie. 'A2' would be the second
+        // bit in byte A.
+
+        // 1 -  use regexp matching to find all
+        //      instances of [A-Z],[A-Z][0-7]
+        rx1.setPattern("([A-Z]|[A-Z][0-7])+");
+        QStringList listRegExpMatches;
+        while ((pos = rx1.indexIn(sampleExpr, pos)) != -1)
+        {
+             listRegExpMatches << rx1.cap(1);
+             pos += rx1.matchedLength();
+        }
+
+        for(int i=0; i < listRegExpMatches.size(); i++)
+        {
+            if(listRegExpMatches.at(i).size() == 1)
+            {   // BYTE VARIABLE
+
+                // set variable for muParser
+                uint byteNum = uint(listRegExpMatches.at(i).at(0).toAscii())-65;
+                listVars.append(double(parseMsg.dataBytesSansPrefix.at(byteNum)));
+
+                try
+                {
+                    std::string varName = listRegExpMatches[i].toStdString();
+                    m_parser.DefineVar(varName,&(listVars.last()));
+                }
+
+                catch(mu::Parser::exception_type &e)
+                {
+                  std::cerr << "Message:  " << e.GetMsg() << "\n";
+                  std::cerr << "Formula:  " << e.GetExpr() << "\n";
+                  std::cerr << "Token:    " << e.GetToken() << "\n";
+                  std::cerr << "Position: " << e.GetPos() << "\n";
+                  std::cerr << "Errc:     " << e.GetCode() << "\n";
+                }
+            }
+            else
+            {   // BIT VARIABLE
+
+                // set variable for muParser
+                uint byteNum = uint(listRegExpMatches.at(i).at(0).toAscii())-65;
+                uint byteVal = uint(parseMsg.dataBytesSansPrefix.at(byteNum));
+                int bitNum = listRegExpMatches.at(i).at(1).digitValue();
+                int bitMask = int(pow(2,bitNum));
+                listVars.append(double(byteVal & bitMask));
+
+                try
+                {
+                    std::string varName = listRegExpMatches[i].toStdString();
+                    m_parser.DefineVar(varName,&(listVars.last()));
+                }
+                catch(mu::Parser::exception_type &e)
+                {
+                  std::cerr << "Message:  " << e.GetMsg() << "\n";
+                  std::cerr << "Formula:  " << e.GetExpr() << "\n";
+                  std::cerr << "Token:    " << e.GetToken() << "\n";
+                  std::cerr << "Position: " << e.GetPos() << "\n";
+                  std::cerr << "Errc:     " << e.GetCode() << "\n";
+                }
+            }
+        }
+
+        sampleExpr.replace(rx1,"POOP");
+        std::cerr << sampleExpr.toStdString() << std::endl;
+
+
     }
 
     void Parser::walkConditionTree(pugi::xml_node &nodeCondition,
@@ -437,7 +516,6 @@ namespace obdref
         {
             myString.remove("0b");
             uint myVal = myString.toUInt(&conv,2);
-            std::cerr << "BIN " << conv << " " << myString.toStdString() << ": " << myVal << std::endl;
             if(conv)
             {
                 convOk = conv;
@@ -454,7 +532,6 @@ namespace obdref
         {
             myString.remove("0x");
             uint myVal = myString.toUInt(&conv,16);
-            std::cerr << "HEX " << conv << " " << myString.toStdString() << ": " << myVal << std::endl;
             if(conv)
             {
                 convOk = conv;
@@ -470,7 +547,6 @@ namespace obdref
         else
         {
             uint myVal = myString.toUInt(&conv,10);
-            std::cerr << "DEC " << conv << " " << myString.toStdString() << ": " << myVal << std::endl;
             if(conv)
             {
                 convOk = conv;

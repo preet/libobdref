@@ -43,6 +43,8 @@ public:
     QByteArray expectedDataPrefix;
     uint expectedDataBytes;
 
+    QByteArray dataBytesSansPrefix; //ie first byte is 'A'
+
     QList<ParseInfo> listParseInfo;
 };
 
