@@ -8,9 +8,6 @@
 #include "muparser/muParser.h"
 #include "message.h"
 
-
-
-
 namespace obdref
 {
 
@@ -37,6 +34,11 @@ private:
                            Message &requestMsg);
 
     uint stringToUInt(bool &convOk, QString const &parseStr);
+
+    static mu::value_type muLogicalNot(mu::value_type);
+    static mu::value_type muBitwiseNot(mu::value_type);
+    static mu::value_type muBitwiseOr(mu::value_type,mu::value_type);
+    static mu::value_type muBitwiseAnd(mu::value_type,mu::value_type);
 
     // pugixml vars
     QString m_xmlFilePath;

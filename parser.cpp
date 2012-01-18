@@ -1,49 +1,5 @@
 #include "parser.h"
 
-
-mu::value_type muLogicalNot(mu::value_type fVal)
-{
-    std::cerr << "Called LogicalNot" << std::endl;
-
-    if(fVal == 0)
-    {   return 1;   }
-
-    else if(fVal == 1)
-    {   return 0;   }
-
-    else
-    {   throw mu::ParserError("LogicalNot: Argument is not 0 or 1");   }
-}
-
-mu::value_type muBitwiseNot(mu::value_type fVal)
-{
-    std::cerr << "Called BitwiseNot" << std::endl;
-
-    int iVal = (int)fVal;
-    iVal = ~iVal;
-    return mu::value_type(fVal);
-}
-
-mu::value_type muBitwiseAnd(mu::value_type fVal1, mu::value_type fVal2)
-{
-    std::cerr << "Called BitwiseAnd" << std::endl;
-
-    int iVal1 = (int)fVal1;
-    int iVal2 = (int)fVal2;
-    return double(iVal1 & iVal2);
-}
-
-mu::value_type muBitwiseOr(mu::value_type fVal1, mu::value_type fVal2)
-{
-    std::cerr << "Called BitwiseOr" << std::endl;
-
-    int iVal1 = (int)fVal1;
-    int iVal2 = (int)fVal2;
-    return double(iVal1 | iVal2);
-}
-
-
-
 namespace obdref
 {
     Parser::Parser(QString const &filePath, bool &parsedOk)
@@ -435,7 +391,7 @@ namespace obdref
     bool Parser::ParseMessage(const Message &parseMsg, QString &jsonStr)
     {
         QRegExp rx1; int pos=0; double fVal;
-        QString sampleExpr = "A & B";
+        QString sampleExpr = jsonStr;
 
         // we mandate that the only variables allowed are bytes,
         // represented by a single capital letter, ie 'A' and
@@ -472,20 +428,23 @@ namespace obdref
             }
         }
 
+        m_parser.SetExpr(sampleExpr.toStdString());
+        fVal = m_parser.Eval();
+
         // eval with muParser
-        try
-        {
-            m_parser.SetExpr(sampleExpr.toStdString());
-            fVal = m_parser.Eval();
-        }
-        catch(mu::Parser::exception_type &e)
-        {
-            std::cerr << "OBDREF_DEBUG: muParser: Message:  " << e.GetMsg() << "\n";
-            std::cerr << "OBDREF_DEBUG: muParser: Formula:  " << e.GetExpr() << "\n";
-            std::cerr << "OBDREF_DEBUG: muParser: Token:    " << e.GetToken() << "\n";
-            std::cerr << "OBDREF_DEBUG: muParser: Position: " << e.GetPos() << "\n";
-            std::cerr << "OBDREF_DEBUG: muParser: ErrC:     " << e.GetCode() << "\n";
-        }
+//        try
+//        {
+//            m_parser.SetExpr(sampleExpr.toStdString());
+//            fVal = m_parser.Eval();
+//        }
+//        catch(mu::Parser::exception_type &e)
+//        {
+//            std::cerr << "OBDREF_DEBUG: muParser: Message:  " << e.GetMsg() << "\n";
+//            std::cerr << "OBDREF_DEBUG: muParser: Formula:  " << e.GetExpr() << "\n";
+//            std::cerr << "OBDREF_DEBUG: muParser: Token:    " << e.GetToken() << "\n";
+//            std::cerr << "OBDREF_DEBUG: muParser: Position: " << e.GetPos() << "\n";
+//            std::cerr << "OBDREF_DEBUG: muParser: ErrC:     " << e.GetCode() << "\n";
+//        }
 
         qDebug() << "VALUE: " << fVal;
     }
@@ -573,46 +532,67 @@ namespace obdref
             myString.remove("0b");
             uint myVal = myString.toUInt(&conv,2);
             if(conv)
-            {
-                convOk = conv;
-                return myVal;
-            }
+            {   convOk = conv;   return myVal;   }
             else
-            {
-                convOk = false;
-                return 0;
-            }
+            {   convOk = false;   return 0;   }
         }
-
         else if(myString.contains("0x"))
         {
             myString.remove("0x");
             uint myVal = myString.toUInt(&conv,16);
             if(conv)
-            {
-                convOk = conv;
-                return myVal;
-            }
+            {   convOk = conv;   return myVal;   }
             else
-            {
-                convOk = false;
-                return 0;
-            }
+            {   convOk = false;   return 0;   }
         }
-
         else
         {
             uint myVal = myString.toUInt(&conv,10);
             if(conv)
-            {
-                convOk = conv;
-                return myVal;
-            }
+            {   convOk = conv;   return myVal;   }
             else
-            {
-                convOk = false;
-                return 0;
-            }
+            {   convOk = false;   return 0;   }
         }
+    }
+
+    mu::value_type Parser::muLogicalNot(mu::value_type fVal)
+    {
+        std::cerr << "Called LogicalNot" << std::endl;
+
+        if(fVal == 0)
+        {   return 1;   }
+
+        else if(fVal == 1)
+        {   return 0;   }
+
+        else
+        {   throw mu::ParserError("LogicalNot: Argument is not 0 or 1");   }
+    }
+
+    mu::value_type Parser::muBitwiseNot(mu::value_type fVal)
+    {
+        std::cerr << "Called BitwiseNot" << std::endl;
+
+        int iVal = (int)fVal;
+        iVal = ~iVal;
+        return mu::value_type(fVal);
+    }
+
+    mu::value_type Parser::muBitwiseAnd(mu::value_type fVal1, mu::value_type fVal2)
+    {
+        std::cerr << "Called BitwiseAnd" << std::endl;
+
+        int iVal1 = (int)fVal1;
+        int iVal2 = (int)fVal2;
+        return double(iVal1 & iVal2);
+    }
+
+    mu::value_type Parser::muBitwiseOr(mu::value_type fVal1, mu::value_type fVal2)
+    {
+        std::cerr << "Called BitwiseOr" << std::endl;
+
+        int iVal1 = (int)fVal1;
+        int iVal2 = (int)fVal2;
+        return double(iVal1 | iVal2);
     }
 }

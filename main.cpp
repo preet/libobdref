@@ -21,8 +21,18 @@ int main()
 //                          "Default","Fuel Type",someMsg);
 
     QString someString;
+
+    someString = "A & B";
+    myParser.ParseMessage(someMsg,someString);
+
+    someString = "C & D";
+    myParser.ParseMessage(someMsg,someString);
+
+    someString = "A | B";
+    myParser.ParseMessage(someMsg,someString);
+
+    someString = "~C";
     myParser.ParseMessage(someMsg,someString);
 
     return 0;
 }
-
