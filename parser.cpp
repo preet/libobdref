@@ -25,6 +25,41 @@ namespace obdref
             std::cerr << "OBDREF_DEBUG: Error Offset Char: " << xmlParseResult.offset << std::endl;
         }
         #endif
+
+        // setup parser variables
+        for(uint i=0; i < 26; i++)
+        {
+            // define variables [A-Z] in muParser
+            QString byteStr(QChar::fromAscii(char(65+i)));
+            m_parser.DefineVar(byteStr.toStdString(),
+                               &m_listBytesAZ[i]);
+
+            for(uint j=0; j < 8; j++)
+            {
+                QString bitStr = byteStr + (QString::number(j,10));
+                m_parser.DefineVar(bitStr.toStdString(),
+                                   &m_listBytesAZBits[i].bits[j]);
+            }
+        }
+
+        // convenience values
+        m_listDecValOfBitPos[0] = 1;
+        m_listDecValOfBitPos[1] = 2;
+        m_listDecValOfBitPos[2] = 4;
+        m_listDecValOfBitPos[3] = 8;
+        m_listDecValOfBitPos[4] = 16;
+        m_listDecValOfBitPos[5] = 32;
+        m_listDecValOfBitPos[6] = 64;
+        m_listDecValOfBitPos[7] = 128;
+
+//        catch(mu::Parser::exception_type &e)
+//        {
+//          std::cerr << "Message:  " << e.GetMsg() << "\n";
+//          std::cerr << "Formula:  " << e.GetExpr() << "\n";
+//          std::cerr << "Token:    " << e.GetToken() << "\n";
+//          std::cerr << "Position: " << e.GetPos() << "\n";
+//          std::cerr << "Errc:     " << e.GetCode() << "\n";
+//        }
     }
 
     bool Parser::BuildMessage(const QString &specName,
@@ -358,9 +393,8 @@ namespace obdref
 
     bool Parser::ParseMessage(const Message &parseMsg, QString &jsonStr)
     {
-        QRegExp rx1; QRegExp rx2; int pos=0;
+        QRegExp rx1; int pos=0; double fVal;
         QString sampleExpr = "((A*256)+B5+F3)/32768";
-        QList<double> listVars;
 
         // we mandate that the only variables allowed are bytes,
         // represented by a single capital letter, ie 'A' and
@@ -378,60 +412,28 @@ namespace obdref
              pos += rx1.matchedLength();
         }
 
+        // set variables for muParser
         for(int i=0; i < listRegExpMatches.size(); i++)
         {
             if(listRegExpMatches.at(i).size() == 1)
             {   // BYTE VARIABLE
-
-                // set variable for muParser
                 uint byteNum = uint(listRegExpMatches.at(i).at(0).toAscii())-65;
-                listVars.append(double(parseMsg.dataBytesSansPrefix.at(byteNum)));
-
-                try
-                {
-                    std::string varName = listRegExpMatches[i].toStdString();
-                    m_parser.DefineVar(varName,&(listVars.last()));
-                }
-
-                catch(mu::Parser::exception_type &e)
-                {
-                  std::cerr << "Message:  " << e.GetMsg() << "\n";
-                  std::cerr << "Formula:  " << e.GetExpr() << "\n";
-                  std::cerr << "Token:    " << e.GetToken() << "\n";
-                  std::cerr << "Position: " << e.GetPos() << "\n";
-                  std::cerr << "Errc:     " << e.GetCode() << "\n";
-                }
+                uint byteVal = uint(parseMsg.dataBytesSansPrefix.at(byteNum));
+                m_listBytesAZ[byteNum] = double(byteVal);
             }
             else
             {   // BIT VARIABLE
-
-                // set variable for muParser
                 uint byteNum = uint(listRegExpMatches.at(i).at(0).toAscii())-65;
                 uint byteVal = uint(parseMsg.dataBytesSansPrefix.at(byteNum));
                 int bitNum = listRegExpMatches.at(i).at(1).digitValue();
-                int bitMask = int(pow(2,bitNum));
-                listVars.append(double(byteVal & bitMask));
-
-                try
-                {
-                    std::string varName = listRegExpMatches[i].toStdString();
-                    m_parser.DefineVar(varName,&(listVars.last()));
-                }
-                catch(mu::Parser::exception_type &e)
-                {
-                  std::cerr << "Message:  " << e.GetMsg() << "\n";
-                  std::cerr << "Formula:  " << e.GetExpr() << "\n";
-                  std::cerr << "Token:    " << e.GetToken() << "\n";
-                  std::cerr << "Position: " << e.GetPos() << "\n";
-                  std::cerr << "Errc:     " << e.GetCode() << "\n";
-                }
+                int bitMask = m_listDecValOfBitPos[bitNum];
+                m_listBytesAZBits[byteNum].bits[bitNum] = double(byteVal & bitMask);
             }
         }
 
-        sampleExpr.replace(rx1,"POOP");
-        std::cerr << sampleExpr.toStdString() << std::endl;
-
-
+        // eval with muParser
+        m_parser.SetExpr(sampleExpr.toStdString());
+        fVal = m_parser.Eval();
     }
 
     void Parser::walkConditionTree(pugi::xml_node &nodeCondition,

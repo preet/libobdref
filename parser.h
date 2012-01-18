@@ -50,7 +50,7 @@ private:
 
     // muParser vars
     mu::Parser m_parser;
-
+    int m_listDecValOfBitPos[8];
     double m_listBytesAZ[26];
     dblArray_s8 m_listBytesAZBits[26];
 
