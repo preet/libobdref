@@ -14,7 +14,7 @@ int main()
     // build message frame
     obdref::MessageFrame myMsg;
     opOk = myParser.BuildMessageFrame("SAEJ1979","ISO 15765-4 Standard",
-                                      "Default","SSM Engine Speed",myMsg);
+                                      "Default","Freeze Frame DTC",myMsg);
     if(!opOk)
     {   std::cerr << "BuildMessageFrame Failed! Exiting..." << std::endl; return -1;   }
 

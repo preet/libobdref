@@ -34,7 +34,7 @@ public:
 private:
     void walkConditionTree(pugi::xml_node &nodeParameter,
                            QStringList &listConditions,
-                           Message &requestMsg);
+                           MessageFrame &msgFrame);
 
     uint stringToUInt(bool &convOk, QString const &parseStr);
 

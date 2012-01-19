@@ -9,7 +9,9 @@ namespace obdref
 class LiteralData
 {
 public:
-    QString value;
+    bool value;
+    QString valueIfFalse;
+    QString valueIfTrue;
     QString desc;
 };
 

@@ -361,9 +361,44 @@ namespace obdref
                                         parseInfo.expr = pExpr;
 
                                         QString pExprTrue(parseChild.attribute("true").value());
-                                        QString pExprTrue(parseChild.attribute("false").value());
+                                        QString pExprFalse(parseChild.attribute("false").value());
+                                        if(pExprTrue.isEmpty() && pExprFalse.isEmpty())
+                                        {   // assume value is numerical
+                                            if(parseChild.attribute("min"))
+                                            {   parseInfo.numericalData.min = parseChild.attribute("min").as_double();   }
+
+                                            if(parseChild.attribute("max"))
+                                            {   parseInfo.numericalData.max = parseChild.attribute("max").as_double();   }
+                                        }
+                                        else
+                                        {   // assume value is literal
+                                            parseInfo.literalData.valueIfFalse = pExprFalse;
+                                            parseInfo.literalData.valueIfTrue = pExprTrue;
+                                        }
+
+                                        msgFrame.listParseInfo.append(parseInfo);
                                     }
                                 }
+
+                                // call walkConditionTree on <condition> children this parameter has
+                                QStringList listConditionExprs;
+                                pugi::xml_node condChild = nodeParameter.child("condition");
+                                for(condChild; condChild; condChild = condChild.next_sibling("condition"))
+                                {   walkConditionTree(condChild, listConditionExprs, msgFrame);   }
+
+                                #ifdef OBDREF_DEBUG_ON
+                                std::cerr << "OBDREF_DEBUG: " << specName.toStdString() << ", "
+                                          << protocolName.toStdString() << ", " << addressName.toStdString()
+                                          << ", " << paramName.toStdString() << ":" << std::endl;
+
+                                for(int i=0; i < msgFrame.listParseInfo.size(); i++)
+                                {
+                                    std::cerr << "OBDREF_DEBUG: \t";
+                                    for(int j=0; j < msgFrame.listParseInfo[i].listConditions.size(); j++)
+                                    {   std::cerr << " { " << msgFrame.listParseInfo[i].listConditions[j].toStdString() << " } | ";   }
+                                    std::cerr << "Eval: { " << msgFrame.listParseInfo[i].expr.toStdString() << " }" << std::endl;
+                                }
+                                #endif
 
                                 return true;
                             }
@@ -475,60 +510,52 @@ namespace obdref
 
     void Parser::walkConditionTree(pugi::xml_node &nodeCondition,
                                    QStringList &listConditionExprs,
-                                   Message &requestMsg)
+                                   MessageFrame &msgFrame)
     {
-//        // add this condition expr to list
-//        QString conditionExpr(nodeCondition.attribute("expr").value());
-//        listConditionExprs.push_back(conditionExpr);
+        // add this condition expr to list
+        QString conditionExpr(nodeCondition.attribute("expr").value());
+        listConditionExprs.push_back(conditionExpr);
 
-//        // save <parse /> children nodes this condition has
-//        pugi::xml_node parseChild = nodeCondition.child("parse");
-//        for(parseChild; parseChild; parseChild = parseChild.next_sibling("parse"))
-//        {
-//            // SAVE PARSE EXPR WITH CONDITION LIST
-//            QString pExpr(parseChild.attribute("expr").value());
-//            if(!pExpr.isEmpty())
-//            {
-//                ParseInfo parseInfo;
-//                parseInfo.expr = pExpr;
+        // save <parse /> children nodes this condition has
+        pugi::xml_node parseChild = nodeCondition.child("parse");
+        for(parseChild; parseChild; parseChild = parseChild.next_sibling("parse"))
+        {
+            QString pExpr(parseChild.attribute("expr").value());
+            if(!pExpr.isEmpty())
+            {
+                ParseInfo parseInfo;
+                parseInfo.expr = pExpr;
 
-//                QString pExprTrue(parseChild.attribute("true").value());
-//                QString pExprFalse(parseChild.attribute("false").value());
-//                if(pExprTrue.isEmpty() && pExprFalse.isEmpty())
-//                {   // assume value is numerical
-//                    parseInfo.isNumerical = true;
-//                    if(parseChild.attribute("min"))
-//                    {
-//                        parseInfo.hasMin = true;
-//                        parseInfo.valueMin = parseChild.attribute("min").as_double();
-//                    }
-//                    if(parseChild.attribute("max"))
-//                    {
-//                        parseInfo.hasMax = true;
-//                        parseInfo.valueMax = parseChild.attribute("max").as_double();
-//                    }
-//                }
-//                else
-//                {   // assume value is a boolean flag
-//                    parseInfo.isFlag = true;
-//                    parseInfo.valueIfTrue = pExprTrue;
-//                    parseInfo.valueIfFalse = pExprFalse;
-//                }
+                QString pExprTrue(parseChild.attribute("true").value());
+                QString pExprFalse(parseChild.attribute("false").value());
+                if(pExprTrue.isEmpty() && pExprFalse.isEmpty())
+                {   // assume value is numerical
+                    if(parseChild.attribute("min"))
+                    {   parseInfo.numericalData.min = parseChild.attribute("min").as_double();   }
 
-//                // save parse info (with conditions!)
-//                parseInfo.listConditions = listConditionExprs;
-//                requestMsg.listParseInfo.append(parseInfo);
-//            }
-//        }
+                    if(parseChild.attribute("max"))
+                    {   parseInfo.numericalData.max = parseChild.attribute("max").as_double();   }
+                }
+                else
+                {   // assume value is literal
+                    parseInfo.literalData.valueIfFalse = pExprFalse;
+                    parseInfo.literalData.valueIfTrue = pExprTrue;
+                }
 
-//        // call walkConditionTree recursively on
-//        // <condition> children this condition has
-//        pugi::xml_node condChild = nodeCondition.child("condition");
-//        for(condChild; condChild; condChild = condChild.next_sibling("condition"))
-//        {   walkConditionTree(condChild, listConditionExprs, requestMsg);    }
+                // save parse info (with conditions!)
+                parseInfo.listConditions = listConditionExprs;
+                msgFrame.listParseInfo.append(parseInfo);
+            }
+        }
 
-//        // remove last condition expr added (since this is a DFS)
-//        listConditionExprs.removeLast();
+        // call walkConditionTree recursively on
+        // <condition> children this condition has
+        pugi::xml_node condChild = nodeCondition.child("condition");
+        for(condChild; condChild; condChild = condChild.next_sibling("condition"))
+        {   walkConditionTree(condChild, listConditionExprs, msgFrame);    }
+
+        // remove last condition expr added (since this is a DFS)
+        listConditionExprs.removeLast();
     }
 
     // ========================================================================== //
