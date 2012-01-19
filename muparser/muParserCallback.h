@@ -5,7 +5,7 @@
   |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/
   |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
         \/                       \/            \/      \/        
-  Copyright (C) 2004-2011 Ingo Berg
+  Copyright (C) 2004-2012 Ingo Berg
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this 
   software and associated documentation files (the "Software"), to deal in the Software
@@ -45,46 +45,45 @@ namespace mu
     Negative argument counts indicate a parser function with a variable number
     of arguments. 
 
-    \author (C) 2004-2011 Ingo Berg
+    \author (C) 2004-2012 Ingo Berg
 */
 class ParserCallback
 {
 public:
-    ParserCallback(fun_type0  a_pFun, bool a_bAllowOpti);
-    ParserCallback(fun_type1  a_pFun, bool a_bAllowOpti, int a_iPrec = -1, ECmdCode a_iCode=cmFUNC);
-    ParserCallback(fun_type2  a_pFun, bool a_bAllowOpti, int a_iPrec, EOprtAssociativity a_eAssociativity);
-    ParserCallback(fun_type2  a_pFun, bool a_bAllowOpti);
-    ParserCallback(fun_type3  a_pFun, bool a_bAllowOpti);
-    ParserCallback(fun_type4  a_pFun, bool a_bAllowOpti);
-    ParserCallback(fun_type5  a_pFun, bool a_bAllowOpti);
-    ParserCallback(fun_type6  a_pFun, bool a_bAllowOpti);
-    ParserCallback(fun_type7  a_pFun, bool a_bAllowOpti);
-    ParserCallback(fun_type8  a_pFun, bool a_bAllowOpti);
-    ParserCallback(fun_type9  a_pFun, bool a_bAllowOpti);
-    ParserCallback(fun_type10 a_pFun, bool a_bAllowOpti);
+    ParserCallback(fun_type0  a_pFun);
+    ParserCallback(fun_type1  a_pFun, int a_iPrec = -1, ECmdCode a_iCode=cmFUNC);
+    ParserCallback(fun_type2  a_pFun, int a_iPrec, EOprtAssociativity a_eAssociativity);
+    ParserCallback(fun_type2  a_pFun);
+    ParserCallback(fun_type3  a_pFun);
+    ParserCallback(fun_type4  a_pFun);
+    ParserCallback(fun_type5  a_pFun);
+    ParserCallback(fun_type6  a_pFun);
+    ParserCallback(fun_type7  a_pFun);
+    ParserCallback(fun_type8  a_pFun);
+    ParserCallback(fun_type9  a_pFun);
+    ParserCallback(fun_type10 a_pFun);
 
-    ParserCallback(bulkfun_type0  a_pFun, bool a_bAllowOpti);
-    ParserCallback(bulkfun_type1  a_pFun, bool a_bAllowOpti);
-    ParserCallback(bulkfun_type2  a_pFun, bool a_bAllowOpti);
-    ParserCallback(bulkfun_type3  a_pFun, bool a_bAllowOpti);
-    ParserCallback(bulkfun_type4  a_pFun, bool a_bAllowOpti);
-    ParserCallback(bulkfun_type5  a_pFun, bool a_bAllowOpti);
-    ParserCallback(bulkfun_type6  a_pFun, bool a_bAllowOpti);
-    ParserCallback(bulkfun_type7  a_pFun, bool a_bAllowOpti);
-    ParserCallback(bulkfun_type8  a_pFun, bool a_bAllowOpti);
-    ParserCallback(bulkfun_type9  a_pFun, bool a_bAllowOpti);
-    ParserCallback(bulkfun_type10 a_pFun, bool a_bAllowOpti);
+    ParserCallback(bulkfun_type0  a_pFun);
+    ParserCallback(bulkfun_type1  a_pFun);
+    ParserCallback(bulkfun_type2  a_pFun);
+    ParserCallback(bulkfun_type3  a_pFun);
+    ParserCallback(bulkfun_type4  a_pFun);
+    ParserCallback(bulkfun_type5  a_pFun);
+    ParserCallback(bulkfun_type6  a_pFun);
+    ParserCallback(bulkfun_type7  a_pFun);
+    ParserCallback(bulkfun_type8  a_pFun);
+    ParserCallback(bulkfun_type9  a_pFun);
+    ParserCallback(bulkfun_type10 a_pFun);
 
-    ParserCallback(multfun_type a_pFun, bool a_bAllowOpti);
-    ParserCallback(strfun_type1 a_pFun, bool a_bAllowOpti);
-    ParserCallback(strfun_type2 a_pFun, bool a_bAllowOpti);
-    ParserCallback(strfun_type3 a_pFun, bool a_bAllowOpti);
+    ParserCallback(multfun_type a_pFun);
+    ParserCallback(strfun_type1 a_pFun);
+    ParserCallback(strfun_type2 a_pFun);
+    ParserCallback(strfun_type3 a_pFun);
     ParserCallback();
     ParserCallback(const ParserCallback &a_Fun);
     
     ParserCallback* Clone() const;
 
-    bool  IsOptimizable() const;
     void* GetAddr() const;
     ECmdCode  GetCode() const;
     ETypeCode GetType() const;
@@ -93,7 +92,7 @@ public:
     int GetArgc() const;
 
 private:
-    void *m_pFun;                   ///< Pointer to the callback function, casted to void
+    generic_fun_type m_pFun;       ///< Pointer to the callback function, casted to void
     
     /** \brief Number of numeric function arguments
     
@@ -105,7 +104,6 @@ private:
     EOprtAssociativity m_eOprtAsct; ///< Operator associativity; Valid only for binary operators 
     ECmdCode  m_iCode;
     ETypeCode m_iType;
-    bool  m_bAllowOpti;             ///< Flag indication optimizeability 
 };
 
 //------------------------------------------------------------------------------

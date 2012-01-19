@@ -5,7 +5,7 @@
   |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/
   |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
         \/                       \/            \/      \/        
-  Copyright (C) 2011 Ingo Berg
+  Copyright (C) 2012 Ingo Berg
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this 
   software and associated documentation files (the "Software"), to deal in the Software
@@ -408,7 +408,9 @@ namespace mu
               if (i==cmASSIGN && m_iSynFlags & noASSIGN)
                 Error(ecUNEXPECTED_OPERATOR, m_iPos, pOprtDef[i]);
 
-              if (!m_pParser->HasBuiltInOprt()) continue;
+              if (!m_pParser->HasBuiltInOprt()) 
+                continue;
+
               if (m_iSynFlags & noOPT) 
               {
                 // Maybe its an infix operator not an operator
@@ -537,10 +539,26 @@ namespace mu
     if (iEnd==m_iPos)
       return false;
 
-    funmap_type::const_iterator item = m_pInfixOprtDef->find(sTok);
-    if (item==m_pInfixOprtDef->end())
-      return false;
+    // iteraterate over all postfix operator strings
+    funmap_type::const_reverse_iterator it = m_pInfixOprtDef->rbegin();
+    for ( ; it!=m_pInfixOprtDef->rend(); ++it)
+    {
+      if (sTok.find(it->first)!=0)
+        continue;
 
+      a_Tok.Set(it->second, it->first);
+      m_iPos += (int)it->first.length();
+
+      if (m_iSynFlags & noINFIXOP) 
+        Error(ecUNEXPECTED_OPERATOR, m_iPos, a_Tok.GetAsString());
+
+      m_iSynFlags = noPOSTOP | noINFIXOP | noOPT | noBC | noSTR | noASSIGN;
+      return true;
+    }
+
+    return false;
+
+/*
     a_Tok.Set(item->second, sTok);
     m_iPos = (int)iEnd;
 
@@ -549,6 +567,7 @@ namespace mu
 
     m_iSynFlags = noPOSTOP | noINFIXOP | noOPT | noBC | noSTR | noASSIGN; 
     return true;
+*/
   }
 
   //---------------------------------------------------------------------------

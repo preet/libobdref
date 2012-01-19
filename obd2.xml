@@ -998,6 +998,19 @@
 			<parse units="L/h" expr="((A*256)+B)*0.05" min="0" max="3212.75" />
 		</parameter>
 		
+		<!-- TESTING! IGNORE -->
+		<parameter name="SSM Engine Speed"
+			request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
+			request2="0xA8 0x00 0x00 0x00 0x0F" request2.delay="100" response2.prefix="0xE8" response2.bytes="1">
+			<parse units="rpm" expr="((A*256)+B)/4" min="0" max="255" />
+		</parameter>
+		
+		<parameter name="SSM Intake Air Temperature"
+			request="0xA8 0x00 0x00 0x00 0x0E" response.prefix="0xE8" response.bytes="1">
+			<parse units="rpm" expr="A-40" min="-40" max="215" />
+		</parameter>		
+		<!-- END TESTING -->
+		
 		<!-- END MODE $01 PIDs -->
 		
 		<!-- START MODE $02 PIDs -->
@@ -1056,6 +1069,10 @@
 </spec>
 
 <spec name="SSM3" desc="Subaru Select Monitor III">
+	<!-- idea for how to send multi-message request, like engine rpm
+	     with ssm2, ssm3 -->
+	     <!-- or maybe i should do expr="((r1A*256)+r2A/4)" ? -->
+
 </spec>
 
 <spec name="GMLAN" desc="General Motors Local Area Network">
