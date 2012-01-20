@@ -5,14 +5,19 @@
 #include <QString>
 #include <QDebug>
 #include "pugixml/pugixml.hpp"
-//#include "muparser/muParser.h"
+#include "muparser/muParser.h"
 #include "message.h"
+
+#define MAX_EXPR_VARS 64
 
 namespace obdref
 {
 
 struct dblArray_s8
-{   double bits[8];   };
+{   double bit[8];   };
+
+struct dblArray_s26
+{   double byte[26];   };
 
 class Parser
 {
@@ -38,20 +43,19 @@ private:
 
     uint stringToUInt(bool &convOk, QString const &parseStr);
 
-//    static mu::value_type muLogicalNot(mu::value_type);
-//    static mu::value_type muBitwiseNot(mu::value_type);
-//    static mu::value_type muBitwiseOr(mu::value_type,mu::value_type);
-//    static mu::value_type muBitwiseAnd(mu::value_type,mu::value_type);
+    static mu::value_type muLogicalNot(mu::value_type);
+    static mu::value_type muBitwiseNot(mu::value_type);
+    static mu::value_type muBitwiseOr(mu::value_type,mu::value_type);
+    static mu::value_type muBitwiseAnd(mu::value_type,mu::value_type);
 
     // pugixml vars
     QString m_xmlFilePath;
     pugi::xml_document m_xmlDoc;
 
     // muParser vars
-//    mu::Parser m_parser;
+    mu::Parser m_parser;
     int m_listDecValOfBitPos[8];
-    double m_listBytesAZ[26];
-    dblArray_s8 m_listBytesAZBits[26];
+    double m_listExprVars[64];
 
 };
 }

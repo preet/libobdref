@@ -39,27 +39,15 @@ namespace obdref
         }
         #endif
 
-//        // setup additional parser function
-//        m_parser.DefineInfixOprt("!",muLogicalNot);
-//        m_parser.DefineInfixOprt("~",muBitwiseNot);
-//        m_parser.DefineOprt("&",muBitwiseAnd,3);
-//        m_parser.DefineOprt("|",muBitwiseOr,3);
+        // setup additional parser function
+        m_parser.DefineInfixOprt("!",muLogicalNot);
+        m_parser.DefineInfixOprt("~",muBitwiseNot);
+        m_parser.DefineOprt("&",muBitwiseAnd,3);
+        m_parser.DefineOprt("|",muBitwiseOr,3);
 
-//        // setup parser variables
-//        for(uint i=0; i < 26; i++)
-//        {
-//            // define variables [A-Z] in muParser
-//            QString byteStr(QChar::fromAscii(char(65+i)));
-//            m_parser.DefineVar(byteStr.toStdString(),
-//                               &m_listBytesAZ[i]);
-
-//            for(uint j=0; j < 8; j++)
-//            {
-//                QString bitStr = byteStr + (QString::number(j,10));
-//                m_parser.DefineVar(bitStr.toStdString(),
-//                                   &m_listBytesAZBits[i].bits[j]);
-//            }
-//        }
+        // clear parser variable array
+        for(int i=0; i < MAX_EXPR_VARS; i++)
+        {  m_listExprVars[i] = 0;   }
     }
 
     // ========================================================================== //
@@ -309,7 +297,6 @@ namespace obdref
 
                                         QString respPrefix(nodeParameter.attribute(respPrefixAttrStr.c_str()).value());
                                         QStringList listRespPrefix = respPrefix.split(" ");
-                                        qDebug() << "Response" << n << "Prefix: " << listRespPrefix;
                                         for(int i=0; i < listRespPrefix.size(); i++)
                                         {
                                             uint dataByte = stringToUInt(convOk,listRespPrefix.at(i));
@@ -319,14 +306,12 @@ namespace obdref
                                         if(nodeParameter.attribute(respBytesAttrStr.c_str()))   // [responseN.bytes]
                                         {
                                             QString respBytes(nodeParameter.attribute(respBytesAttrStr.c_str()).value());
-                                            qDebug() << "Response" << n << "Bytes: " <<  respBytes;
                                             myMsgData.expDataBytes = respBytes;
                                         }
 
                                         if(nodeParameter.attribute(reqDelayAttrStr.c_str()))    // [requestN.delay]
                                         {
                                             QString reqDelay(nodeParameter.attribute(reqDelayAttrStr.c_str()).value());
-                                            qDebug() << "Request" << n << "Delay: " <<  reqDelay;
                                             myMsgData.reqDataDelayMs = stringToUInt(convOk,reqDelay);
                                         }
 
@@ -334,7 +319,6 @@ namespace obdref
                                         {
                                             QString reqData(nodeParameter.attribute(reqAttrStr.c_str()).value());
                                             QStringList listReqData = reqData.split(" ");
-                                            qDebug() << "Request" << n << "Data: " <<  listReqData;
                                             for(int i=0; i < listReqData.size(); i++)
                                             {
                                                 uint dataByte = stringToUInt(convOk,listReqData.at(i));
@@ -442,9 +426,92 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    bool Parser::ParseMessageFrame(const MessageFrame &parseMsg, Data &paramData)
+    bool Parser::ParseMessageFrame(const MessageFrame &msgFrame, Data &paramData)
     {
+        QString sampleExpr = "resp2.A + resp1.B[2] & resp2.C[3]";
 
+        if(msgFrame.listParseInfo.size() == 0)
+        {   return false;   }
+
+        if(msgFrame.listMessageData.size() > 1)
+        {
+            // we expect expression variables to have a
+            // prefix indiciating their response number
+
+            QRegExp rx; int pos=0; double fVal = 0;
+            rx.setPattern("(resp[1-99]\\.[A-Z]|resp[1-99]\\.[A-Z]\\[[0-7]\\])+");
+
+            QStringList listRegExpMatches;
+            while ((pos = rx.indexIn(sampleExpr, pos)) != -1)
+            {
+                listRegExpMatches << rx.cap(1);
+                pos += rx.matchedLength();
+            }
+
+            qDebug() << listRegExpMatches;
+
+            // map the data required to calc expression
+            for(int i=0; i < listRegExpMatches.size(); i++)
+            {
+                QString msgNumChar(listRegExpMatches.at(i).at(4));
+                int msgNum = msgNumChar.toInt(0,10) - 1;
+
+                int byteCharPos = listRegExpMatches.at(i).indexOf(".") + 1;
+                uint byteNum = uint(listRegExpMatches.at(i).at(byteCharPos).toAscii())-65;
+                uint byteVal = uint(msgFrame.listMessageData[msgNum].dataBytes.at(byteNum));
+
+                qDebug() << byteVal;
+
+                if(listRegExpMatches.at(i).contains("["))
+                {   // BIT VARIABLE
+
+                    int bitCharPos = listRegExpMatches.at(i).indexOf("[") + 1;
+                    int bitNum = listRegExpMatches.at(i).at(bitCharPos).digitValue();
+                    int bitMask = m_listDecValOfBitPos[bitNum];
+
+                    m_listExprVars[i] = double(byteVal & bitMask);
+
+                    try
+                    {
+                        QString replaced = listRegExpMatches.at(i);
+                        replaced.replace(".","_");
+                        replaced.replace("[","_");
+                        replaced.replace("]","_");
+                        m_parser.DefineVar(replaced.toStdString(),
+                                           &m_listExprVars[i]);
+                    }
+                    catch(mu::Parser::exception_type &e)
+                    {
+                        std::cerr << "OBDREF_DEBUG: muParser: Message:  " << e.GetMsg() << "\n";
+                        std::cerr << "OBDREF_DEBUG: muParser: Formula:  " << e.GetExpr() << "\n";
+                        std::cerr << "OBDREF_DEBUG: muParser: Token:    " << e.GetToken() << "\n";
+                        std::cerr << "OBDREF_DEBUG: muParser: Position: " << e.GetPos() << "\n";
+                        std::cerr << "OBDREF_DEBUG: muParser: ErrC:     " << e.GetCode() << "\n";
+                    }
+                }
+                else
+                {   // BYTE VARIABLE
+
+                    m_listExprVars[i] = double(byteVal);
+
+                    try
+                    {
+                        QString replaced = listRegExpMatches.at(i);
+                        replaced.replace(".","_");
+                        m_parser.DefineVar(replaced.toStdString(),
+                                           &m_listExprVars[i]);
+                    }
+                    catch(mu::Parser::exception_type &e)
+                    {
+                        std::cerr << "OBDREF_DEBUG: muParser: Message:  " << e.GetMsg() << "\n";
+                        std::cerr << "OBDREF_DEBUG: muParser: Formula:  " << e.GetExpr() << "\n";
+                        std::cerr << "OBDREF_DEBUG: muParser: Token:    " << e.GetToken() << "\n";
+                        std::cerr << "OBDREF_DEBUG: muParser: Position: " << e.GetPos() << "\n";
+                        std::cerr << "OBDREF_DEBUG: muParser: ErrC:     " << e.GetCode() << "\n";
+                    }
+                }
+            }
+        }
     }
 
     bool Parser::ParseMessage(const Message &parseMsg, QString &jsonStr)
@@ -602,46 +669,46 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-//    mu::value_type Parser::muLogicalNot(mu::value_type fVal)
-//    {
-//        std::cerr << "Called LogicalNot" << std::endl;
+    mu::value_type Parser::muLogicalNot(mu::value_type fVal)
+    {
+        std::cerr << "Called LogicalNot" << std::endl;
 
-//        if(fVal == 0)
-//        {   return 1;   }
+        if(fVal == 0)
+        {   return 1;   }
 
-//        else if(fVal == 1)
-//        {   return 0;   }
+        else if(fVal == 1)
+        {   return 0;   }
 
-//        else
-//        {   throw mu::ParserError("LogicalNot: Argument is not 0 or 1");   }
-//    }
+        else
+        {   throw mu::ParserError("LogicalNot: Argument is not 0 or 1");   }
+    }
 
-//    mu::value_type Parser::muBitwiseNot(mu::value_type fVal)
-//    {
-//        std::cerr << "Called BitwiseNot" << std::endl;
+    mu::value_type Parser::muBitwiseNot(mu::value_type fVal)
+    {
+        std::cerr << "Called BitwiseNot" << std::endl;
 
-//        int iVal = (int)fVal;
-//        iVal = ~iVal;
-//        return mu::value_type(fVal);
-//    }
+        int iVal = (int)fVal;
+        iVal = ~iVal;
+        return mu::value_type(fVal);
+    }
 
-//    mu::value_type Parser::muBitwiseAnd(mu::value_type fVal1, mu::value_type fVal2)
-//    {
-//        std::cerr << "Called BitwiseAnd" << std::endl;
+    mu::value_type Parser::muBitwiseAnd(mu::value_type fVal1, mu::value_type fVal2)
+    {
+        std::cerr << "Called BitwiseAnd" << std::endl;
 
-//        int iVal1 = (int)fVal1;
-//        int iVal2 = (int)fVal2;
-//        return double(iVal1 & iVal2);
-//    }
+        int iVal1 = (int)fVal1;
+        int iVal2 = (int)fVal2;
+        return double(iVal1 & iVal2);
+    }
 
-//    mu::value_type Parser::muBitwiseOr(mu::value_type fVal1, mu::value_type fVal2)
-//    {
-//        std::cerr << "Called BitwiseOr" << std::endl;
+    mu::value_type Parser::muBitwiseOr(mu::value_type fVal1, mu::value_type fVal2)
+    {
+        std::cerr << "Called BitwiseOr" << std::endl;
 
-//        int iVal1 = (int)fVal1;
-//        int iVal2 = (int)fVal2;
-//        return double(iVal1 | iVal2);
-//    }
+        int iVal1 = (int)fVal1;
+        int iVal2 = (int)fVal2;
+        return double(iVal1 | iVal2);
+    }
 
     // ========================================================================== //
     // ========================================================================== //

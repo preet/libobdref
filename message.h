@@ -69,8 +69,8 @@ public:
     QByteArray  reqDataBytes;
     QByteArray  expDataPrefix;
     QString     expDataBytes;                       // explain 'N', '2N' stuff here    
-    QByteArray  rawDataBytes;
-    uint         reqDataDelayMs;
+    QByteArray  dataBytes;                          // expect data bytes SANS prefix
+    uint        reqDataDelayMs;
 };
 
 class MessageFrame
