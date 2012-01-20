@@ -14,15 +14,17 @@ int main()
     // build message frame
     obdref::MessageFrame myMsg;
     opOk = myParser.BuildMessageFrame("SAEJ1979","ISO 15765-4 Standard",
-                                      "Default","SSM Engine Speed",myMsg);
+                                      "Default","O2S8_WR_lambda(1): Equivalence Ratio, Voltage",myMsg);
     if(!opOk)
     {   std::cerr << "BuildMessageFrame Failed! Exiting..." << std::endl; return -1;   }
 
 
     // pretend we got data from a device
-    myMsg.listMessageData[0].dataBytes.append(char(32));    // byte resp1.A
-    myMsg.listMessageData[1].dataBytes.append(char(13));    // byte resp2.A
+   myMsg.listMessageData[0].dataBytes.append(char(92));    // byte
+   myMsg.listMessageData[0].dataBytes.append(char(13));    // byte
+   myMsg.listMessageData[0].dataBytes.append(char(21));    // byte
 
+   // myMsg.listMessageData[1].dataBytes.append(char(83));    // byte
 
     // parse message frame
     obdref::Data myData;

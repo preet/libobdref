@@ -38,29 +38,10 @@ class ParseInfo
 public:
     QString expr;
     QStringList listConditions;
+    bool isLiteral;                     // TODO default to false!
+    bool isNumerical;                   // TODO default to false!
     LiteralData literalData;
     NumericalData numericalData;
-};
-
-class Message
-{
-public:
-    QString spec;
-    QString protocol;
-    QString address;
-    QString name;
-
-    // for request messages
-    QByteArray requestHeaderBytes;
-    QByteArray requestDataBytes;
-
-    // for response/monitored messages
-    QByteArray expectedHeaderBytes;
-    QByteArray expectedDataPrefix;
-    uint expectedDataBytes;
-
-    QByteArray dataBytesSansPrefix;
-    QList<ParseInfo> listParseInfo;
 };
 
 class MessageData
@@ -68,7 +49,7 @@ class MessageData
 public:
     QByteArray  reqDataBytes;
     QByteArray  expDataPrefix;
-    QString     expDataBytes;                       // explain 'N', '2N' stuff here    
+    QString     expDataBytes;                       // explain 'N', '2N' stuff here
     QByteArray  dataBytes;                          // expect data bytes SANS prefix
     uint        reqDataDelayMs;
 };
@@ -96,8 +77,6 @@ public:
                                                     // for this parameter; each parse expr may
                                                     // have multiple conditions as well
 };
-
-
 
 // Standard JSON Message should have... WAIT! why json at all?
 // Data Description

@@ -1002,7 +1002,9 @@
 		<parameter name="SSM Engine Speed"
 			request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
 			request2="0xA8 0x00 0x00 0x00 0x0F" request2.delay="100" response2.prefix="0xE8" response2.bytes="1">
-			<parse units="rpm" expr="((resp1.A*256)+resp2.A)/4" min="0" max="255" />
+			<condition expr="resp1.A > resp2.A">
+				<parse units="rpm" expr="((resp1.A*256)+resp2.A)/4" min="0" max="255" />
+			</condition>
 		</parameter>
 		
 		<parameter name="SSM Intake Air Temperature"

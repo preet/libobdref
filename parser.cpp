@@ -39,15 +39,20 @@ namespace obdref
         }
         #endif
 
-        // setup additional parser function
+        // setup parser
         m_parser.DefineInfixOprt("!",muLogicalNot);
         m_parser.DefineInfixOprt("~",muBitwiseNot);
         m_parser.DefineOprt("&",muBitwiseAnd,3);
         m_parser.DefineOprt("|",muBitwiseOr,3);
 
-        // clear parser variable array
         for(int i=0; i < MAX_EXPR_VARS; i++)
         {  m_listExprVars[i] = 0;   }
+
+        // TODO i dont know if adding ".", "[", "]" as
+        // variable characters is appropriate -- need to double check
+        m_parser.DefineNameChars("0123456789_.[]"
+                                 "abcdefghijklmnopqrstuvwxyz"
+                                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     }
 
     // ========================================================================== //
@@ -348,6 +353,7 @@ namespace obdref
                                         QString pExprFalse(parseChild.attribute("false").value());
                                         if(pExprTrue.isEmpty() && pExprFalse.isEmpty())
                                         {   // assume value is numerical
+                                            parseInfo.isNumerical = true;
                                             if(parseChild.attribute("min"))
                                             {   parseInfo.numericalData.min = parseChild.attribute("min").as_double();   }
 
@@ -356,6 +362,7 @@ namespace obdref
                                         }
                                         else
                                         {   // assume value is literal
+                                            parseInfo.isLiteral = true;
                                             parseInfo.literalData.valueIfFalse = pExprFalse;
                                             parseInfo.literalData.valueIfTrue = pExprTrue;
                                         }
@@ -383,6 +390,12 @@ namespace obdref
                                     std::cerr << "Eval: { " << msgFrame.listParseInfo[i].expr.toStdString() << " }" << std::endl;
                                 }
                                 #endif
+
+                                // save spec, protocol, address and param info
+                                msgFrame.spec = specName;
+                                msgFrame.protocol = protocolName;
+                                msgFrame.address = addressName;
+                                msgFrame.name = paramName;
 
                                 return true;
                             }
@@ -428,148 +441,94 @@ namespace obdref
 
     bool Parser::ParseMessageFrame(const MessageFrame &msgFrame, Data &paramData)
     {
-        QString sampleExpr = "resp2.A + resp1.B[2] & resp2.C[3]";
-
         if(msgFrame.listParseInfo.size() == 0)
-        {   return false;   }
-
-        if(msgFrame.listMessageData.size() > 1)
         {
-            // we expect expression variables to have a
-            // prefix indiciating their response number
+            #ifdef OBDREF_DEBUG_ON
+            std::cerr << "OBDREF_DEBUG: Error: No parsing information "
+                      << "found in message frame." << std::endl;
+            #endif
+            return false;
+        }
 
-            QRegExp rx; int pos=0; double fVal = 0;
-            rx.setPattern("(resp[1-99]\\.[A-Z]|resp[1-99]\\.[A-Z]\\[[0-7]\\])+");
+        if(msgFrame.listMessageData.size() < 1)
+        {
+            #ifdef OBDREF_DEBUG_ON
+            std::cerr << "OBDREF_DEBUG: Error: No messages found "
+                      << "found in message frame." << std::endl;
+            #endif
+            return false;
+        }
 
-            QStringList listRegExpMatches;
-            while ((pos = rx.indexIn(sampleExpr, pos)) != -1)
+        for(int i=0; i < msgFrame.listParseInfo.size(); i++)
+        {
+            double myResult = 0;
+            bool parsedOk = false;
+            bool allConditionsValid = true;
+            for(int j=0; j < msgFrame.listParseInfo[i].listConditions.size(); j++)
             {
-                listRegExpMatches << rx.cap(1);
-                pos += rx.matchedLength();
+                parsedOk = parseMessage(msgFrame,msgFrame.listParseInfo[i].listConditions.at(j),myResult);
+                if(!parsedOk)
+                {   // error in condition expression
+                    #ifdef OBDREF_DEBUG_ON
+                    std::cerr << "OBDREF_DEBUG: Error: Could not interpret "
+                              << "condition expression." << std::endl;
+                    #endif
+                    return false;
+                }
+                if(myResult == 0)
+                {   // condition failed, ignore this parse expr
+                    allConditionsValid = false;
+                    break;
+                }
             }
 
-            qDebug() << listRegExpMatches;
-
-            // map the data required to calc expression
-            for(int i=0; i < listRegExpMatches.size(); i++)
+            if(allConditionsValid)
             {
-                QString msgNumChar(listRegExpMatches.at(i).at(4));
-                int msgNum = msgNumChar.toInt(0,10) - 1;
-
-                int byteCharPos = listRegExpMatches.at(i).indexOf(".") + 1;
-                uint byteNum = uint(listRegExpMatches.at(i).at(byteCharPos).toAscii())-65;
-                uint byteVal = uint(msgFrame.listMessageData[msgNum].dataBytes.at(byteNum));
-
-                qDebug() << byteVal;
-
-                if(listRegExpMatches.at(i).contains("["))
-                {   // BIT VARIABLE
-
-                    int bitCharPos = listRegExpMatches.at(i).indexOf("[") + 1;
-                    int bitNum = listRegExpMatches.at(i).at(bitCharPos).digitValue();
-                    int bitMask = m_listDecValOfBitPos[bitNum];
-
-                    m_listExprVars[i] = double(byteVal & bitMask);
-
-                    try
-                    {
-                        QString replaced = listRegExpMatches.at(i);
-                        replaced.replace(".","_");
-                        replaced.replace("[","_");
-                        replaced.replace("]","_");
-                        m_parser.DefineVar(replaced.toStdString(),
-                                           &m_listExprVars[i]);
-                    }
-                    catch(mu::Parser::exception_type &e)
-                    {
-                        std::cerr << "OBDREF_DEBUG: muParser: Message:  " << e.GetMsg() << "\n";
-                        std::cerr << "OBDREF_DEBUG: muParser: Formula:  " << e.GetExpr() << "\n";
-                        std::cerr << "OBDREF_DEBUG: muParser: Token:    " << e.GetToken() << "\n";
-                        std::cerr << "OBDREF_DEBUG: muParser: Position: " << e.GetPos() << "\n";
-                        std::cerr << "OBDREF_DEBUG: muParser: ErrC:     " << e.GetCode() << "\n";
-                    }
+                parsedOk = parseMessage(msgFrame, msgFrame.listParseInfo.at(i).expr, myResult);
+                if(!parsedOk)
+                {   // error in parse expression
+                    #ifdef OBDREF_DEBUG_ON
+                    std::cerr << "OBDREF_DEBUG: Error: Could not calculate "
+                              << "parameter expression." << std::endl;
+                    #endif
+                    return false;
                 }
-                else
-                {   // BYTE VARIABLE
 
-                    m_listExprVars[i] = double(byteVal);
-
-                    try
+                // save result
+                if(msgFrame.listParseInfo.at(i).isNumerical)
+                {
+                    // TODO should we throw out value if not within min/max?
+                    paramData.listNumericalData.append(msgFrame.listParseInfo.at(i).numericalData);
+                    paramData.listNumericalData.last().value = myResult;
+                    #ifdef OBDREF_DEBUG_ON
+                    std::cerr << "OBDREF_DEBUG: Numerical Data: " << myResult << " "
+                              << paramData.listNumericalData.last().units.toStdString()
+                              << std::endl;
+                    #endif
+                }
+                else if(msgFrame.listParseInfo.at(i).isLiteral)
+                {
+                    // TODO throw out value if not 0 or 1
+                    paramData.listLiteralData.append(msgFrame.listParseInfo.at(i).literalData);
+                    paramData.listLiteralData.last().value = myResult;
+                    #ifdef OBDREF_DEBUG_ON
+                    if(paramData.listLiteralData.last().value)
                     {
-                        QString replaced = listRegExpMatches.at(i);
-                        replaced.replace(".","_");
-                        m_parser.DefineVar(replaced.toStdString(),
-                                           &m_listExprVars[i]);
+                        std::cerr << "OBDREF_DEBUG: Literal Data: " << myResult << " "
+                                  << paramData.listLiteralData.last().valueIfTrue.toStdString()
+                                  << std::endl;
                     }
-                    catch(mu::Parser::exception_type &e)
+                    else
                     {
-                        std::cerr << "OBDREF_DEBUG: muParser: Message:  " << e.GetMsg() << "\n";
-                        std::cerr << "OBDREF_DEBUG: muParser: Formula:  " << e.GetExpr() << "\n";
-                        std::cerr << "OBDREF_DEBUG: muParser: Token:    " << e.GetToken() << "\n";
-                        std::cerr << "OBDREF_DEBUG: muParser: Position: " << e.GetPos() << "\n";
-                        std::cerr << "OBDREF_DEBUG: muParser: ErrC:     " << e.GetCode() << "\n";
+                        std::cerr << "OBDREF_DEBUG: Literal Data: " << myResult << " "
+                                  << paramData.listLiteralData.last().valueIfFalse.toStdString()
+                                  << std::endl;
                     }
+                    #endif
                 }
             }
         }
-    }
-
-    bool Parser::ParseMessage(const Message &parseMsg, QString &jsonStr)
-    {
-//        // if this message has no parse information, return the raw
-//        // databytes in the json string
-//        if(parseMsg.listParseInfo.size() == 0)
-//        {
-//        }
-
-
-//        QRegExp rx1; int pos=0; double fVal;
-//        QString sampleExpr = jsonStr;
-
-//        // use regexp matching to find all instances of [A-Z],[A-Z][0-7]
-//        rx1.setPattern("([A-Z]|[A-Z][0-7])+");
-//        QStringList listRegExpMatches;
-//        while ((pos = rx1.indexIn(sampleExpr, pos)) != -1)
-//        {
-//             listRegExpMatches << rx1.cap(1);
-//             pos += rx1.matchedLength();
-//        }
-
-//        // set variables for muParser
-//        for(int i=0; i < listRegExpMatches.size(); i++)
-//        {
-//            if(listRegExpMatches.at(i).size() == 1)
-//            {   // BYTE VARIABLE
-//                uint byteNum = uint(listRegExpMatches.at(i).at(0).toAscii())-65;
-//                uint byteVal = uint(parseMsg.dataBytesSansPrefix.at(byteNum));
-//                m_listBytesAZ[byteNum] = double(byteVal);
-//            }
-//            else
-//            {   // BIT VARIABLE
-//                uint byteNum = uint(listRegExpMatches.at(i).at(0).toAscii())-65;
-//                uint byteVal = uint(parseMsg.dataBytesSansPrefix.at(byteNum));
-//                int bitNum = listRegExpMatches.at(i).at(1).digitValue();
-//                int bitMask = m_listDecValOfBitPos[bitNum];
-//                m_listBytesAZBits[byteNum].bits[bitNum] = double(byteVal & bitMask);
-//            }
-//        }
-
-//        // eval with muParser
-//        try
-//        {
-//            m_parser.SetExpr(sampleExpr.toStdString());
-//            fVal = m_parser.Eval();
-//        }
-//        catch(mu::Parser::exception_type &e)
-//        {
-//            std::cerr << "OBDREF_DEBUG: muParser: Message:  " << e.GetMsg() << "\n";
-//            std::cerr << "OBDREF_DEBUG: muParser: Formula:  " << e.GetExpr() << "\n";
-//            std::cerr << "OBDREF_DEBUG: muParser: Token:    " << e.GetToken() << "\n";
-//            std::cerr << "OBDREF_DEBUG: muParser: Position: " << e.GetPos() << "\n";
-//            std::cerr << "OBDREF_DEBUG: muParser: ErrC:     " << e.GetCode() << "\n";
-//        }
-
-//        qDebug() << "VALUE: " << fVal;
+        return true;
     }
 
     // ========================================================================== //
@@ -664,6 +623,178 @@ namespace obdref
             else
             {   convOk = false;   return 0;   }
         }
+    }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
+    bool Parser::parseMessage(const MessageFrame &msgFrame,
+                              const QString &parseExpr,
+                              double &myResult)
+    {
+        // there are two distinct ways of representing data
+        // bytes within an expression:
+
+        // 1 -  byte letters with a 'respN' prefix, meant for
+        //      differentiating between different response messages
+
+        // 2 -  byte letters without a prefix, meant for most
+        //      parameters, which have a single response message
+
+        // we allow the expression to be style (1) even if there
+        // is only one message, in case the user wants to adhere
+        // to an explicit data byte identifier
+
+        // however an expression with style (2) in a message frame
+        // with multiple messages is *not* allowed since it
+        // creates ambiguity
+
+        bool convOk = false;
+
+        if(parseExpr.contains("resp"))
+        {
+            QRegExp rx; int pos=0; double fVal = 0;
+            rx.setPattern("(resp[1-99]\\.[A-Z]|resp[1-99]\\.[A-Z]\\[[0-7]\\])+");
+
+            QStringList listRegExpMatches;
+            while ((pos = rx.indexIn(parseExpr, pos)) != -1)
+            {
+                listRegExpMatches << rx.cap(1);
+                pos += rx.matchedLength();
+            }
+
+            // map the data required to calc expression
+            for(int i=0; i < listRegExpMatches.size(); i++)
+            {
+                uint msgNumDigits = (msgFrame.listMessageData.size() > 9) ? 2 : 1;
+                QString msgNumChars(listRegExpMatches.at(i).mid(4,msgNumDigits));
+                uint msgNum = stringToUInt(convOk,msgNumChars) - 1;
+
+                if(msgFrame.listMessageData.size() <= msgNum)
+                {
+                    #ifdef OBDREF_DEBUG_ON
+                    std::cerr << "OBDREF_DEBUG: Error: Expression message "
+                              << "number prefix out of range: "
+                              << parseExpr.toStdString() << std::endl;
+                    #endif
+                    return false;
+                }
+
+                int byteCharPos = listRegExpMatches.at(i).indexOf(".") + 1;
+                uint byteNum = uint(listRegExpMatches.at(i).at(byteCharPos).toAscii())-65;
+
+                if(!(byteNum < msgFrame.listMessageData[msgNum].dataBytes.size()))
+                {
+                    #ifdef OBDREF_DEBUG_ON
+                    std::cerr << "OBDREF_DEBUG: Error: Data for " << msgFrame.name.toStdString()
+                              << " has insufficient bytes for parsing: "
+                              << parseExpr.toStdString() << std::endl;
+                    #endif
+                    return false;
+                }
+
+                uint byteVal = uint(msgFrame.listMessageData[msgNum].dataBytes.at(byteNum));
+
+                if(listRegExpMatches.at(i).contains("["))
+                {   // BIT VARIABLE
+
+                    int bitCharPos = listRegExpMatches.at(i).indexOf("[") + 1;
+                    int bitNum = listRegExpMatches.at(i).at(bitCharPos).digitValue();
+                    int bitMask = m_listDecValOfBitPos[bitNum];
+
+                    m_listExprVars[i] = double(byteVal & bitMask);
+                    m_parser.DefineVar(listRegExpMatches.at(i).toStdString(),
+                                       &m_listExprVars[i]);
+                }
+                else
+                {   // BYTE VARIABLE
+
+                    m_listExprVars[i] = double(byteVal);
+                    m_parser.DefineVar(listRegExpMatches.at(i).toStdString(),
+                                       &m_listExprVars[i]);
+                }
+            }
+        }
+        else
+        {
+            // single message variables follow the convention:
+            // bytes: [A-Z], bits: A[0-7]
+
+            if(msgFrame.listMessageData.size() > 1)
+            {
+                #ifdef OBDREF_DEBUG_ON
+                std::cerr << "OBDREF_DEBUG: Error: Multiple messages in frame "
+                          << "but expr missing message number prefixes: "
+                          << parseExpr.toStdString() << std::endl;
+                #endif
+                return false;
+            }
+
+            QRegExp rx; int pos=0; double fVal = 0;
+            rx.setPattern("([A-Z]|[A-Z]\\[[0-7]\\])+");
+
+            QStringList listRegExpMatches;
+            while ((pos = rx.indexIn(parseExpr, pos)) != -1)
+            {
+                listRegExpMatches << rx.cap(1);
+                pos += rx.matchedLength();
+            }
+
+            // map the data required to calc expression
+            for(int i=0; i < listRegExpMatches.size(); i++)
+            {
+                uint byteNum = uint(listRegExpMatches.at(i).at(0).toAscii())-65;
+                if(!(byteNum < msgFrame.listMessageData[0].dataBytes.size()))
+                {
+                    #ifdef OBDREF_DEBUG_ON
+                    std::cerr << "OBDREF_DEBUG: Error: Data for " << msgFrame.name.toStdString()
+                              << " has insufficient bytes for parsing: "
+                              << parseExpr.toStdString() << std::endl;
+                    #endif
+                    return false;
+                }
+
+                uint byteVal = uint(msgFrame.listMessageData[0].dataBytes.at(byteNum));
+
+                if(listRegExpMatches.at(i).contains("["))
+                {   // BIT VARIABLE
+
+                    int bitCharPos = listRegExpMatches.at(i).indexOf("[") + 1;
+                    int bitNum = listRegExpMatches.at(i).at(bitCharPos).digitValue();
+                    int bitMask = m_listDecValOfBitPos[bitNum];
+
+                    m_listExprVars[i] = double(byteVal & bitMask);
+                    m_parser.DefineVar(listRegExpMatches.at(i).toStdString(),
+                                       &m_listExprVars[i]);
+                }
+                else
+                {   // BYTE VARIABLE
+
+                    m_listExprVars[i] = double(byteVal);
+                    m_parser.DefineVar(listRegExpMatches.at(i).toStdString(),
+                                       &m_listExprVars[i]);
+                }
+            }
+        }
+
+        // eval with muParser
+        try
+        {
+            m_parser.SetExpr(parseExpr.toStdString());
+            myResult = m_parser.Eval();
+        }
+        catch(mu::Parser::exception_type &e)
+        {
+            #ifdef OBDREF_DEBUG_ON
+            std::cerr << "OBDREF_DEBUG: muParser: Message: " << e.GetMsg() << "\n";
+            std::cerr << "OBDREF_DEBUG: muParser: Formula: " << e.GetExpr() << "\n";
+            std::cerr << "OBDREF_DEBUG: muParser: Token: " << e.GetToken() << "\n";
+            std::cerr << "OBDREF_DEBUG: muParser: Position: " << e.GetPos() << "\n";
+            std::cerr << "OBDREF_DEBUG: muParser: ErrC: " << e.GetCode() << "\n";
+            #endif
+        }
+
+        return true;
     }
 
     // ========================================================================== //

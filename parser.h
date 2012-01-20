@@ -13,12 +13,6 @@
 namespace obdref
 {
 
-struct dblArray_s8
-{   double bit[8];   };
-
-struct dblArray_s26
-{   double byte[26];   };
-
 class Parser
 {
 public:
@@ -30,16 +24,17 @@ public:
                            QString const &paramName,
                            MessageFrame &msgFrame);
 
-    bool ParseMessageFrame(MessageFrame const &parseMsg,
+    bool ParseMessageFrame(MessageFrame const &msgFrame,
                            Data &paramData);
-
-    bool ParseMessage(Message const &parseMsg,
-                      QString &jsonStr);
 
 private:
     void walkConditionTree(pugi::xml_node &nodeParameter,
                            QStringList &listConditions,
                            MessageFrame &msgFrame);
+
+    bool parseMessage(MessageFrame const &msgFrame,
+                      QString const &parseExpr,
+                      double &myResult);
 
     uint stringToUInt(bool &convOk, QString const &parseStr);
 
