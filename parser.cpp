@@ -346,6 +346,10 @@ namespace obdref
                                     QString pExpr(parseChild.attribute("expr").value());
                                     if(!pExpr.isEmpty())
                                     {
+                                        // convert hex and binary notation
+                                        // to decimal for muParser
+                                        convToDecEquivExpression(pExpr);
+
                                         ParseInfo parseInfo;
                                         parseInfo.expr = pExpr;
 
@@ -359,6 +363,9 @@ namespace obdref
 
                                             if(parseChild.attribute("max"))
                                             {   parseInfo.numericalData.max = parseChild.attribute("max").as_double();   }
+
+                                            if(parseChild.attribute("units"))
+                                            {   parseInfo.numericalData.units = QString(parseChild.attribute("units").value());   }
                                         }
                                         else
                                         {   // assume value is literal
@@ -477,6 +484,10 @@ namespace obdref
                 }
                 if(myResult == 0)
                 {   // condition failed, ignore this parse expr
+                    #ifdef OBDREF_DEBUG_ON
+                    std::cerr << "OBDREF_DEBUG: Note: Condition Failed: "
+                              << msgFrame.listParseInfo[i].listConditions.at(j).toStdString() << std::endl;
+                    #endif
                     allConditionsValid = false;
                     break;
                 }
@@ -549,6 +560,10 @@ namespace obdref
             QString pExpr(parseChild.attribute("expr").value());
             if(!pExpr.isEmpty())
             {
+                // convert hex and binary notation
+                // to decimal for muParser
+                convToDecEquivExpression(pExpr);
+
                 ParseInfo parseInfo;
                 parseInfo.expr = pExpr;
 
@@ -556,14 +571,19 @@ namespace obdref
                 QString pExprFalse(parseChild.attribute("false").value());
                 if(pExprTrue.isEmpty() && pExprFalse.isEmpty())
                 {   // assume value is numerical
+                    parseInfo.isNumerical = true;
                     if(parseChild.attribute("min"))
                     {   parseInfo.numericalData.min = parseChild.attribute("min").as_double();   }
 
                     if(parseChild.attribute("max"))
                     {   parseInfo.numericalData.max = parseChild.attribute("max").as_double();   }
+
+                    if(parseChild.attribute("units"))
+                    {   parseInfo.numericalData.units = QString(parseChild.attribute("units").value());   }
                 }
                 else
                 {   // assume value is literal
+                    parseInfo.isLiteral = true;
                     parseInfo.literalData.valueIfFalse = pExprFalse;
                     parseInfo.literalData.valueIfTrue = pExprTrue;
                 }
@@ -797,12 +817,42 @@ namespace obdref
         return true;
     }
 
+    void Parser::convToDecEquivExpression(QString &parseExpr)
+    {
+        // replaces binary and hex notation numbers
+        // with their decimal equivalents
+
+        // look for binary numbers (starting with 0b)
+        QRegExp rx; bool convOk = false;
+
+        int pos=0;
+        rx.setPattern("(0b[01]+)+");
+        while ((pos = rx.indexIn(parseExpr, pos)) != -1)
+        {
+            uint decVal = stringToUInt(convOk,rx.cap(1));
+            QString decStr = QString::number(decVal,10);
+            parseExpr.replace(pos,rx.cap(1).size(),decStr);
+            pos += decStr.length();
+        }
+
+        // look for binary numbers (starting with 0x)
+        pos = 0;
+        rx.setPattern("(0x[0123456789ABCDEF]+)+");
+        while ((pos = rx.indexIn(parseExpr, pos)) != -1)
+        {
+            uint decVal = stringToUInt(convOk,rx.cap(1));
+            QString decStr = QString::number(decVal,10);
+            parseExpr.replace(pos,rx.cap(1).size(),decStr);
+            pos += decStr.length();
+        }
+    }
+
     // ========================================================================== //
     // ========================================================================== //
 
     mu::value_type Parser::muLogicalNot(mu::value_type fVal)
     {
-        std::cerr << "Called LogicalNot" << std::endl;
+        //std::cerr << "Called LogicalNot" << std::endl;
 
         if(fVal == 0)
         {   return 1;   }
@@ -816,28 +866,28 @@ namespace obdref
 
     mu::value_type Parser::muBitwiseNot(mu::value_type fVal)
     {
-        std::cerr << "Called BitwiseNot" << std::endl;
+        //std::cerr << "Called BitwiseNot" << std::endl;
 
-        int iVal = (int)fVal;
+        ubyte iVal = (ubyte)fVal;
         iVal = ~iVal;
         return mu::value_type(fVal);
     }
 
     mu::value_type Parser::muBitwiseAnd(mu::value_type fVal1, mu::value_type fVal2)
     {
-        std::cerr << "Called BitwiseAnd" << std::endl;
+        //std::cerr << "Called BitwiseAnd" << std::endl;
 
-        int iVal1 = (int)fVal1;
-        int iVal2 = (int)fVal2;
+        ubyte iVal1 = (ubyte)fVal1;
+        ubyte iVal2 = (ubyte)fVal2;
         return double(iVal1 & iVal2);
     }
 
     mu::value_type Parser::muBitwiseOr(mu::value_type fVal1, mu::value_type fVal2)
     {
-        std::cerr << "Called BitwiseOr" << std::endl;
+        //std::cerr << "Called BitwiseOr" << std::endl;
 
-        int iVal1 = (int)fVal1;
-        int iVal2 = (int)fVal2;
+        ubyte iVal1 = (ubyte)fVal1;
+        ubyte iVal2 = (ubyte)fVal2;
         return double(iVal1 | iVal2);
     }
 

@@ -1003,14 +1003,12 @@
 			request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
 			request2="0xA8 0x00 0x00 0x00 0x0F" request2.delay="100" response2.prefix="0xE8" response2.bytes="1">
 			<condition expr="resp1.A > resp2.A">
-				<parse units="rpm" expr="((resp1.A*256)+resp2.A)/4" min="0" max="255" />
+				<condition expr="resp1.A != resp2.A">
+					<parse units="rpm" expr="((resp1.A*256)+resp2.A)/4" min="0" max="255" />
+				</condition>
 			</condition>
 		</parameter>
-		
-		<parameter name="SSM Intake Air Temperature"
-			request="0xA8 0x00 0x00 0x00 0x0E" response.prefix="0xE8" response.bytes="1">
-			<parse units="rpm" expr="A-40" min="-40" max="215" />
-		</parameter>		
+			
 		<!-- END TESTING -->
 		
 		<!-- END MODE $01 PIDs -->
@@ -1028,10 +1026,10 @@
 							
 			<parse expr="!(A || B)" true="No Freeze Frame Data Available" />
 			<condition expr="(A || B)">
-				<parse expr="(A & 0b11000000) == 0" true="P" desc="First DTC Character is P (Powertrain)" />
-				<parse expr="(A & 0b11000000) == 1" true="C" desc="First DTC Character is C (Chassis)" />
-				<parse expr="(A & 0b11000000) == 2" true="B" desc="First DTC Character is B (Body)" />
-				<parse expr="(A & 0b11000000) == 3" true="U" desc="First DTC Character is U (Network)" />
+				<parse expr="(A & 0b11000000) == 0b00000000" true="P" desc="First DTC Character is P (Powertrain)" />
+				<parse expr="(A & 0b11000000) == 0b01000000" true="C" desc="First DTC Character is C (Chassis)" />
+				<parse expr="(A & 0b11000000) == 0b10000000" true="B" desc="First DTC Character is B (Body)" />
+				<parse expr="(A & 0b11000000) == 0b11000000" true="U" desc="First DTC Character is U (Network)" />
 				<parse expr="(A & 0b00110000)" min="0" max="3" desc="Second DTC Character" />
 				<parse expr="(A & 0b00001111)" min="0" max="F" desc="Third DTC Character" />
 				<parse expr="(B & 0b11110000)" min="0" max="F" desc="Fourth DTC Character" />

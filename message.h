@@ -6,6 +6,8 @@
 namespace obdref
 {
 
+typedef unsigned char ubyte;
+
 class LiteralData
 {
 public:
@@ -47,10 +49,11 @@ public:
 class MessageData
 {
 public:
-    QByteArray  reqDataBytes;
-    QByteArray  expDataPrefix;
+    QList<ubyte>    reqDataBytes;
+    QList<ubyte>    expDataPrefix;
+    QList<ubyte>    dataBytes;                      // expect data bytes SANS prefix
+
     QString     expDataBytes;                       // explain 'N', '2N' stuff here
-    QByteArray  dataBytes;                          // expect data bytes SANS prefix
     uint        reqDataDelayMs;
 };
 
@@ -62,8 +65,8 @@ public:
     QString address;
     QString name;
 
-    QByteArray  reqHeaderBytes;
-    QByteArray  expHeaderBytes;
+    QList<ubyte>  reqHeaderBytes;
+    QList<ubyte>  expHeaderBytes;
 
     QList<MessageData>  listMessageData;            // [list of message data for this chain]
                                                     // we use a list to account for special

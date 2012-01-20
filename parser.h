@@ -36,6 +36,10 @@ private:
                       QString const &parseExpr,
                       double &myResult);
 
+    void convToDecEquivExpression(QString &parseExpr);
+
+
+
     uint stringToUInt(bool &convOk, QString const &parseStr);
 
     static mu::value_type muLogicalNot(mu::value_type);
