@@ -1,7 +1,7 @@
 TEMPLATE = app
 QT += core
 
-SOURCES += main.cpp \
+SOURCES += \
     parser.cpp \
     pugixml/pugixml.cpp \
     muparser/muParserTokenReader.cpp \
@@ -9,7 +9,8 @@ SOURCES += main.cpp \
     muparser/muParserCallback.cpp \
     muparser/muParserBytecode.cpp \
     muparser/muParserBase.cpp \
-    muparser/muParser.cpp
+    muparser/muParser.cpp \
+    example.cpp
 
 HEADERS += \
     parser.h \

@@ -204,140 +204,140 @@
 		
 		<parameter name="PIDs Supported 0x01-0x20" 
 			request="0x01 0x00" response.prefix="0x41 0x00" response.bytes="4">
-			<parse expr="A7" true="PID 0x01 Supported" false="PID 0x01 Unsupported" />
-			<parse expr="A6" true="PID 0x02 Supported" false="PID 0x02 Unsupported" />
-			<parse expr="A5" true="PID 0x03 Supported" false="PID 0x03 Unsupported" />
-			<parse expr="A4" true="PID 0x04 Supported" false="PID 0x04 Unsupported" />
-			<parse expr="A3" true="PID 0x05 Supported" false="PID 0x05 Unsupported" />
-			<parse expr="A2" true="PID 0x06 Supported" false="PID 0x06 Unsupported" />
-			<parse expr="A1" true="PID 0x07 Supported" false="PID 0x07 Unsupported" />
-			<parse expr="A0" true="PID 0x08 Supported" false="PID 0x08 Unsupported" />
+			<parse expr="A[7]" true="PID 0x01 Supported" false="PID 0x01 Unsupported" />
+			<parse expr="A[6]" true="PID 0x02 Supported" false="PID 0x02 Unsupported" />
+			<parse expr="A[5]" true="PID 0x03 Supported" false="PID 0x03 Unsupported" />
+			<parse expr="A[4]" true="PID 0x04 Supported" false="PID 0x04 Unsupported" />
+			<parse expr="A[3]" true="PID 0x05 Supported" false="PID 0x05 Unsupported" />
+			<parse expr="A[2]" true="PID 0x06 Supported" false="PID 0x06 Unsupported" />
+			<parse expr="A[1]" true="PID 0x07 Supported" false="PID 0x07 Unsupported" />
+			<parse expr="A[0]" true="PID 0x08 Supported" false="PID 0x08 Unsupported" />
 			
-			<parse expr="B7" true="PID 0x09 Supported" false="PID 0x09 Unsupported" />
-			<parse expr="B6" true="PID 0x0A Supported" false="PID 0x0A Unsupported" />
-			<parse expr="B5" true="PID 0x0B Supported" false="PID 0x0B Unsupported" />
-			<parse expr="B4" true="PID 0x0C Supported" false="PID 0x0C Unsupported" />
-			<parse expr="B3" true="PID 0x0D Supported" false="PID 0x0D Unsupported" />
-			<parse expr="B2" true="PID 0x0E Supported" false="PID 0x0E Unsupported" />
-			<parse expr="B1" true="PID 0x0F Supported" false="PID 0x0F Unsupported" />
-			<parse expr="B0" true="PID 0x10 Supported" false="PID 0x10 Unsupported" />
+			<parse expr="B[7]" true="PID 0x09 Supported" false="PID 0x09 Unsupported" />
+			<parse expr="B[6]" true="PID 0x0A Supported" false="PID 0x0A Unsupported" />
+			<parse expr="B[5]" true="PID 0x0B Supported" false="PID 0x0B Unsupported" />
+			<parse expr="B[4]" true="PID 0x0C Supported" false="PID 0x0C Unsupported" />
+			<parse expr="B[3]" true="PID 0x0D Supported" false="PID 0x0D Unsupported" />
+			<parse expr="B[2]" true="PID 0x0E Supported" false="PID 0x0E Unsupported" />
+			<parse expr="B[1]" true="PID 0x0F Supported" false="PID 0x0F Unsupported" />
+			<parse expr="B[0]" true="PID 0x10 Supported" false="PID 0x10 Unsupported" />
 			
-			<parse expr="C7" true="PID 0x11 Supported" false="PID 0x11 Unsupported" />
-			<parse expr="C6" true="PID 0x12 Supported" false="PID 0x12 Unsupported" />
-			<parse expr="C5" true="PID 0x13 Supported" false="PID 0x13 Unsupported" />
-			<parse expr="C4" true="PID 0x14 Supported" false="PID 0x14 Unsupported" />
-			<parse expr="C3" true="PID 0x15 Supported" false="PID 0x15 Unsupported" />
-			<parse expr="C2" true="PID 0x16 Supported" false="PID 0x16 Unsupported" />
-			<parse expr="C1" true="PID 0x17 Supported" false="PID 0x17 Unsupported" />
-			<parse expr="C0" true="PID 0x18 Supported" false="PID 0x18 Unsupported" />
+			<parse expr="C[7]" true="PID 0x11 Supported" false="PID 0x11 Unsupported" />
+			<parse expr="C[6]" true="PID 0x12 Supported" false="PID 0x12 Unsupported" />
+			<parse expr="C[5]" true="PID 0x13 Supported" false="PID 0x13 Unsupported" />
+			<parse expr="C[4]" true="PID 0x14 Supported" false="PID 0x14 Unsupported" />
+			<parse expr="C[3]" true="PID 0x15 Supported" false="PID 0x15 Unsupported" />
+			<parse expr="C[2]" true="PID 0x16 Supported" false="PID 0x16 Unsupported" />
+			<parse expr="C[1]" true="PID 0x17 Supported" false="PID 0x17 Unsupported" />
+			<parse expr="C[0]" true="PID 0x18 Supported" false="PID 0x18 Unsupported" />
 			
-			<parse expr="D7" true="PID 0x19 Supported" false="PID 0x19 Unsupported" />
-			<parse expr="D6" true="PID 0x1A Supported" false="PID 0x1A Unsupported" />
-			<parse expr="D5" true="PID 0x1B Supported" false="PID 0x1B Unsupported" />
-			<parse expr="D4" true="PID 0x1C Supported" false="PID 0x1C Unsupported" />
-			<parse expr="D3" true="PID 0x1D Supported" false="PID 0x1D Unsupported" />
-			<parse expr="D2" true="PID 0x1E Supported" false="PID 0x1E Unsupported" />
-			<parse expr="D1" true="PID 0x1F Supported" false="PID 0x1F Unsupported" />
-			<parse expr="D0" true="PID 0x20 Supported" false="PID 0x20 Unsupported" />
+			<parse expr="D[7]" true="PID 0x19 Supported" false="PID 0x19 Unsupported" />
+			<parse expr="D[6]" true="PID 0x1A Supported" false="PID 0x1A Unsupported" />
+			<parse expr="D[5]" true="PID 0x1B Supported" false="PID 0x1B Unsupported" />
+			<parse expr="D[4]" true="PID 0x1C Supported" false="PID 0x1C Unsupported" />
+			<parse expr="D[3]" true="PID 0x1D Supported" false="PID 0x1D Unsupported" />
+			<parse expr="D[2]" true="PID 0x1E Supported" false="PID 0x1E Unsupported" />
+			<parse expr="D[1]" true="PID 0x1F Supported" false="PID 0x1F Unsupported" />
+			<parse expr="D[0]" true="PID 0x20 Supported" false="PID 0x20 Unsupported" />
 		</parameter>
 		
 		<parameter name="Monitor Status Since DTCs Cleared"
 			request="0x01 0x01" response.prefix="0x41 0x01" response.bytes="4">
 					
-			<parse expr="A7" true="MIL/CEL is ON" false="MIL/CEL is OFF" />
+			<parse expr="A[7]" true="MIL/CEL is ON" false="MIL/CEL is OFF" />
 			
 			<parse units="number" expr="(A & 0b01111111)" min="0" max="127"
 				desc="Number of confirmed emissions-related DTCs available for display" />
 				
-			<parse expr="B3" true="Compression Ignition Monitors" false="Spark Ignition Monitors" />
+			<parse expr="B[3]" true="Compression Ignition Monitors" false="Spark Ignition Monitors" />
 			
-			<parse expr="B0" true="Misfire Test Available" false="Misfire Test Unavailable" />
-			<parse expr="B1" true="Fuel System Test Available" false="Fuel System Test Unavailable" />
-			<parse expr="B2" true="Components Test Available" false="Components Test Unavailable" />
+			<parse expr="B[0]" true="Misfire Test Available" false="Misfire Test Unavailable" />
+			<parse expr="B[1]" true="Fuel System Test Available" false="Fuel System Test Unavailable" />
+			<parse expr="B[2]" true="Components Test Available" false="Components Test Unavailable" />
 			
-			<parse expr="B4" true="Misfire Test Incomplete" false="Misfire Test Complete" />
-			<parse expr="B5" true="Fuel System Test Incomplete" false="Fuel System Test Complete" />
-			<parse expr="B6" true="Components Test Incomplete" false="Components Test Complete" />
+			<parse expr="B[4]" true="Misfire Test Incomplete" false="Misfire Test Complete" />
+			<parse expr="B[5]" true="Fuel System Test Incomplete" false="Fuel System Test Complete" />
+			<parse expr="B[6]" true="Components Test Incomplete" false="Components Test Complete" />
 					
-			<parse expr="B3 && C0" true="NMHC Cat Test Available" />
-			<parse expr="B3 && C1" true="NOx/SCR Monitor Test Available" />
-			<parse expr="B3 && C3" true="Boost Pressure Test Available" />
-			<parse expr="B3 && C5" true="Exhaust Gas Sensor Test Available" />
-			<parse expr="B3 && C6" true="PM Filter Monitoring Test Available" />
-			<parse expr="B3 && C7" true="EGR and/or VVT System Test Available" />
+			<parse expr="B[3] && C[0]" true="NMHC Cat Test Available" />
+			<parse expr="B[3] && C[1]" true="NOx/SCR Monitor Test Available" />
+			<parse expr="B[3] && C[3]" true="Boost Pressure Test Available" />
+			<parse expr="B[3] && C[5]" true="Exhaust Gas Sensor Test Available" />
+			<parse expr="B[3] && C[6]" true="PM Filter Monitoring Test Available" />
+			<parse expr="B[3] && C[7]" true="EGR and/or VVT System Test Available" />
 			
-			<parse expr="B3 && !C0" true="NMHC Cat Test Unavailable" />
-			<parse expr="B3 && !C1" true="NOx/SCR Monitor Test Unavailable" />
-			<parse expr="B3 && !C3" true="Boost Pressure Test Unavailable" />
-			<parse expr="B3 && !C5" true="Exhaust Gas Sensor Test Unavailable" />
-			<parse expr="B3 && !C6" true="PM Filter Monitoring Test Unavailable" />
-			<parse expr="B3 && !C7" true="EGR and/or VVT System Test Unavailable" />
+			<parse expr="B[3] && !C[0]" true="NMHC Cat Test Unavailable" />
+			<parse expr="B[3] && !C[1]" true="NOx/SCR Monitor Test Unavailable" />
+			<parse expr="B[3] && !C[3]" true="Boost Pressure Test Unavailable" />
+			<parse expr="B[3] && !C[5]" true="Exhaust Gas Sensor Test Unavailable" />
+			<parse expr="B[3] && !C[6]" true="PM Filter Monitoring Test Unavailable" />
+			<parse expr="B[3] && !C[7]" true="EGR and/or VVT System Test Unavailable" />
 			
-			<parse expr="B3 && D0" true="NMHC Cat Test Incomplete" />
-			<parse expr="B3 && D1" true="NOx/SCR Monitor Test Incomplete" />
-			<parse expr="B3 && D3" true="Boost Pressure Test Incomplete" />
-			<parse expr="B3 && D5" true="Exhaust Gas Sensor Test Incomplete" />
-			<parse expr="B3 && D6" true="PM Filter Monitoring Test Incomplete" />
-			<parse expr="B3 && D7" true="EGR and/or VVT System Test Incomplete" />
+			<parse expr="B[3] && D[0]" true="NMHC Cat Test Incomplete" />
+			<parse expr="B[3] && D[1]" true="NOx/SCR Monitor Test Incomplete" />
+			<parse expr="B[3] && D[3]" true="Boost Pressure Test Incomplete" />
+			<parse expr="B[3] && D[5]" true="Exhaust Gas Sensor Test Incomplete" />
+			<parse expr="B[3] && D[6]" true="PM Filter Monitoring Test Incomplete" />
+			<parse expr="B[3] && D[7]" true="EGR and/or VVT System Test Incomplete" />
 			
-			<parse expr="B3 && !D0" true="NMHC Cat Test Complete" />
-			<parse expr="B3 && !D1" true="NOx/SCR Monitor Test Complete" />
-			<parse expr="B3 && !D3" true="Boost Pressure Test Complete" />
-			<parse expr="B3 && !D5" true="Exhaust Gas Sensor Test Complete" />
-			<parse expr="B3 && !D6" true="PM Filter Monitoring Test Complete" />
-			<parse expr="B3 && !D7" true="EGR and/or VVT System Test Complete" />
+			<parse expr="B[3] && !D[0]" true="NMHC Cat Test Complete" />
+			<parse expr="B[3] && !D[1]" true="NOx/SCR Monitor Test Complete" />
+			<parse expr="B[3] && !D[3]" true="Boost Pressure Test Complete" />
+			<parse expr="B[3] && !D[5]" true="Exhaust Gas Sensor Test Complete" />
+			<parse expr="B[3] && !D[6]" true="PM Filter Monitoring Test Complete" />
+			<parse expr="B[3] && !D[7]" true="EGR and/or VVT System Test Complete" />
 			
-			<parse expr="!B3 && C0" true="Catalyst Test Available" />
-			<parse expr="!B3 && C1" true="Heated Test Available" />
-			<parse expr="!B3 && C2" true="Evaporative System Test Available" />
-			<parse expr="!B3 && C3" true="Secondary Air System Test Available" />
-			<parse expr="!B3 && C4" true="A/C Refrigerant Test Available" />
-			<parse expr="!B3 && C5" true="Oxygen Sensor Test Available" />
-			<parse expr="!B3 && C6" true="Oxygen Sensor Heater Test Available" />
-			<parse expr="!B3 && C7" true="EGR System Test Available" />
+			<parse expr="!B[3] && C[0]" true="Catalyst Test Available" />
+			<parse expr="!B[3] && C[1]" true="Heated Test Available" />
+			<parse expr="!B[3] && C[2]" true="Evaporative System Test Available" />
+			<parse expr="!B[3] && C[3]" true="Secondary Air System Test Available" />
+			<parse expr="!B[3] && C[4]" true="A/C Refrigerant Test Available" />
+			<parse expr="!B[3] && C[5]" true="Oxygen Sensor Test Available" />
+			<parse expr="!B[3] && C[6]" true="Oxygen Sensor Heater Test Available" />
+			<parse expr="!B[3] && C[7]" true="EGR System Test Available" />
 			
-			<parse expr="!B3 && !C0" true="Catalyst Test Unavailable" />
-			<parse expr="!B3 && !C1" true="Heated Test Unavailable" />
-			<parse expr="!B3 && !C2" true="Evaporative System Test Unavailable" />
-			<parse expr="!B3 && !C3" true="Secondary Air System Test Unavailable" />
-			<parse expr="!B3 && !C4" true="A/C Refrigerant Test Unavailable" />
-			<parse expr="!B3 && !C5" true="Oxygen Sensor Test Unavailable" />
-			<parse expr="!B3 && !C6" true="Oxygen Sensor Heater Test Unavailable" />
-			<parse expr="!B3 && !C7" true="EGR System Test Unavailable" />
+			<parse expr="!B[3] && !C[0]" true="Catalyst Test Unavailable" />
+			<parse expr="!B[3] && !C[1]" true="Heated Test Unavailable" />
+			<parse expr="!B[3] && !C[2]" true="Evaporative System Test Unavailable" />
+			<parse expr="!B[3] && !C[3]" true="Secondary Air System Test Unavailable" />
+			<parse expr="!B[3] && !C[4]" true="A/C Refrigerant Test Unavailable" />
+			<parse expr="!B[3] && !C[5]" true="Oxygen Sensor Test Unavailable" />
+			<parse expr="!B[3] && !C[6]" true="Oxygen Sensor Heater Test Unavailable" />
+			<parse expr="!B[3] && !C[7]" true="EGR System Test Unavailable" />
 			
-			<parse expr="!B3 && D0" true="Catalyst Test Incomplete" />
-			<parse expr="!B3 && D1" true="Heated Test Incomplete" />
-			<parse expr="!B3 && D2" true="Evaporative System Test Incomplete" />
-			<parse expr="!B3 && D3" true="Secondary Air System Test Incomplete" />
-			<parse expr="!B3 && D4" true="A/C Refrigerant Test Incomplete" />
-			<parse expr="!B3 && D5" true="Oxygen Sensor Test Incomplete" />
-			<parse expr="!B3 && D6" true="Oxygen Sensor Heater Test Incomplete" />
-			<parse expr="!B3 && D7" true="EGR System Test Incomplete" />
+			<parse expr="!B[3] && D[0]" true="Catalyst Test Incomplete" />
+			<parse expr="!B[3] && D[1]" true="Heated Test Incomplete" />
+			<parse expr="!B[3] && D[2]" true="Evaporative System Test Incomplete" />
+			<parse expr="!B[3] && D[3]" true="Secondary Air System Test Incomplete" />
+			<parse expr="!B[3] && D[4]" true="A/C Refrigerant Test Incomplete" />
+			<parse expr="!B[3] && D[5]" true="Oxygen Sensor Test Incomplete" />
+			<parse expr="!B[3] && D[6]" true="Oxygen Sensor Heater Test Incomplete" />
+			<parse expr="!B[3] && D[7]" true="EGR System Test Incomplete" />
 			
-			<parse expr="!B3 && !D0" true="Catalyst Test Complete" />
-			<parse expr="!B3 && !D1" true="Heated Test Complete" />
-			<parse expr="!B3 && !D2" true="Evaporative System Test Complete" />
-			<parse expr="!B3 && !D3" true="Secondary Air System Test Complete" />
-			<parse expr="!B3 && !D4" true="A/C Refrigerant Test Complete" />
-			<parse expr="!B3 && !D5" true="Oxygen Sensor Test Complete" />
-			<parse expr="!B3 && !D6" true="Oxygen Sensor Heater Test Complete" />
-			<parse expr="!B3 && !D7" true="EGR System Test Complete" />
+			<parse expr="!B[3] && !D[0]" true="Catalyst Test Complete" />
+			<parse expr="!B[3] && !D[1]" true="Heated Test Complete" />
+			<parse expr="!B[3] && !D[2]" true="Evaporative System Test Complete" />
+			<parse expr="!B[3] && !D[3]" true="Secondary Air System Test Complete" />
+			<parse expr="!B[3] && !D[4]" true="A/C Refrigerant Test Complete" />
+			<parse expr="!B[3] && !D[5]" true="Oxygen Sensor Test Complete" />
+			<parse expr="!B[3] && !D[6]" true="Oxygen Sensor Heater Test Complete" />
+			<parse expr="!B[3] && !D[7]" true="EGR System Test Complete" />
 		</parameter>
 		
 		<parameter name="Fuel System Status"
 			request="0x01 0x03" response.prefix="0x41 0x03" response.bytes="2">
-			<parse expr="A0" true="Fuel System 1: Open Loop: Insufficient engine temperature" />
-			<parse expr="A1" true="Fuel System 1: Closed Loop: Using oxygen sensor feedback to determine fuel mix" />
-			<parse expr="A2" true="Fuel System 1: Open Loop: Due to engine load OR fuel cut due to acceleration" />
-			<parse expr="A3" true="Fuel System 1: Open Loop: Due to system failure" />
-			<parse expr="A4" true="Fuel System 1: Closed loop: Using at least one oxygen sensor, 
+			<parse expr="A[0]" true="Fuel System 1: Open Loop: Insufficient engine temperature" />
+			<parse expr="A[1]" true="Fuel System 1: Closed Loop: Using oxygen sensor feedback to determine fuel mix" />
+			<parse expr="A[2]" true="Fuel System 1: Open Loop: Due to engine load OR fuel cut due to acceleration" />
+			<parse expr="A[3]" true="Fuel System 1: Open Loop: Due to system failure" />
+			<parse expr="A[4]" true="Fuel System 1: Closed loop: Using at least one oxygen sensor, 
 												   but there is a fault in the feedback system" />
 			
-			<parse expr="B0" true="Fuel System 2: Open Loop: Insufficient engine temperature" />
-			<parse expr="B1" true="Fuel System 2: Closed Loop: Using oxygen sensor feedback to determine fuel mix" />
-			<parse expr="B2" true="Fuel System 2: Open Loop: Due to engine load OR fuel cut due to acceleration" />
-			<parse expr="B3" true="Fuel System 2: Open Loop: Due to system failure" />
-			<parse expr="B4" true="Fuel System 2: Closed loop: Using at least one oxygen sensor, 
+			<parse expr="B[0]" true="Fuel System 2: Open Loop: Insufficient engine temperature" />
+			<parse expr="B[1]" true="Fuel System 2: Closed Loop: Using oxygen sensor feedback to determine fuel mix" />
+			<parse expr="B[2]" true="Fuel System 2: Open Loop: Due to engine load OR fuel cut due to acceleration" />
+			<parse expr="B[3]" true="Fuel System 2: Open Loop: Due to system failure" />
+			<parse expr="B[4]" true="Fuel System 2: Closed loop: Using at least one oxygen sensor, 
 												   but there is a fault in the feedback system" />
 		</parameter>
 
@@ -402,7 +402,7 @@
 		</parameter>
 
 		<parameter name="MAF Air Flow Rate"
-			request="0x01 0x10" response2.prefix="0x41 0x10" response.bytes="2">
+			request="0x01 0x10" response.prefix="0x41 0x10" response.bytes="2">
 			<parse units="g/s" expr="((A*256)+B)/100" min="0" max="655.35" />
 		</parameter>
 
@@ -413,21 +413,21 @@
 		
 		<parameter name="Commanded Secondary Air Status"
 			request="0x01 0x12" response.prefix="0x41 0x12" response.bytes="1">
-			<parse expr="A0" true="Upstream of catalytic converter" />
-			<parse expr="A1" true="Downstream of catalytic converter" />
-			<parse expr="A2" true="From the outside atmosphere or off" />
+			<parse expr="A[0]" true="Upstream of catalytic converter" />
+			<parse expr="A[1]" true="Downstream of catalytic converter" />
+			<parse expr="A[2]" true="From the outside atmosphere or off" />
 		</parameter>
 		
 		<parameter name="Oxygen Sensors Present (Banks 1-2)"
 			request="0x01 0x13" response.prefix="0x41 0x13" response.bytes="1">
-			<parse expr="A0" true="Bank 1, Sensor 1 Present" />
-			<parse expr="A1" true="Bank 1, Sensor 2 Present" />
-			<parse expr="A2" true="Bank 1, Sensor 3 Present" />
-			<parse expr="A3" true="Bank 1, Sensor 4 Present" />
-			<parse expr="A4" true="Bank 2, Sensor 1 Present" />
-			<parse expr="A5" true="Bank 2, Sensor 2 Present" />
-			<parse expr="A6" true="Bank 2, Sensor 3 Present" />
-			<parse expr="A7" true="Bank 2, Sensor 4 Present" />
+			<parse expr="A[0]" true="Bank 1, Sensor 1 Present" />
+			<parse expr="A[1]" true="Bank 1, Sensor 2 Present" />
+			<parse expr="A[2]" true="Bank 1, Sensor 3 Present" />
+			<parse expr="A[3]" true="Bank 1, Sensor 4 Present" />
+			<parse expr="A[4]" true="Bank 2, Sensor 1 Present" />
+			<parse expr="A[5]" true="Bank 2, Sensor 2 Present" />
+			<parse expr="A[6]" true="Bank 2, Sensor 3 Present" />
+			<parse expr="A[7]" true="Bank 2, Sensor 4 Present" />
 		</parameter>
 		
 		<parameter name="Bank 1, Sensor 1: Oxygen Sensor Voltage, Short Term Fuel Trim"
@@ -505,19 +505,19 @@
 		
 		<parameter name="Oxygen Sensors Present (Banks 1-4)"
 			request="0x01 0x1D" response.prefix="0x41 0x1D" response.bytes="1">
-			<parse expr="A0" true="Bank 1, Sensor 1 Present" />
-			<parse expr="A1" true="Bank 1, Sensor 2 Present" />
-			<parse expr="A2" true="Bank 2, Sensor 1 Present" />
-			<parse expr="A3" true="Bank 2, Sensor 2 Present" />
-			<parse expr="A4" true="Bank 3, Sensor 1 Present" />
-			<parse expr="A5" true="Bank 3, Sensor 2 Present" />
-			<parse expr="A6" true="Bank 4, Sensor 1 Present" />
-			<parse expr="A7" true="Bank 4, Sensor 2 Present" />
+			<parse expr="A[0]" true="Bank 1, Sensor 1 Present" />
+			<parse expr="A[1]" true="Bank 1, Sensor 2 Present" />
+			<parse expr="A[2]" true="Bank 2, Sensor 1 Present" />
+			<parse expr="A[3]" true="Bank 2, Sensor 2 Present" />
+			<parse expr="A[4]" true="Bank 3, Sensor 1 Present" />
+			<parse expr="A[5]" true="Bank 3, Sensor 2 Present" />
+			<parse expr="A[6]" true="Bank 4, Sensor 1 Present" />
+			<parse expr="A[7]" true="Bank 4, Sensor 2 Present" />
 		</parameter>
 		
 		<parameter name="Auxiliary Input Status"
 			request="0x01 0x1E" response.prefix="0x41 0x1E" response.bytes="1">
-			<parse expr="A0" true="Power Take Off Active" />
+			<parse expr="A[0]" true="Power Take Off Active" />
 		</parameter>
 		
 		<parameter name="Runtime Since Engine Start"
@@ -527,41 +527,41 @@
 
 		<parameter name="PIDs Supported 0x21-0x40"
 			request="0x01 0x20" response.prefix="0x41 0x20" response.bytes="4">
-			<parse expr="A7" true="PID 0x21 Supported" false="PID 0x21 Unsupported" />
-			<parse expr="A6" true="PID 0x22 Supported" false="PID 0x22 Unsupported" />
-			<parse expr="A5" true="PID 0x23 Supported" false="PID 0x23 Unsupported" />
-			<parse expr="A4" true="PID 0x24 Supported" false="PID 0x24 Unsupported" />
-			<parse expr="A3" true="PID 0x25 Supported" false="PID 0x25 Unsupported" />
-			<parse expr="A2" true="PID 0x26 Supported" false="PID 0x26 Unsupported" />
-			<parse expr="A1" true="PID 0x27 Supported" false="PID 0x27 Unsupported" />
-			<parse expr="A0" true="PID 0x28 Supported" false="PID 0x28 Unsupported" />
+			<parse expr="A[7]" true="PID 0x21 Supported" false="PID 0x21 Unsupported" />
+			<parse expr="A[6]" true="PID 0x22 Supported" false="PID 0x22 Unsupported" />
+			<parse expr="A[5]" true="PID 0x23 Supported" false="PID 0x23 Unsupported" />
+			<parse expr="A[4]" true="PID 0x24 Supported" false="PID 0x24 Unsupported" />
+			<parse expr="A[3]" true="PID 0x25 Supported" false="PID 0x25 Unsupported" />
+			<parse expr="A[2]" true="PID 0x26 Supported" false="PID 0x26 Unsupported" />
+			<parse expr="A[1]" true="PID 0x27 Supported" false="PID 0x27 Unsupported" />
+			<parse expr="A[0]" true="PID 0x28 Supported" false="PID 0x28 Unsupported" />
 			
-			<parse expr="B7" true="PID 0x29 Supported" false="PID 0x29 Unsupported" />
-			<parse expr="B6" true="PID 0x2A Supported" false="PID 0x2A Unsupported" />
-			<parse expr="B5" true="PID 0x2B Supported" false="PID 0x2B Unsupported" />
-			<parse expr="B4" true="PID 0x2C Supported" false="PID 0x2C Unsupported" />
-			<parse expr="B3" true="PID 0x2D Supported" false="PID 0x2D Unsupported" />
-			<parse expr="B2" true="PID 0x2E Supported" false="PID 0x2E Unsupported" />
-			<parse expr="B1" true="PID 0x2F Supported" false="PID 0x2F Unsupported" />
-			<parse expr="B0" true="PID 0x30 Supported" false="PID 0x30 Unsupported" />
+			<parse expr="B[7]" true="PID 0x29 Supported" false="PID 0x29 Unsupported" />
+			<parse expr="B[6]" true="PID 0x2A Supported" false="PID 0x2A Unsupported" />
+			<parse expr="B[5]" true="PID 0x2B Supported" false="PID 0x2B Unsupported" />
+			<parse expr="B[4]" true="PID 0x2C Supported" false="PID 0x2C Unsupported" />
+			<parse expr="B[3]" true="PID 0x2D Supported" false="PID 0x2D Unsupported" />
+			<parse expr="B[2]" true="PID 0x2E Supported" false="PID 0x2E Unsupported" />
+			<parse expr="B[1]" true="PID 0x2F Supported" false="PID 0x2F Unsupported" />
+			<parse expr="B[0]" true="PID 0x30 Supported" false="PID 0x30 Unsupported" />
 			
-			<parse expr="C7" true="PID 0x31 Supported" false="PID 0x31 Unsupported" />
-			<parse expr="C6" true="PID 0x32 Supported" false="PID 0x32 Unsupported" />
-			<parse expr="C5" true="PID 0x33 Supported" false="PID 0x33 Unsupported" />
-			<parse expr="C4" true="PID 0x34 Supported" false="PID 0x34 Unsupported" />
-			<parse expr="C3" true="PID 0x35 Supported" false="PID 0x35 Unsupported" />
-			<parse expr="C2" true="PID 0x36 Supported" false="PID 0x36 Unsupported" />
-			<parse expr="C1" true="PID 0x37 Supported" false="PID 0x37 Unsupported" />
-			<parse expr="C0" true="PID 0x38 Supported" false="PID 0x38 Unsupported" />
+			<parse expr="C[7]" true="PID 0x31 Supported" false="PID 0x31 Unsupported" />
+			<parse expr="C[6]" true="PID 0x32 Supported" false="PID 0x32 Unsupported" />
+			<parse expr="C[5]" true="PID 0x33 Supported" false="PID 0x33 Unsupported" />
+			<parse expr="C[4]" true="PID 0x34 Supported" false="PID 0x34 Unsupported" />
+			<parse expr="C[3]" true="PID 0x35 Supported" false="PID 0x35 Unsupported" />
+			<parse expr="C[2]" true="PID 0x36 Supported" false="PID 0x36 Unsupported" />
+			<parse expr="C[1]" true="PID 0x37 Supported" false="PID 0x37 Unsupported" />
+			<parse expr="C[0]" true="PID 0x38 Supported" false="PID 0x38 Unsupported" />
 			
-			<parse expr="D7" true="PID 0x39 Supported" false="PID 0x39 Unsupported" />
-			<parse expr="D6" true="PID 0x3A Supported" false="PID 0x3A Unsupported" />
-			<parse expr="D5" true="PID 0x3B Supported" false="PID 0x3B Unsupported" />
-			<parse expr="D4" true="PID 0x3C Supported" false="PID 0x3C Unsupported" />
-			<parse expr="D3" true="PID 0x3D Supported" false="PID 0x3D Unsupported" />
-			<parse expr="D2" true="PID 0x3E Supported" false="PID 0x3E Unsupported" />
-			<parse expr="D1" true="PID 0x3F Supported" false="PID 0x3F Unsupported" />
-			<parse expr="D0" true="PID 0x40 Supported" false="PID 0x40 Unsupported" />
+			<parse expr="D[7]" true="PID 0x39 Supported" false="PID 0x39 Unsupported" />
+			<parse expr="D[6]" true="PID 0x3A Supported" false="PID 0x3A Unsupported" />
+			<parse expr="D[5]" true="PID 0x3B Supported" false="PID 0x3B Unsupported" />
+			<parse expr="D[4]" true="PID 0x3C Supported" false="PID 0x3C Unsupported" />
+			<parse expr="D[3]" true="PID 0x3D Supported" false="PID 0x3D Unsupported" />
+			<parse expr="D[2]" true="PID 0x3E Supported" false="PID 0x3E Unsupported" />
+			<parse expr="D[1]" true="PID 0x3F Supported" false="PID 0x3F Unsupported" />
+			<parse expr="D[0]" true="PID 0x40 Supported" false="PID 0x40 Unsupported" />
 		</parameter>
 		
 		<parameter name="Distance Travelled with MIL On"
@@ -748,73 +748,73 @@
 
 		<parameter name="PIDs Supported 0x41-0x60"
 			request="0x01 0x40" response.prefix="0x41 0x40" response.bytes="2">
-			<parse expr="A7" true="PID 0x41 Supported" false="PID 0x41 Unsupported" />
-			<parse expr="A6" true="PID 0x42 Supported" false="PID 0x42 Unsupported" />
-			<parse expr="A5" true="PID 0x43 Supported" false="PID 0x43 Unsupported" />
-			<parse expr="A4" true="PID 0x44 Supported" false="PID 0x44 Unsupported" />
-			<parse expr="A3" true="PID 0x45 Supported" false="PID 0x45 Unsupported" />
-			<parse expr="A2" true="PID 0x46 Supported" false="PID 0x46 Unsupported" />
-			<parse expr="A1" true="PID 0x47 Supported" false="PID 0x47 Unsupported" />
-			<parse expr="A0" true="PID 0x48 Supported" false="PID 0x48 Unsupported" />
+			<parse expr="A[7]" true="PID 0x41 Supported" false="PID 0x41 Unsupported" />
+			<parse expr="A[6]" true="PID 0x42 Supported" false="PID 0x42 Unsupported" />
+			<parse expr="A[5]" true="PID 0x43 Supported" false="PID 0x43 Unsupported" />
+			<parse expr="A[4]" true="PID 0x44 Supported" false="PID 0x44 Unsupported" />
+			<parse expr="A[3]" true="PID 0x45 Supported" false="PID 0x45 Unsupported" />
+			<parse expr="A[2]" true="PID 0x46 Supported" false="PID 0x46 Unsupported" />
+			<parse expr="A[1]" true="PID 0x47 Supported" false="PID 0x47 Unsupported" />
+			<parse expr="A[0]" true="PID 0x48 Supported" false="PID 0x48 Unsupported" />
 			
-			<parse expr="B7" true="PID 0x49 Supported" false="PID 0x49 Unsupported" />
-			<parse expr="B6" true="PID 0x4A Supported" false="PID 0x4A Unsupported" />
-			<parse expr="B5" true="PID 0x4B Supported" false="PID 0x4B Unsupported" />
-			<parse expr="B4" true="PID 0x4C Supported" false="PID 0x4C Unsupported" />
-			<parse expr="B3" true="PID 0x4D Supported" false="PID 0x4D Unsupported" />
-			<parse expr="B2" true="PID 0x4E Supported" false="PID 0x4E Unsupported" />
-			<parse expr="B1" true="PID 0x4F Supported" false="PID 0x4F Unsupported" />
-			<parse expr="B0" true="PID 0x50 Supported" false="PID 0x50 Unsupported" />
+			<parse expr="B[7]" true="PID 0x49 Supported" false="PID 0x49 Unsupported" />
+			<parse expr="B[6]" true="PID 0x4A Supported" false="PID 0x4A Unsupported" />
+			<parse expr="B[5]" true="PID 0x4B Supported" false="PID 0x4B Unsupported" />
+			<parse expr="B[4]" true="PID 0x4C Supported" false="PID 0x4C Unsupported" />
+			<parse expr="B[3]" true="PID 0x4D Supported" false="PID 0x4D Unsupported" />
+			<parse expr="B[2]" true="PID 0x4E Supported" false="PID 0x4E Unsupported" />
+			<parse expr="B[1]" true="PID 0x4F Supported" false="PID 0x4F Unsupported" />
+			<parse expr="B[0]" true="PID 0x50 Supported" false="PID 0x50 Unsupported" />
 			
-			<parse expr="C7" true="PID 0x51 Supported" false="PID 0x51 Unsupported" />
-			<parse expr="C6" true="PID 0x52 Supported" false="PID 0x52 Unsupported" />
-			<parse expr="C5" true="PID 0x53 Supported" false="PID 0x53 Unsupported" />
-			<parse expr="C4" true="PID 0x54 Supported" false="PID 0x54 Unsupported" />
-			<parse expr="C3" true="PID 0x55 Supported" false="PID 0x55 Unsupported" />
-			<parse expr="C2" true="PID 0x56 Supported" false="PID 0x56 Unsupported" />
-			<parse expr="C1" true="PID 0x57 Supported" false="PID 0x57 Unsupported" />
-			<parse expr="C0" true="PID 0x58 Supported" false="PID 0x58 Unsupported" />
+			<parse expr="C[7]" true="PID 0x51 Supported" false="PID 0x51 Unsupported" />
+			<parse expr="C[6]" true="PID 0x52 Supported" false="PID 0x52 Unsupported" />
+			<parse expr="C[5]" true="PID 0x53 Supported" false="PID 0x53 Unsupported" />
+			<parse expr="C[4]" true="PID 0x54 Supported" false="PID 0x54 Unsupported" />
+			<parse expr="C[3]" true="PID 0x55 Supported" false="PID 0x55 Unsupported" />
+			<parse expr="C[2]" true="PID 0x56 Supported" false="PID 0x56 Unsupported" />
+			<parse expr="C[1]" true="PID 0x57 Supported" false="PID 0x57 Unsupported" />
+			<parse expr="C[0]" true="PID 0x58 Supported" false="PID 0x58 Unsupported" />
 			
-			<parse expr="D7" true="PID 0x59 Supported" false="PID 0x59 Unsupported" />
-			<parse expr="D6" true="PID 0x5A Supported" false="PID 0x5A Unsupported" />
-			<parse expr="D5" true="PID 0x5B Supported" false="PID 0x5B Unsupported" />
-			<parse expr="D4" true="PID 0x5C Supported" false="PID 0x5C Unsupported" />
-			<parse expr="D3" true="PID 0x5D Supported" false="PID 0x5D Unsupported" />
-			<parse expr="D2" true="PID 0x5E Supported" false="PID 0x5E Unsupported" />
-			<parse expr="D1" true="PID 0x5F Supported" false="PID 0x5F Unsupported" />
-			<parse expr="D0" true="PID 0x60 Supported" false="PID 0x60 Unsupported" />
+			<parse expr="D[7]" true="PID 0x59 Supported" false="PID 0x59 Unsupported" />
+			<parse expr="D[6]" true="PID 0x5A Supported" false="PID 0x5A Unsupported" />
+			<parse expr="D[5]" true="PID 0x5B Supported" false="PID 0x5B Unsupported" />
+			<parse expr="D[4]" true="PID 0x5C Supported" false="PID 0x5C Unsupported" />
+			<parse expr="D[3]" true="PID 0x5D Supported" false="PID 0x5D Unsupported" />
+			<parse expr="D[2]" true="PID 0x5E Supported" false="PID 0x5E Unsupported" />
+			<parse expr="D[1]" true="PID 0x5F Supported" false="PID 0x5F Unsupported" />
+			<parse expr="D[0]" true="PID 0x60 Supported" false="PID 0x60 Unsupported" />
 		</parameter>
 
 		<parameter name="Monitor Status this Drive Cycle"
 			request="0x01 0x41" response.prefix="0x41 0x41" response.bytes="2">
 			
 			<!-- Byte B represents Continuous Monitoring tests -->
-			<parse expr="B0" true="Misfire monitoring supported" false="Misfire monitoring unsupported"/>
-			<parse expr="B1" true="Fuel System monitoring supported" false="Fuel System monitoring unsupported" />
-			<parse expr="B2" true="Component monitoring supported" false="Component monitoring unsupported" />
+			<parse expr="B[0]" true="Misfire monitoring supported" false="Misfire monitoring unsupported"/>
+			<parse expr="B[1]" true="Fuel System monitoring supported" false="Fuel System monitoring unsupported" />
+			<parse expr="B[2]" true="Component monitoring supported" false="Component monitoring unsupported" />
 			
-			<parse expr="B4" true="Misfire monitoring incomplete" false="Misfire monitoring complete" />
-			<parse expr="B5" true="Fuel System monitoring incomplete" false="Fuel System monitoring complete" />
-			<parse expr="B6" true="Component monitoring incomplete" false="Component monitoring complete" />
+			<parse expr="B[4]" true="Misfire monitoring incomplete" false="Misfire monitoring complete" />
+			<parse expr="B[5]" true="Fuel System monitoring incomplete" false="Fuel System monitoring complete" />
+			<parse expr="B[6]" true="Component monitoring incomplete" false="Component monitoring complete" />
 			
 			<!-- Bytes C and D represent Non-Continuous Monitoring tests -->
-			<parse expr="C0" true="Catalyst monitoring supported" false="Catalyst monitoring unsupported" />
-			<parse expr="C1" true="Heated Catalyst monitoring supported" false="Heated Catalyst monitoring unsupported" />
-			<parse expr="C2" true="Evaporative System monitoring supported" false="Evaporative System monitoring unsupported" />
-			<parse expr="C3" true="Secondary Air System monitoring supported" false="Secondary Air System monitoring unsupported" />
-			<parse expr="C4" true="A/C Refrigerant monitoring supported" false="A/C Refrigerant monitoring unsupported" />
-			<parse expr="C5" true="Oxygen Sensor monitoring supported" false="Oxygen Sensor monitoring unsupported" />
-			<parse expr="C6" true="Oxygen Sensor Heater monitoring supported" false="Oxygen Sensor Heater monitoring unsupported" />
-			<parse expr="C7" true="EGR System monitoring" false="EGR System monitoring unsupported" />
+			<parse expr="C[0]" true="Catalyst monitoring supported" false="Catalyst monitoring unsupported" />
+			<parse expr="C[1]" true="Heated Catalyst monitoring supported" false="Heated Catalyst monitoring unsupported" />
+			<parse expr="C[2]" true="Evaporative System monitoring supported" false="Evaporative System monitoring unsupported" />
+			<parse expr="C[3]" true="Secondary Air System monitoring supported" false="Secondary Air System monitoring unsupported" />
+			<parse expr="C[4]" true="A/C Refrigerant monitoring supported" false="A/C Refrigerant monitoring unsupported" />
+			<parse expr="C[5]" true="Oxygen Sensor monitoring supported" false="Oxygen Sensor monitoring unsupported" />
+			<parse expr="C[6]" true="Oxygen Sensor Heater monitoring supported" false="Oxygen Sensor Heater monitoring unsupported" />
+			<parse expr="C[7]" true="EGR System monitoring" false="EGR System monitoring unsupported" />
 			
-			<parse expr="D0" true="Catalyst monitoring incomplete" false="Catalyst monitoring complete" />
-			<parse expr="D1" true="Heated Catalyst monitoring incomplete" false="Heated Catalyst monitoring complete" />
-			<parse expr="D2" true="Evaporative System monitoring incomplete" false="Evaporative System monitoring complete" />
-			<parse expr="D3" true="Secondary Air System monitoring incomplete" false="Secondary Air System monitoring complete" />
-			<parse expr="D4" true="A/C Refrigerant monitoring incomplete" false="A/C Refrigerant monitoring complete" />
-			<parse expr="D5" true="Oxygen Sensor monitoring incomplete" false="Oxygen Sensor monitoring complete" />
-			<parse expr="D6" true="Oxygen Sensor Heater monitoring incomplete" false="Oxygen Sensor Heater monitoring complete" />
-			<parse expr="D7" true="EGR System monitoring incomplete" false="EGR System monitoring complete" />
+			<parse expr="D[0]" true="Catalyst monitoring incomplete" false="Catalyst monitoring complete" />
+			<parse expr="D[1]" true="Heated Catalyst monitoring incomplete" false="Heated Catalyst monitoring complete" />
+			<parse expr="D[2]" true="Evaporative System monitoring incomplete" false="Evaporative System monitoring complete" />
+			<parse expr="D[3]" true="Secondary Air System monitoring incomplete" false="Secondary Air System monitoring complete" />
+			<parse expr="D[4]" true="A/C Refrigerant monitoring incomplete" false="A/C Refrigerant monitoring complete" />
+			<parse expr="D[5]" true="Oxygen Sensor monitoring incomplete" false="Oxygen Sensor monitoring complete" />
+			<parse expr="D[6]" true="Oxygen Sensor Heater monitoring incomplete" false="Oxygen Sensor Heater monitoring complete" />
+			<parse expr="D[7]" true="EGR System monitoring incomplete" false="EGR System monitoring complete" />
 		</parameter>
 
 		<parameter name="Control Module Voltage"
