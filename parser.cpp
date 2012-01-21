@@ -7,6 +7,9 @@ namespace obdref
 
     Parser::Parser(QString const &filePath, bool &parsedOk)
     {
+        // error logging
+        m_lkErrors.setString(&m_lkErrorString, QIODevice::ReadWrite);
+
         // convenience values
         m_listDecValOfBitPos[0] = 1;
         m_listDecValOfBitPos[1] = 2;
@@ -565,6 +568,22 @@ namespace obdref
         listConditionExprs.removeLast();
     }
 
+    QStringList Parser::GetLastKnownErrors()
+    {
+        QStringList listErrors;
+        QString lineError;
+        while(1)
+        {
+            lineError = m_lkErrors.readLine();
+            if(lineError.isNull())
+            {   break;   }
+
+            listErrors << lineError;
+        }
+
+        return listErrors;
+    }
+
     // ========================================================================== //
     // ========================================================================== //
 
@@ -798,6 +817,11 @@ namespace obdref
             parseExpr.replace(pos,rx.cap(1).size(),decStr);
             pos += decStr.length();
         }
+    }
+
+    QTextStream & Parser::getErrorStream()
+    {
+        return m_lkErrors;
     }
 
     // ========================================================================== //

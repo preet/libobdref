@@ -1,14 +1,18 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <iostream>
-#include <QString>
+// Qt includes
 #include <QDebug>
-#include "pugixml/pugixml.hpp"
-#include "muparser/muParser.h"
-#include "message.h"
 
-#define OBDREFDEBUG qDebug()
+// pugixml includes
+#include "pugixml/pugixml.hpp"
+
+// muParser includes
+#include "muparser/muParser.h"
+
+// obdref data types
+#include "message.hpp"
+
 #define MAX_EXPR_VARS 64
 
 namespace obdref
@@ -44,6 +48,8 @@ private:
 
     uint stringToUInt(bool &convOk, QString const &parseStr);
 
+    QTextStream & getErrorStream();
+
     static mu::value_type muLogicalNot(mu::value_type);
     static mu::value_type muBitwiseNot(mu::value_type);
     static mu::value_type muBitwiseOr(mu::value_type,mu::value_type);
@@ -56,10 +62,13 @@ private:
     // muParser vars
     mu::Parser m_parser;
     int m_listDecValOfBitPos[8];
-    double m_listExprVars[64];
+    double m_listExprVars[MAX_EXPR_VARS];
 
     // errors
     QTextStream m_lkErrors;
+    QString m_lkErrorString;
 };
 }
+
+#define OBDREFDEBUG getErrorStream()
 #endif // PARSER_H

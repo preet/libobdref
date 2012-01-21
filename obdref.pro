@@ -13,7 +13,7 @@ SOURCES += main.cpp \
 
 HEADERS += \
     parser.h \
-    message.h \
+    message.hpp \
     pugixml/pugixml.hpp \
     pugixml/pugiconfig.hpp \
     muparser/muParserTokenReader.h \
@@ -26,5 +26,3 @@ HEADERS += \
     muparser/muParserBytecode.h \
     muparser/muParserBase.h \
     muparser/muParser.h
-
-DEFINES += "OBDREF_DEBUG_ON"

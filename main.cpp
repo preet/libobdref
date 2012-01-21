@@ -8,7 +8,9 @@ int main()
     obdref::Parser myParser(filePath,opOk);
 
     if(!opOk)
-    {   std::cerr << "Reading in XML Failed! Exiting..." << std::endl; return -1;   }
+    {   qDebug() << "Reading in XML Failed! Exiting...";
+        qDebug() << myParser.GetLastKnownErrors();
+        return -1;   }
 
 
     // build message frame
@@ -16,7 +18,9 @@ int main()
     opOk = myParser.BuildMessageFrame("SAEJ1979","ISO 15765-4 Standard",
                                       "Default","MAF Air Flow Rate",myMsg);
     if(!opOk)
-    {   std::cerr << "BuildMessageFrame Failed! Exiting..." << std::endl; return -1;   }   
+    {   qDebug() << "BuildMessageFrame Failed! Exiting...";
+        qDebug() << myParser.GetLastKnownErrors();
+        return -1;   }
 
     // pretend we got data from a device
    myMsg.listMessageData[0].dataBytes.append(0b11111111);
@@ -29,7 +33,9 @@ int main()
     opOk = myParser.ParseMessageFrame(myMsg, myData);
 
     if(!opOk)
-    {   std::cerr << "ParseMessageFrame Failed! Exiting..." << std::endl; return -1;   }
+    {   qDebug() << "ParseMessageFrame Failed! Exiting...";
+        qDebug() << myParser.GetLastKnownErrors();
+        return -1;   }
 
     qDebug() << myData.desc;
     qDebug() << myData.listNumericalData[0].value
