@@ -14,17 +14,15 @@ int main()
     // build message frame
     obdref::MessageFrame myMsg;
     opOk = myParser.BuildMessageFrame("SAEJ1979","ISO 15765-4 Standard",
-                                      "Default","Freeze Frame DTC",myMsg);
+                                      "Default","MAF Air Flow Rate",myMsg);
     if(!opOk)
-    {   std::cerr << "BuildMessageFrame Failed! Exiting..." << std::endl; return -1;   }
-
-    std::cerr << "####" << sizeof(int) << std::endl;
+    {   std::cerr << "BuildMessageFrame Failed! Exiting..." << std::endl; return -1;   }   
 
     // pretend we got data from a device
-   myMsg.listMessageData[0].dataBytes.append(0b11111111);    // byte
-   myMsg.listMessageData[0].dataBytes.append(13);    // byte
-   myMsg.listMessageData[0].dataBytes.append(21);    // byte
-   myMsg.listMessageData[0].dataBytes.append(75);    // byte
+   myMsg.listMessageData[0].dataBytes.append(0b11111111);
+   myMsg.listMessageData[0].dataBytes.append(13);
+   myMsg.listMessageData[0].dataBytes.append(21);
+   myMsg.listMessageData[0].dataBytes.append(75);
 
     // parse message frame
     obdref::Data myData;
@@ -32,6 +30,10 @@ int main()
 
     if(!opOk)
     {   std::cerr << "ParseMessageFrame Failed! Exiting..." << std::endl; return -1;   }
+
+    qDebug() << myData.desc;
+    qDebug() << myData.listNumericalData[0].value
+             << myData.listNumericalData[0].units;
 
     return 0;
 }

@@ -81,7 +81,6 @@ public:
                                                     // have multiple conditions as well
 };
 
-// Standard JSON Message should have... WAIT! why json at all?
 // Data Description
 // List of Literal Data [value, desc]
 // List of Numerical Data [with value, units, min, max, desc]

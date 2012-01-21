@@ -26,18 +26,17 @@ namespace obdref
         if(xmlParseResult)
         {   parsedOk = true;   }
         else
-        {   parsedOk = false;   }
-
-        #ifdef OBDREF_DEBUG_ON
-        if(xmlParseResult)
-        {   std::cerr << "OBDREF_DEBUG: XML [" << filePath.toStdString() << "] parsed without errors." << std::endl;   }
-        else
         {
-            std::cerr << "OBDREF_DEBUG: XML [" << filePath.toStdString() << "] errors!" << std::endl;
-            std::cerr << "OBDREF_DEBUG: Error Desc: " << xmlParseResult.description() << std::endl;
-            std::cerr << "OBDREF_DEBUG: Error Offset Char: " << xmlParseResult.offset << std::endl;
+            OBDREFDEBUG << "XML [" << filePath << "] errors!\n";
+
+            OBDREFDEBUG << "OBDREF: Error Desc: "
+                        << QString::fromStdString(xmlParseResult.description()) << "\n";
+
+            OBDREFDEBUG << "OBDREF: Error Offset Char: "
+                        << qint64(xmlParseResult.offset) << "\n";
+
+            parsedOk = false;
         }
-        #endif
 
         // setup parser
         m_parser.DefineInfixOprt("!",muLogicalNot);
@@ -339,6 +338,14 @@ namespace obdref
                                     n++;
                                 }
 
+                                if(msgFrame.listMessageData.size() == 0)
+                                {
+                                    OBDREFDEBUG << "OBDREF: Error: Could not build any "
+                                                << "messages from given xml data (does the "
+                                                << "file have a typo?) \n";
+                                    return false;
+                                }
+
                                 // save all <parse /> children nodes this parameter has
                                 pugi::xml_node parseChild = nodeParameter.child("parse");
                                 for(parseChild; parseChild; parseChild = parseChild.next_sibling("parse"))
@@ -384,20 +391,6 @@ namespace obdref
                                 for(condChild; condChild; condChild = condChild.next_sibling("condition"))
                                 {   walkConditionTree(condChild, listConditionExprs, msgFrame);   }
 
-                                #ifdef OBDREF_DEBUG_ON
-                                std::cerr << "OBDREF_DEBUG: " << specName.toStdString() << ", "
-                                          << protocolName.toStdString() << ", " << addressName.toStdString()
-                                          << ", " << paramName.toStdString() << ":" << std::endl;
-
-                                for(int i=0; i < msgFrame.listParseInfo.size(); i++)
-                                {
-                                    std::cerr << "OBDREF_DEBUG: \t";
-                                    for(int j=0; j < msgFrame.listParseInfo[i].listConditions.size(); j++)
-                                    {   std::cerr << " { " << msgFrame.listParseInfo[i].listConditions[j].toStdString() << " } | ";   }
-                                    std::cerr << "Eval: { " << msgFrame.listParseInfo[i].expr.toStdString() << " }" << std::endl;
-                                }
-                                #endif
-
                                 // save spec, protocol, address and param info
                                 msgFrame.spec = specName;
                                 msgFrame.protocol = protocolName;
@@ -412,33 +405,31 @@ namespace obdref
             }
         }
 
-        #ifdef OBDREF_DEBUG_ON
         if(!foundSpec)
         {
-            std::cerr << "OBDREF_DEBUG: Error: Could not find spec "
-                      << specName.toStdString() << std::endl;
+            OBDREFDEBUG << "OBDREF: Error: Could not find spec "
+                        << specName << "\n";
         }
         else if(!foundProtocol)
         {
-            std::cerr << "OBDREF_DEBUG: Error: Could not find protocol "
-                      << protocolName.toStdString() << std::endl;
+            OBDREFDEBUG << "OBDREF: Error: Could not find protocol "
+                      << protocolName << "\n";
         }
         else if(!foundAddress)
         {
-            std::cerr << "OBDREF_DEBUG: Error: Could not find address "
-                      << addressName.toStdString() <<std::endl;
+            OBDREFDEBUG << "OBDREF: Error: Could not find address "
+                      << addressName << "\n";
         }
         else if(!foundParams)
         {
-            std::cerr << "OBDREF_DEBUG: Error: Could not find parameters group "
-                      << addressName.toStdString() << std::endl;
+            OBDREFDEBUG << "OBDREF: Error: Could not find group "
+                      << addressName << "\n";
         }
         else if(!foundParameter)
         {
-            std::cerr << "OBDREF_DEBUG: Error: Could not find parameter "
-                      << paramName.toStdString() << std::endl;
+            OBDREFDEBUG << "OBDREF: Error: Could not find parameter "
+                      << paramName << "\n";
         }
-        #endif
 
         return false;
     }
@@ -450,19 +441,15 @@ namespace obdref
     {
         if(msgFrame.listParseInfo.size() == 0)
         {
-            #ifdef OBDREF_DEBUG_ON
-            std::cerr << "OBDREF_DEBUG: Error: No parsing information "
-                      << "found in message frame." << std::endl;
-            #endif
+            OBDREFDEBUG << "OBDREF: Error: No parsing info "
+                        << "found in message frame\n";
             return false;
         }
 
         if(msgFrame.listMessageData.size() < 1)
         {
-            #ifdef OBDREF_DEBUG_ON
-            std::cerr << "OBDREF_DEBUG: Error: No messages found "
-                      << "found in message frame." << std::endl;
-            #endif
+            OBDREFDEBUG << "OBDREF: Error: No messages "
+                        << "found in message frame\n";
             return false;
         }
 
@@ -476,18 +463,12 @@ namespace obdref
                 parsedOk = parseMessage(msgFrame,msgFrame.listParseInfo[i].listConditions.at(j),myResult);
                 if(!parsedOk)
                 {   // error in condition expression
-                    #ifdef OBDREF_DEBUG_ON
-                    std::cerr << "OBDREF_DEBUG: Error: Could not interpret "
-                              << "condition expression." << std::endl;
-                    #endif
+                    OBDREFDEBUG << "OBDREF: Error: Could not interpret "
+                                << "condition expression frame\n";
                     return false;
                 }
                 if(myResult == 0)
                 {   // condition failed, ignore this parse expr
-                    #ifdef OBDREF_DEBUG_ON
-                    std::cerr << "OBDREF_DEBUG: Note: Condition Failed: "
-                              << msgFrame.listParseInfo[i].listConditions.at(j).toStdString() << std::endl;
-                    #endif
                     allConditionsValid = false;
                     break;
                 }
@@ -498,44 +479,24 @@ namespace obdref
                 parsedOk = parseMessage(msgFrame, msgFrame.listParseInfo.at(i).expr, myResult);
                 if(!parsedOk)
                 {   // error in parse expression
-                    #ifdef OBDREF_DEBUG_ON
-                    std::cerr << "OBDREF_DEBUG: Error: Could not calculate "
-                              << "parameter expression." << std::endl;
-                    #endif
+                    OBDREFDEBUG << "OBDREF: Error: Could not solve "
+                                << "parameter expression\n";
                     return false;
                 }
 
                 // save result
+                paramData.desc = msgFrame.name;
                 if(msgFrame.listParseInfo.at(i).isNumerical)
                 {
                     // TODO should we throw out value if not within min/max?
                     paramData.listNumericalData.append(msgFrame.listParseInfo.at(i).numericalData);
                     paramData.listNumericalData.last().value = myResult;
-                    #ifdef OBDREF_DEBUG_ON
-                    std::cerr << "OBDREF_DEBUG: Numerical Data: " << myResult << " "
-                              << paramData.listNumericalData.last().units.toStdString()
-                              << std::endl;
-                    #endif
                 }
                 else if(msgFrame.listParseInfo.at(i).isLiteral)
                 {
                     // TODO throw out value if not 0 or 1
                     paramData.listLiteralData.append(msgFrame.listParseInfo.at(i).literalData);
                     paramData.listLiteralData.last().value = myResult;
-                    #ifdef OBDREF_DEBUG_ON
-                    if(paramData.listLiteralData.last().value)
-                    {
-                        std::cerr << "OBDREF_DEBUG: Literal Data: " << myResult << " "
-                                  << paramData.listLiteralData.last().valueIfTrue.toStdString()
-                                  << std::endl;
-                    }
-                    else
-                    {
-                        std::cerr << "OBDREF_DEBUG: Literal Data: " << myResult << " "
-                                  << paramData.listLiteralData.last().valueIfFalse.toStdString()
-                                  << std::endl;
-                    }
-                    #endif
                 }
             }
         }
@@ -692,11 +653,9 @@ namespace obdref
 
                 if(msgFrame.listMessageData.size() <= msgNum)
                 {
-                    #ifdef OBDREF_DEBUG_ON
-                    std::cerr << "OBDREF_DEBUG: Error: Expression message "
-                              << "number prefix out of range: "
-                              << parseExpr.toStdString() << std::endl;
-                    #endif
+                    OBDREFDEBUG << "OBDREF: Error: Expression message "
+                                << "number prefix out of range: "
+                                << parseExpr << "\n";
                     return false;
                 }
 
@@ -705,11 +664,9 @@ namespace obdref
 
                 if(!(byteNum < msgFrame.listMessageData[msgNum].dataBytes.size()))
                 {
-                    #ifdef OBDREF_DEBUG_ON
-                    std::cerr << "OBDREF_DEBUG: Error: Data for " << msgFrame.name.toStdString()
-                              << " has insufficient bytes for parsing: "
-                              << parseExpr.toStdString() << std::endl;
-                    #endif
+                    OBDREFDEBUG << "OBDREF: Error: Data for " << msgFrame.name
+                                << " has insufficient bytes for parsing: "
+                                << parseExpr << "\n";
                     return false;
                 }
 
@@ -742,11 +699,9 @@ namespace obdref
 
             if(msgFrame.listMessageData.size() > 1)
             {
-                #ifdef OBDREF_DEBUG_ON
-                std::cerr << "OBDREF_DEBUG: Error: Multiple messages in frame "
-                          << "but expr missing message number prefixes: "
-                          << parseExpr.toStdString() << std::endl;
-                #endif
+                OBDREFDEBUG << "OBDREF: Error: Multiple messages in frame "
+                            << "but expr missing message number prefixes "
+                            << parseExpr << "\n";
                 return false;
             }
 
@@ -766,11 +721,9 @@ namespace obdref
                 uint byteNum = uint(listRegExpMatches.at(i).at(0).toAscii())-65;
                 if(!(byteNum < msgFrame.listMessageData[0].dataBytes.size()))
                 {
-                    #ifdef OBDREF_DEBUG_ON
-                    std::cerr << "OBDREF_DEBUG: Error: Data for " << msgFrame.name.toStdString()
-                              << " has insufficient bytes for parsing: "
-                              << parseExpr.toStdString() << std::endl;
-                    #endif
+                    OBDREFDEBUG << "OBDREF: Error: Data for " << msgFrame.name
+                                << " has insufficient bytes for parsing: "
+                                << parseExpr << "\n";
                     return false;
                 }
 
@@ -805,13 +758,13 @@ namespace obdref
         }
         catch(mu::Parser::exception_type &e)
         {
-            #ifdef OBDREF_DEBUG_ON
-            std::cerr << "OBDREF_DEBUG: muParser: Message: " << e.GetMsg() << "\n";
-            std::cerr << "OBDREF_DEBUG: muParser: Formula: " << e.GetExpr() << "\n";
-            std::cerr << "OBDREF_DEBUG: muParser: Token: " << e.GetToken() << "\n";
-            std::cerr << "OBDREF_DEBUG: muParser: Position: " << e.GetPos() << "\n";
-            std::cerr << "OBDREF_DEBUG: muParser: ErrC: " << e.GetCode() << "\n";
-            #endif
+            OBDREFDEBUG << "OBDREF: Error: Could not evaluate expression: \n";
+            OBDREFDEBUG << "OBDREF: Error: \t\tMessage: " << QString::fromStdString(e.GetMsg()) << "\n";
+            OBDREFDEBUG << "OBDREF: Error: \t\tFormula: " << QString::fromStdString(e.GetExpr()) << "\n";
+            OBDREFDEBUG << "OBDREF: Error: \t\tToken: " << QString::fromStdString(e.GetToken()) << "\n";
+            OBDREFDEBUG << "OBDREF: Error: \t\tPosition: " << e.GetPos() << "\n";
+            OBDREFDEBUG << "OBDREF: Error: \t\tErrCode: " << e.GetCode() << "\n";
+            return false;
         }
 
         return true;

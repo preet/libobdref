@@ -8,6 +8,7 @@
 #include "muparser/muParser.h"
 #include "message.h"
 
+#define OBDREFDEBUG qDebug()
 #define MAX_EXPR_VARS 64
 
 namespace obdref
@@ -15,6 +16,7 @@ namespace obdref
 
 class Parser
 {
+
 public:
     Parser(QString const &filePath, bool &parsedOk);
 
@@ -27,6 +29,8 @@ public:
     bool ParseMessageFrame(MessageFrame const &msgFrame,
                            Data &paramData);
 
+    QStringList GetLastKnownErrors();
+
 private:
     void walkConditionTree(pugi::xml_node &nodeParameter,
                            QStringList &listConditions,
@@ -37,8 +41,6 @@ private:
                       double &myResult);
 
     void convToDecEquivExpression(QString &parseExpr);
-
-
 
     uint stringToUInt(bool &convOk, QString const &parseStr);
 
@@ -56,6 +58,8 @@ private:
     int m_listDecValOfBitPos[8];
     double m_listExprVars[64];
 
+    // errors
+    QTextStream m_lkErrors;
 };
 }
 #endif // PARSER_H

@@ -402,7 +402,7 @@
 		</parameter>
 
 		<parameter name="MAF Air Flow Rate"
-			request="0x01 0x10" response.prefix="0x41 0x10" response.bytes="2">
+			request="0x01 0x10" response2.prefix="0x41 0x10" response.bytes="2">
 			<parse units="g/s" expr="((A*256)+B)/100" min="0" max="655.35" />
 		</parameter>
 
