@@ -490,7 +490,8 @@ namespace obdref
                 if(!parsedOk)
                 {   // error in condition expression
                     OBDREFDEBUG << "OBDREF: Error: Could not interpret "
-                                << "condition expression frame\n";
+                                << "condition expression: "
+                                << msgFrame.listParseInfo[i].listConditions.at(j) << "\n";
                     return false;
                 }
                 if(myResult == 0)
@@ -506,7 +507,8 @@ namespace obdref
                 if(!parsedOk)
                 {   // error in parse expression
                     OBDREFDEBUG << "OBDREF: Error: Could not solve "
-                                << "parameter expression\n";
+                                << "parameter expression"
+                                << msgFrame.listParseInfo.at(i).expr << "\n";
                     return false;
                 }
 
@@ -658,26 +660,28 @@ namespace obdref
         // there are two distinct ways of representing data
         // bytes within an expression:
 
-        // 1 -  byte letters with a 'respN' prefix, meant for
+        // 1 -  byte [] with a 'respN' prefix, meant for
         //      differentiating between different response messages
 
-        // 2 -  byte letters without a prefix, meant for most
+        // 2 -  byte [] without a prefix, meant for most
         //      parameters, which have a single response message
 
         // we allow the expression to be style (1) even if there
         // is only one message, in case the user wants to adhere
-        // to an explicit data byte identifier
+        // to an explicit data message identifier
 
         // however an expression with style (2) in a message frame
         // with multiple messages is *not* allowed since it
         // creates ambiguity
 
-        bool convOk = false;
+        bool convOk = false;       
 
+        // case 1
         if(parseExpr.contains("resp"))
         {
+            // resp[1-999..][0-999..][0-999..]
             QRegExp rx; int pos=0; double fVal = 0;
-            rx.setPattern("(resp[1-99]\\.[A-Z]|resp[1-99]\\.[A-Z]\\[[0-7]\\])+");
+            rx.setPattern("(resp[1-9][0-9]*\\[[0-9]+\\](\\[[0-7]\\])?)+");
 
             QStringList listRegExpMatches;
             while ((pos = rx.indexIn(parseExpr, pos)) != -1)
@@ -686,12 +690,15 @@ namespace obdref
                 pos += rx.matchedLength();
             }
 
+            qDebug() << "!" << listRegExpMatches;
+
             // map the data required to calc expression
             for(int i=0; i < listRegExpMatches.size(); i++)
             {
-                uint msgNumDigits = (msgFrame.listMessageData.size() > 9) ? 2 : 1;
-                QString msgNumChars(listRegExpMatches.at(i).mid(4,msgNumDigits));
-                uint msgNum = stringToUInt(convOk,msgNumChars) - 1;
+                // get message number
+                int posByteStart = listRegExpMatches.at(i).indexOf("[") + 1;
+                QString msgNumStr(listRegExpMatches.at(i).mid(4,posByteStart-1-4));
+                uint msgNum = stringToUInt(convOk,msgNumStr) - 1;
 
                 if(msgFrame.listMessageData.size() <= msgNum)
                 {
@@ -700,9 +707,11 @@ namespace obdref
                                 << parseExpr << "\n";
                     return false;
                 }
-
-                int byteCharPos = listRegExpMatches.at(i).indexOf(".") + 1;
-                uint byteNum = uint(listRegExpMatches.at(i).at(byteCharPos).toAscii())-65;
+                // get byte number
+                int posByteEnd = listRegExpMatches.at(i).indexOf("]",posByteStart) - 1;
+                int numByteDigits = (posByteEnd-posByteStart) + 1;
+                QString byteNumStr = listRegExpMatches.at(i).mid(posByteStart,numByteDigits);
+                uint byteNum = stringToUInt(convOk,byteNumStr);
 
                 if(!(byteNum < msgFrame.listMessageData[msgNum].dataBytes.size()))
                 {
@@ -714,14 +723,17 @@ namespace obdref
 
                 uint byteVal = uint(msgFrame.listMessageData[msgNum].dataBytes.at(byteNum));
 
-                if(listRegExpMatches.at(i).contains("["))
+                // check for bit number
+                int posBitStart = listRegExpMatches.at(i).indexOf("[",posByteEnd) + 1;
+                if(posBitStart > 0)
                 {   // BIT VARIABLE
 
-                    int bitCharPos = listRegExpMatches.at(i).indexOf("[") + 1;
-                    int bitNum = listRegExpMatches.at(i).at(bitCharPos).digitValue();
-                    int bitMask = m_listDecValOfBitPos[bitNum];
+                    // get bit number
+                    QString bitNumStr = listRegExpMatches.at(i).mid(posBitStart,1);
+                    uint bitNum = stringToUInt(convOk,bitNumStr);
+                    uint bitMask = m_listDecValOfBitPos[bitNum];
 
-                    m_listExprVars[i] = double(byteVal & bitMask);
+                    m_listExprVars[i] = double(byteVal & bitMask) / bitMask;
                     m_parser.DefineVar(listRegExpMatches.at(i).toStdString(),
                                        &m_listExprVars[i]);
                 }
@@ -734,10 +746,12 @@ namespace obdref
                 }
             }
         }
+        // case 2
         else
         {
             // single message variables follow the convention:
-            // bytes: [A-Z], bits: A[0-7]
+            // bytes: [0-99], bits: [0-7]
+            // example third bit of byte eight: [7][2]
 
             if(msgFrame.listMessageData.size() > 1)
             {
@@ -748,7 +762,7 @@ namespace obdref
             }
 
             QRegExp rx; int pos=0; double fVal = 0;
-            rx.setPattern("([A-Z]|[A-Z]\\[[0-7]\\])+");
+            rx.setPattern("(\\[[0-9]+\\](\\[[0-7]\\])?)+");
 
             QStringList listRegExpMatches;
             while ((pos = rx.indexIn(parseExpr, pos)) != -1)
@@ -757,10 +771,18 @@ namespace obdref
                 pos += rx.matchedLength();
             }
 
+            qDebug() << listRegExpMatches;
+
             // map the data required to calc expression
             for(int i=0; i < listRegExpMatches.size(); i++)
             {
-                uint byteNum = uint(listRegExpMatches.at(i).at(0).toAscii())-65;
+                // get byte num
+                int posByteStart = listRegExpMatches.at(i).indexOf("[") + 1;
+                int posByteEnd = listRegExpMatches.at(i).indexOf("]",posByteStart) - 1;
+                int numByteDigits = (posByteEnd-posByteStart) + 1;
+                QString byteNumStr = listRegExpMatches.at(i).mid(posByteStart,numByteDigits);
+                uint byteNum = stringToUInt(convOk,byteNumStr);
+
                 if(!(byteNum < msgFrame.listMessageData[0].dataBytes.size()))
                 {
                     OBDREFDEBUG << "OBDREF: Error: Data for " << msgFrame.name
@@ -770,17 +792,23 @@ namespace obdref
                 }
 
                 uint byteVal = uint(msgFrame.listMessageData[0].dataBytes.at(byteNum));
+                qDebug() << "BYTENUM:" << byteNumStr;
+                qDebug() << "BYTEVAL:" << byteVal;
 
-                if(listRegExpMatches.at(i).contains("["))
+                // check for bit num
+                int posBitStart = listRegExpMatches.at(i).indexOf("[",posByteEnd) + 1;
+                if(posBitStart > 0)
                 {   // BIT VARIABLE
 
-                    int bitCharPos = listRegExpMatches.at(i).indexOf("[") + 1;
-                    int bitNum = listRegExpMatches.at(i).at(bitCharPos).digitValue();
-                    int bitMask = m_listDecValOfBitPos[bitNum];
+                    // get bit num
+                    QString bitNumStr = listRegExpMatches.at(i).mid(posBitStart,1);
+                    uint bitNum = stringToUInt(convOk,bitNumStr);
+                    uint bitMask = m_listDecValOfBitPos[bitNum];
 
-                    m_listExprVars[i] = double(byteVal & bitMask);
-                    m_listExprVars[i] /= bitMask;
+                    qDebug() << "BITNUM:" << bitNumStr;
+                    qDebug() << "BITVAL:" << double(byteVal & bitMask);
 
+                    m_listExprVars[i] = double(byteVal & bitMask) / bitMask;
                     m_parser.DefineVar(listRegExpMatches.at(i).toStdString(),
                                        &m_listExprVars[i]);
                 }

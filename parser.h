@@ -84,7 +84,7 @@ private:
 
     // muParser vars
     mu::Parser m_parser;
-    int m_listDecValOfBitPos[8];
+    uint m_listDecValOfBitPos[8];
     double m_listExprVars[MAX_EXPR_VARS];
 
     // errors

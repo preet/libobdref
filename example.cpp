@@ -23,6 +23,9 @@
 
 #include "parser.h"
 
+#include <QString>
+#include <QDebug>
+
 int main()
 {
     // read in xml file
@@ -44,7 +47,7 @@ int main()
     // build message frame
     obdref::MessageFrame myMsg;
     opOk = myParser.BuildMessageFrame("SAEJ1979","ISO 15765-4 Standard",
-                                      "Default","Freeze Frame DTC",myMsg);
+                                      "Default","SSM Engine Speed",myMsg);
     if(!opOk)
     {   qDebug() << "BuildMessageFrame Failed! Exiting...";
 
@@ -56,10 +59,18 @@ int main()
     }
 
     // pretend we got data from a device
-   myMsg.listMessageData[0].dataBytes.append(0b11111111);
-   myMsg.listMessageData[0].dataBytes.append(13);
-   myMsg.listMessageData[0].dataBytes.append(21);
-   myMsg.listMessageData[0].dataBytes.append(75);
+    myMsg.listMessageData[0].dataBytes.append(0b11111111);
+    myMsg.listMessageData[0].dataBytes.append(0);
+    myMsg.listMessageData[0].dataBytes.append(21);
+    myMsg.listMessageData[0].dataBytes.append(75);
+    myMsg.listMessageData[0].dataBytes.append(75);
+    myMsg.listMessageData[0].dataBytes.append(75);
+    myMsg.listMessageData[1].dataBytes.append(0b11111111);
+    myMsg.listMessageData[1].dataBytes.append(75);
+    myMsg.listMessageData[1].dataBytes.append(75);
+    myMsg.listMessageData[1].dataBytes.append(75);
+    myMsg.listMessageData[1].dataBytes.append(75);
+    myMsg.listMessageData[1].dataBytes.append(75);
 
     // parse message frame
     obdref::Data myData;

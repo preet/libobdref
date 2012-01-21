@@ -204,41 +204,41 @@
 		
 		<parameter name="PIDs Supported 0x01-0x20" 
 			request="0x01 0x00" response.prefix="0x41 0x00" response.bytes="4">
-			<parse expr="A[7]" true="PID 0x01 Supported" false="PID 0x01 Unsupported" />
-			<parse expr="A[6]" true="PID 0x02 Supported" false="PID 0x02 Unsupported" />
-			<parse expr="A[5]" true="PID 0x03 Supported" false="PID 0x03 Unsupported" />
-			<parse expr="A[4]" true="PID 0x04 Supported" false="PID 0x04 Unsupported" />
-			<parse expr="A[3]" true="PID 0x05 Supported" false="PID 0x05 Unsupported" />
-			<parse expr="A[2]" true="PID 0x06 Supported" false="PID 0x06 Unsupported" />
-			<parse expr="A[1]" true="PID 0x07 Supported" false="PID 0x07 Unsupported" />
-			<parse expr="A[0]" true="PID 0x08 Supported" false="PID 0x08 Unsupported" />
+			<parse expr="[0][7]" true="PID 0x01 Supported" false="PID 0x01 Unsupported" />
+			<parse expr="[0][6]" true="PID 0x02 Supported" false="PID 0x02 Unsupported" />
+			<parse expr="[0][5]" true="PID 0x03 Supported" false="PID 0x03 Unsupported" />
+			<parse expr="[0][4]" true="PID 0x04 Supported" false="PID 0x04 Unsupported" />
+			<parse expr="[0][3]" true="PID 0x05 Supported" false="PID 0x05 Unsupported" />
+			<parse expr="[0][2]" true="PID 0x06 Supported" false="PID 0x06 Unsupported" />
+			<parse expr="[0][1]" true="PID 0x07 Supported" false="PID 0x07 Unsupported" />
+			<parse expr="[0][0]" true="PID 0x08 Supported" false="PID 0x08 Unsupported" />
 			
-			<parse expr="B[7]" true="PID 0x09 Supported" false="PID 0x09 Unsupported" />
-			<parse expr="B[6]" true="PID 0x0A Supported" false="PID 0x0A Unsupported" />
-			<parse expr="B[5]" true="PID 0x0B Supported" false="PID 0x0B Unsupported" />
-			<parse expr="B[4]" true="PID 0x0C Supported" false="PID 0x0C Unsupported" />
-			<parse expr="B[3]" true="PID 0x0D Supported" false="PID 0x0D Unsupported" />
-			<parse expr="B[2]" true="PID 0x0E Supported" false="PID 0x0E Unsupported" />
-			<parse expr="B[1]" true="PID 0x0F Supported" false="PID 0x0F Unsupported" />
-			<parse expr="B[0]" true="PID 0x10 Supported" false="PID 0x10 Unsupported" />
+			<parse expr="[1][7]" true="PID 0x09 Supported" false="PID 0x09 Unsupported" />
+			<parse expr="[1][6]" true="PID 0x0A Supported" false="PID 0x0A Unsupported" />
+			<parse expr="[1][5]" true="PID 0x0B Supported" false="PID 0x0B Unsupported" />
+			<parse expr="[1][4]" true="PID 0x0C Supported" false="PID 0x0C Unsupported" />
+			<parse expr="[1][3]" true="PID 0x0D Supported" false="PID 0x0D Unsupported" />
+			<parse expr="[1][2]" true="PID 0x0E Supported" false="PID 0x0E Unsupported" />
+			<parse expr="[1][1]" true="PID 0x0F Supported" false="PID 0x0F Unsupported" />
+			<parse expr="[1][0]" true="PID 0x10 Supported" false="PID 0x10 Unsupported" />
 			
-			<parse expr="C[7]" true="PID 0x11 Supported" false="PID 0x11 Unsupported" />
-			<parse expr="C[6]" true="PID 0x12 Supported" false="PID 0x12 Unsupported" />
-			<parse expr="C[5]" true="PID 0x13 Supported" false="PID 0x13 Unsupported" />
-			<parse expr="C[4]" true="PID 0x14 Supported" false="PID 0x14 Unsupported" />
-			<parse expr="C[3]" true="PID 0x15 Supported" false="PID 0x15 Unsupported" />
-			<parse expr="C[2]" true="PID 0x16 Supported" false="PID 0x16 Unsupported" />
-			<parse expr="C[1]" true="PID 0x17 Supported" false="PID 0x17 Unsupported" />
-			<parse expr="C[0]" true="PID 0x18 Supported" false="PID 0x18 Unsupported" />
+			<parse expr="[2][7]" true="PID 0x11 Supported" false="PID 0x11 Unsupported" />
+			<parse expr="[2][6]" true="PID 0x12 Supported" false="PID 0x12 Unsupported" />
+			<parse expr="[2][5]" true="PID 0x13 Supported" false="PID 0x13 Unsupported" />
+			<parse expr="[2][4]" true="PID 0x14 Supported" false="PID 0x14 Unsupported" />
+			<parse expr="[2][3]" true="PID 0x15 Supported" false="PID 0x15 Unsupported" />
+			<parse expr="[2][2]" true="PID 0x16 Supported" false="PID 0x16 Unsupported" />
+			<parse expr="[2][1]" true="PID 0x17 Supported" false="PID 0x17 Unsupported" />
+			<parse expr="[2][0]" true="PID 0x18 Supported" false="PID 0x18 Unsupported" />
 			
-			<parse expr="D[7]" true="PID 0x19 Supported" false="PID 0x19 Unsupported" />
-			<parse expr="D[6]" true="PID 0x1A Supported" false="PID 0x1A Unsupported" />
-			<parse expr="D[5]" true="PID 0x1B Supported" false="PID 0x1B Unsupported" />
-			<parse expr="D[4]" true="PID 0x1C Supported" false="PID 0x1C Unsupported" />
-			<parse expr="D[3]" true="PID 0x1D Supported" false="PID 0x1D Unsupported" />
-			<parse expr="D[2]" true="PID 0x1E Supported" false="PID 0x1E Unsupported" />
-			<parse expr="D[1]" true="PID 0x1F Supported" false="PID 0x1F Unsupported" />
-			<parse expr="D[0]" true="PID 0x20 Supported" false="PID 0x20 Unsupported" />
+			<parse expr="[3][7]" true="PID 0x19 Supported" false="PID 0x19 Unsupported" />
+			<parse expr="[3][6]" true="PID 0x1A Supported" false="PID 0x1A Unsupported" />
+			<parse expr="[3][5]" true="PID 0x1B Supported" false="PID 0x1B Unsupported" />
+			<parse expr="[3][4]" true="PID 0x1C Supported" false="PID 0x1C Unsupported" />
+			<parse expr="[3][3]" true="PID 0x1D Supported" false="PID 0x1D Unsupported" />
+			<parse expr="[3][2]" true="PID 0x1E Supported" false="PID 0x1E Unsupported" />
+			<parse expr="[3][1]" true="PID 0x1F Supported" false="PID 0x1F Unsupported" />
+			<parse expr="[3][0]" true="PID 0x20 Supported" false="PID 0x20 Unsupported" />
 		</parameter>
 		
 		<parameter name="Monitor Status Since DTCs Cleared"
@@ -341,9 +341,9 @@
 												   but there is a fault in the feedback system" />
 		</parameter>
 
-		<parameter name="Calculated Engine Load Value"
+		<parameter name="Calculated Engine Load"
 			request="0x01 0x04" response.prefix="0x41 0x04" response.bytes="1">			
-			<parse units="%" expr="A*100/255" min="0" max="100"/>
+			<parse units="%" expr="[0]*100/255" min="0" max="100"/>
 		</parameter>
 		
 		<parameter name="Engine Coolant Temperature"
@@ -1002,11 +1002,7 @@
 		<parameter name="SSM Engine Speed"
 			request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
 			request2="0xA8 0x00 0x00 0x00 0x0F" request2.delay="100" response2.prefix="0xE8" response2.bytes="1">
-			<condition expr="resp1.A > resp2.A">
-				<condition expr="resp1.A != resp2.A">
-					<parse units="rpm" expr="((resp1.A*256)+resp2.A)/4" min="0" max="255" />
-				</condition>
-			</condition>
+			<parse units="rpm" expr="((resp1[0]*256)+resp2[0])/4" min="0" max="16384" />
 		</parameter>
 			
 		<!-- END TESTING -->
