@@ -1,1073 +1,1041 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!--	Document Description -->
+<!--  Document Description -->
 
-<!--	Document Sources:
+<!--  Document Sources:
 
-		A list of sources that most of the information in
-		this document has been compiled from (please add
-		to this list as more data is added).
-		
-		http://elmelectronics.com/DSheets/ELM327DS.pdf
-		http://obddiagnostics.com/obdinfo/msg_struct.html
-		http://en.wikipedia.org/wiki/On-board_diagnostics
-		http://en.wikipedia.org/wiki/OBD-II_PIDs
-		http://freediag.sourceforge.net
-		http://www.canobd2.com/Articles/ArticleDisplay.aspx?ArticleId=f3ea9f25589e4bf28f7e980ebefded20&nsl=Tech+Info%2cOBD+Knowledge&ReturnUrl=%2fArticles%2fArticleDisplay.aspx%3fArticleId%3d1efd0812b59d4b189e2420295b377631%26nsl%3dTech%2bInfo%252cOBD%2bKnowledge
-		http://www.peak-system.com/produktcd/Pdf/English/PCAN-GPRS_Link_UserMan_eng.pdf
-		http://www.drewtech.com/support/obd2/message.html
-		
-		-->
+      A list of sources that most of the information in
+      this document has been compiled from (please add
+      to this list as more data is added).
+      
+      http://elmelectronics.com/DSheets/ELM327DS.pdf
+      http://obddiagnostics.com/obdinfo/msg_struct.html
+      http://en.wikipedia.org/wiki/On-board_diagnostics
+      http://en.wikipedia.org/wiki/OBD-II_PIDs
+      http://freediag.sourceforge.net
+      http://www.canobd2.com/Articles/ArticleDisplay.aspx?ArticleId=f3ea9f25589e4bf28f7e980ebefded20&nsl=Tech+Info%2cOBD+Knowledge&ReturnUrl=%2fArticles%2fArticleDisplay.aspx%3fArticleId%3d1efd0812b59d4b189e2420295b377631%26nsl%3dTech%2bInfo%252cOBD%2bKnowledge
+      http://www.peak-system.com/produktcd/Pdf/English/PCAN-GPRS_Link_UserMan_eng.pdf
+      http://www.drewtech.com/support/obd2/message.html
+      https://www.msu.edu/~guentche/guentchev/OBD-II/int-obdii.html
+      
+      -->
 
 <spec name="SAEJ1979" desc="OBDII Standard PIDs">
-	
-	<protocol name="SAE J1850 PWM">
-		<baudrate value="41600" />
-		<address name="Default">
-		<!--	Default J1850 PWM OBD message headers
-				for functional request/response from scan tool: -->
-				
-		<!--	Note: Scan tool might be in range 0xF0-0xFD if
-				default 0xF1 doesn't work -->
-				
-		<!--	Request Params:
-				prio:			0x61: Default OBD Request Priority
-				target:		0x6A: Functional Request 
-				source:		0xF1: External Scan Tool	-->
-			<request prio="0x61" target="0x6A" source="0xF1" />
-			
-		<!--	Response Params:
-				prio: 		0x41: Default OBD Response Priority
-				target: 		0x6B: Functional Response -->
-			<response prio="0x41" target="0x6B" />			
-		</address>
-	</protocol>
-	
-	<protocol name="SAE J1850 VPW">		
-		<baudrate value="10400" />
-		<address name="Default">
-		<!--	Default J1850 VPW OBD message headers
-				for functional request/response from scan tool: -->
-				
-		<!--	Note: Scan tool might be in range 0xF0-0xFD if
-				default 0xF1 doesn't work -->
-				
-		<!--	Request Params:
-				prio:			0x68: Default OBD Request Priority
-				target:		0x6A: Functional Request 
-				source:		0xF1: External Scan Tool	-->
-			<request prio="0x68" target="0x6A" source="0xF1" />
-			
-		<!--	Response Params:
-				prio: 		0x48: Default OBD Response Priority
-				target: 		0x6B: Functional Response -->
-			<response prio="0x48" target="0x6B" />
-		</address>
-	</protocol>
-	
-	<protocol name="ISO 9141-2">
-		<baudrate value="10400" />
-		<address name="Default">			
-		<!--	Default ISO 9141-2 OBD message headers
-				for functional request/response from scan tool: -->
-				
-		<!--	Note: Scan tool might be in range 0xF0-0xFD if
-				default 0xF1 doesn't work -->
-				
-		<!--	Request Params:
-				prio:			0x68: Default OBD Request Priority
-				target:		0x6A: Functional Request 
-				source:		0xF1: External Scan Tool	-->
-			<request prio="0x68" target="0x6A" source="0xF1" />
-			
-		<!--	Response Params:
-				prio: 		0x48: Default OBD Response Priority
-				target: 		0x6B: Functional Response -->
-			<response prio="0x48" target="0x6B" />
-		</address>
-	</protocol>
-	
-	<protocol name="ISO 14230-4">
-		<baudrate value="10400" />
-		<address name="Default">
-		<!--	Default ISO 14230-4 OBD message headers
-				for functional request/response from scan tool: -->
-				
-		<!--  Note: ISO 14230-4 supports longer data frames and
-				faster init communication with the ECU -->
-				
-		<!--	Note: Scan tool might be in range 0xF0-0xFD if
-				default 0xF1 doesn't work -->
-				
-		<!--	Note: LLLLLL is a 6 bit number representing the
-				length of the data byte section of the message	-->
-				
-		<!--	Request Params:
-				prio:			0b11LLLLLL: Mode (functional) and data length
-				target:		0x33: Functional Request 
-				source:		0xF1: External Scan Tool	-->
-			<request prio="0b11000000" target="0x33" source="0xF1" />
-			
-		<!--	Response Params:
-				prio:			0b10LLLLLL: Mode (physical) and data length -->
-			<response prio="0b10000000" target="0xF1" />
-		</address>
-	</protocol>
-	
-	<protocol name="ISO 15765-4 Extended">
-		<baudrate value="250000" />
-		<baudrate value="500000" />
-		<!--	Identifier Format: [prio] [format] [target] [source] -->
-		
-		<address name="Default">
-		<!--	Default ISO 15765 29-bit OBD message identifier
-				for functional request/response from scan tool: -->
-				
-		<!-- 	Request Params:
-				prio:			0x18: Default OBD Request Priority
-				format:		0xDB: Functional Message
-				target:		0x33: Functional Request
-				source:		0xF1: External Scan Tool	-->
-			<request prio="0x18" format="0xDB" target="0x33" source="0xF1" />
+   
+   <protocol name="SAE J1850 PWM">
+      <baudrate value="41600" />
+      <address name="Default">
+      <!--  Default J1850 PWM OBD message headers
+            for functional request/response from scan tool: -->
+            
+      <!--  Note: Scan tool might be in range 0xF0-0xFD if
+            default 0xF1 doesn't work -->
+            
+      <!--  Request Params:
+            prio:       0x61: Default OBD Request Priority
+            target:     0x6A: Functional Request 
+            source:     0xF1: External Scan Tool   -->
+         <request prio="0x61" target="0x6A" source="0xF1" />
+         
+      <!--  Response Params:
+            prio:       0x41: Default OBD Response Priority
+            target:     0x6B: Functional Response -->
+         <response prio="0x41" target="0x6B" />       
+      </address>
+   </protocol>
+   
+   <protocol name="SAE J1850 VPW">     
+      <baudrate value="10400" />
+      <address name="Default">
+      <!--  Default J1850 VPW OBD message headers
+            for functional request/response from scan tool: -->
+            
+      <!--  Note: Scan tool might be in range 0xF0-0xFD if
+            default 0xF1 doesn't work -->
+            
+      <!--  Request Params:
+            prio:       0x68: Default OBD Request Priority
+            target:     0x6A: Functional Request 
+            source:     0xF1: External Scan Tool   -->
+         <request prio="0x68" target="0x6A" source="0xF1" />
+         
+      <!--  Response Params:
+            prio:       0x48: Default OBD Response Priority
+            target:     0x6B: Functional Response -->
+         <response prio="0x48" target="0x6B" />
+      </address>
+   </protocol>
+   
+   <protocol name="ISO 9141-2">
+      <baudrate value="10400" />
+      <address name="Default">         
+      <!--  Default ISO 9141-2 OBD message headers
+            for functional request/response from scan tool: -->
+            
+      <!--  Note: Scan tool might be in range 0xF0-0xFD if
+            default 0xF1 doesn't work -->
+            
+      <!--  Request Params:
+            prio:       0x68: Default OBD Request Priority
+            target:     0x6A: Functional Request 
+            source:     0xF1: External Scan Tool   -->
+         <request prio="0x68" target="0x6A" source="0xF1" />
+         
+      <!--  Response Params:
+            prio:       0x48: Default OBD Response Priority
+            target:     0x6B: Functional Response -->
+         <response prio="0x48" target="0x6B" />
+      </address>
+   </protocol>
+   
+   <protocol name="ISO 14230-4">
+      <baudrate value="10400" />
+      <address name="Default">
+      <!--  Default ISO 14230-4 OBD message headers
+            for functional request/response from scan tool: -->
+            
+      <!--  Note: ISO 14230-4 supports longer data frames and
+            faster init communication with the ECU -->
+            
+      <!--  Note: Scan tool might be in range 0xF0-0xFD if
+            default 0xF1 doesn't work -->
+            
+      <!--  Note: LLLLLL is a 6 bit number representing the
+            length of the data byte section of the message  -->
+            
+      <!--  Request Params:
+            prio:       0b11LLLLLL: Mode (functional) and data length
+            target:     0x33: Functional Request 
+            source:     0xF1: External Scan Tool   -->
+         <request prio="0b11000000" target="0x33" source="0xF1" />
+         
+      <!--  Response Params:
+            prio:       0b10LLLLLL: Mode (physical) and data length -->
+         <response prio="0b10000000" target="0xF1" />
+      </address>
+   </protocol>
+   
+   <protocol name="ISO 15765-4 Extended">
+      <baudrate value="250000" />
+      <baudrate value="500000" />
+      <!--  Identifier Format: [prio] [format] [target] [source] -->
+      
+      <address name="Default">
+      <!--  Default ISO 15765 29-bit OBD message identifier
+            for functional request/response from scan tool: -->
+            
+      <!--  Request Params:
+            prio:       0x18: Default OBD Request Priority
+            format:     0xDB: Functional Message
+            target:     0x33: Functional Request
+            source:     0xF1: External Scan Tool   -->
+         <request prio="0x18" format="0xDB" target="0x33" source="0xF1" />
 
-		<!--	Response Params:
-				format:		0xDA: Physical Message	-->
-			<response prio="0x18" format="0xDA" target="0xF1" />
-		</address>
-	</protocol>
-	
-	<protocol name="ISO 15765-4 Standard">
-		<baudrate value="250000" />
-		<baudrate value="500000" />
-		<!--	Identifier Format: [11-bit identifier]
-		
-		<!--	Note: CAN 11-bit identifiers are not mapped to the
-				default "priority,target,source" style header found 
-				in typical OBD messages. Instead, they use a single
-				address for their identifier, which may represent a
-				physical node or functional group -->
-				
-		<address name="Default">
-		<!--	Default ISO 15765 11-bit OBD message identifier
-				for functional request from scan tool: -->
-		<!--	Request Params:
-				identifier:	0x7DF: id for functional request from scan tool	-->
-			<request identifier="0x7DF" />
-		</address>
-		
-		<!--	Physical Request/Response Identifiers for ECUs
-				in the vehicle. 11-bit CAN allows for 8 ECUs in all. -->
-		<address name="ECU1">
-			<request identifier="0x7E0" />
-			<response identifier="0x7E8" />
-		</address>
-		
-		<address name="ECU2">
-			<request identifier="0x7E1" />
-			<response identifier="0x7E9" />
-		</address>
-		
-		<address name="ECU3">
-			<request identifier="0x7E2" />
-			<response identifier="0x7EA" />
-		</address>
-		
-		<address name="ECU4">
-			<request identifier="0x7E3" />
-			<response identifier="0x7EB" />
-		</address>
-		
-		<address name="ECU5">
-			<request identifier="0x7E4" />
-			<response identifier="0x7EC" />
-		</address>
-		
-		<address name="ECU6">
-			<request identifier="0x7E5" />
-			<response identifier="0x7ED" />
-		</address>
-		
-		<address name="ECU7">
-			<request identifier="0x7E6" />
-			<response identifier="0x7EE" />
-		</address>
-		
-		<address name="ECU8">
-			<request identifier="0x7E7" />
-			<response identifier="0x7EF" />
-		</address>
-	</protocol>
-	
-	<parameters address="Default">
-		
-		<!-- START MODE $01 PIDs -->
-		
-		<parameter name="PIDs Supported 0x01-0x20" 
-			request="0x01 0x00" response.prefix="0x41 0x00" response.bytes="4">
-			<parse expr="[0][7]" true="PID 0x01 Supported" false="PID 0x01 Unsupported" />
-			<parse expr="[0][6]" true="PID 0x02 Supported" false="PID 0x02 Unsupported" />
-			<parse expr="[0][5]" true="PID 0x03 Supported" false="PID 0x03 Unsupported" />
-			<parse expr="[0][4]" true="PID 0x04 Supported" false="PID 0x04 Unsupported" />
-			<parse expr="[0][3]" true="PID 0x05 Supported" false="PID 0x05 Unsupported" />
-			<parse expr="[0][2]" true="PID 0x06 Supported" false="PID 0x06 Unsupported" />
-			<parse expr="[0][1]" true="PID 0x07 Supported" false="PID 0x07 Unsupported" />
-			<parse expr="[0][0]" true="PID 0x08 Supported" false="PID 0x08 Unsupported" />
-			
-			<parse expr="[1][7]" true="PID 0x09 Supported" false="PID 0x09 Unsupported" />
-			<parse expr="[1][6]" true="PID 0x0A Supported" false="PID 0x0A Unsupported" />
-			<parse expr="[1][5]" true="PID 0x0B Supported" false="PID 0x0B Unsupported" />
-			<parse expr="[1][4]" true="PID 0x0C Supported" false="PID 0x0C Unsupported" />
-			<parse expr="[1][3]" true="PID 0x0D Supported" false="PID 0x0D Unsupported" />
-			<parse expr="[1][2]" true="PID 0x0E Supported" false="PID 0x0E Unsupported" />
-			<parse expr="[1][1]" true="PID 0x0F Supported" false="PID 0x0F Unsupported" />
-			<parse expr="[1][0]" true="PID 0x10 Supported" false="PID 0x10 Unsupported" />
-			
-			<parse expr="[2][7]" true="PID 0x11 Supported" false="PID 0x11 Unsupported" />
-			<parse expr="[2][6]" true="PID 0x12 Supported" false="PID 0x12 Unsupported" />
-			<parse expr="[2][5]" true="PID 0x13 Supported" false="PID 0x13 Unsupported" />
-			<parse expr="[2][4]" true="PID 0x14 Supported" false="PID 0x14 Unsupported" />
-			<parse expr="[2][3]" true="PID 0x15 Supported" false="PID 0x15 Unsupported" />
-			<parse expr="[2][2]" true="PID 0x16 Supported" false="PID 0x16 Unsupported" />
-			<parse expr="[2][1]" true="PID 0x17 Supported" false="PID 0x17 Unsupported" />
-			<parse expr="[2][0]" true="PID 0x18 Supported" false="PID 0x18 Unsupported" />
-			
-			<parse expr="[3][7]" true="PID 0x19 Supported" false="PID 0x19 Unsupported" />
-			<parse expr="[3][6]" true="PID 0x1A Supported" false="PID 0x1A Unsupported" />
-			<parse expr="[3][5]" true="PID 0x1B Supported" false="PID 0x1B Unsupported" />
-			<parse expr="[3][4]" true="PID 0x1C Supported" false="PID 0x1C Unsupported" />
-			<parse expr="[3][3]" true="PID 0x1D Supported" false="PID 0x1D Unsupported" />
-			<parse expr="[3][2]" true="PID 0x1E Supported" false="PID 0x1E Unsupported" />
-			<parse expr="[3][1]" true="PID 0x1F Supported" false="PID 0x1F Unsupported" />
-			<parse expr="[3][0]" true="PID 0x20 Supported" false="PID 0x20 Unsupported" />
-		</parameter>
-		
-		<parameter name="Monitor Status Since DTCs Cleared"
-			request="0x01 0x01" response.prefix="0x41 0x01" response.bytes="4">
-					
-			<parse expr="A[7]" true="MIL/CEL is ON" false="MIL/CEL is OFF" />
-			
-			<parse units="number" expr="(A & 0b01111111)" min="0" max="127"
-				desc="Number of confirmed emissions-related DTCs available for display" />
-				
-			<parse expr="B[3]" true="Compression Ignition Monitors" false="Spark Ignition Monitors" />
-			
-			<parse expr="B[0]" true="Misfire Test Available" false="Misfire Test Unavailable" />
-			<parse expr="B[1]" true="Fuel System Test Available" false="Fuel System Test Unavailable" />
-			<parse expr="B[2]" true="Components Test Available" false="Components Test Unavailable" />
-			
-			<parse expr="B[4]" true="Misfire Test Incomplete" false="Misfire Test Complete" />
-			<parse expr="B[5]" true="Fuel System Test Incomplete" false="Fuel System Test Complete" />
-			<parse expr="B[6]" true="Components Test Incomplete" false="Components Test Complete" />
-					
-			<parse expr="B[3] && C[0]" true="NMHC Cat Test Available" />
-			<parse expr="B[3] && C[1]" true="NOx/SCR Monitor Test Available" />
-			<parse expr="B[3] && C[3]" true="Boost Pressure Test Available" />
-			<parse expr="B[3] && C[5]" true="Exhaust Gas Sensor Test Available" />
-			<parse expr="B[3] && C[6]" true="PM Filter Monitoring Test Available" />
-			<parse expr="B[3] && C[7]" true="EGR and/or VVT System Test Available" />
-			
-			<parse expr="B[3] && !C[0]" true="NMHC Cat Test Unavailable" />
-			<parse expr="B[3] && !C[1]" true="NOx/SCR Monitor Test Unavailable" />
-			<parse expr="B[3] && !C[3]" true="Boost Pressure Test Unavailable" />
-			<parse expr="B[3] && !C[5]" true="Exhaust Gas Sensor Test Unavailable" />
-			<parse expr="B[3] && !C[6]" true="PM Filter Monitoring Test Unavailable" />
-			<parse expr="B[3] && !C[7]" true="EGR and/or VVT System Test Unavailable" />
-			
-			<parse expr="B[3] && D[0]" true="NMHC Cat Test Incomplete" />
-			<parse expr="B[3] && D[1]" true="NOx/SCR Monitor Test Incomplete" />
-			<parse expr="B[3] && D[3]" true="Boost Pressure Test Incomplete" />
-			<parse expr="B[3] && D[5]" true="Exhaust Gas Sensor Test Incomplete" />
-			<parse expr="B[3] && D[6]" true="PM Filter Monitoring Test Incomplete" />
-			<parse expr="B[3] && D[7]" true="EGR and/or VVT System Test Incomplete" />
-			
-			<parse expr="B[3] && !D[0]" true="NMHC Cat Test Complete" />
-			<parse expr="B[3] && !D[1]" true="NOx/SCR Monitor Test Complete" />
-			<parse expr="B[3] && !D[3]" true="Boost Pressure Test Complete" />
-			<parse expr="B[3] && !D[5]" true="Exhaust Gas Sensor Test Complete" />
-			<parse expr="B[3] && !D[6]" true="PM Filter Monitoring Test Complete" />
-			<parse expr="B[3] && !D[7]" true="EGR and/or VVT System Test Complete" />
-			
-			<parse expr="!B[3] && C[0]" true="Catalyst Test Available" />
-			<parse expr="!B[3] && C[1]" true="Heated Test Available" />
-			<parse expr="!B[3] && C[2]" true="Evaporative System Test Available" />
-			<parse expr="!B[3] && C[3]" true="Secondary Air System Test Available" />
-			<parse expr="!B[3] && C[4]" true="A/C Refrigerant Test Available" />
-			<parse expr="!B[3] && C[5]" true="Oxygen Sensor Test Available" />
-			<parse expr="!B[3] && C[6]" true="Oxygen Sensor Heater Test Available" />
-			<parse expr="!B[3] && C[7]" true="EGR System Test Available" />
-			
-			<parse expr="!B[3] && !C[0]" true="Catalyst Test Unavailable" />
-			<parse expr="!B[3] && !C[1]" true="Heated Test Unavailable" />
-			<parse expr="!B[3] && !C[2]" true="Evaporative System Test Unavailable" />
-			<parse expr="!B[3] && !C[3]" true="Secondary Air System Test Unavailable" />
-			<parse expr="!B[3] && !C[4]" true="A/C Refrigerant Test Unavailable" />
-			<parse expr="!B[3] && !C[5]" true="Oxygen Sensor Test Unavailable" />
-			<parse expr="!B[3] && !C[6]" true="Oxygen Sensor Heater Test Unavailable" />
-			<parse expr="!B[3] && !C[7]" true="EGR System Test Unavailable" />
-			
-			<parse expr="!B[3] && D[0]" true="Catalyst Test Incomplete" />
-			<parse expr="!B[3] && D[1]" true="Heated Test Incomplete" />
-			<parse expr="!B[3] && D[2]" true="Evaporative System Test Incomplete" />
-			<parse expr="!B[3] && D[3]" true="Secondary Air System Test Incomplete" />
-			<parse expr="!B[3] && D[4]" true="A/C Refrigerant Test Incomplete" />
-			<parse expr="!B[3] && D[5]" true="Oxygen Sensor Test Incomplete" />
-			<parse expr="!B[3] && D[6]" true="Oxygen Sensor Heater Test Incomplete" />
-			<parse expr="!B[3] && D[7]" true="EGR System Test Incomplete" />
-			
-			<parse expr="!B[3] && !D[0]" true="Catalyst Test Complete" />
-			<parse expr="!B[3] && !D[1]" true="Heated Test Complete" />
-			<parse expr="!B[3] && !D[2]" true="Evaporative System Test Complete" />
-			<parse expr="!B[3] && !D[3]" true="Secondary Air System Test Complete" />
-			<parse expr="!B[3] && !D[4]" true="A/C Refrigerant Test Complete" />
-			<parse expr="!B[3] && !D[5]" true="Oxygen Sensor Test Complete" />
-			<parse expr="!B[3] && !D[6]" true="Oxygen Sensor Heater Test Complete" />
-			<parse expr="!B[3] && !D[7]" true="EGR System Test Complete" />
-		</parameter>
-		
-		<parameter name="Fuel System Status"
-			request="0x01 0x03" response.prefix="0x41 0x03" response.bytes="2">
-			<parse expr="A[0]" true="Fuel System 1: Open Loop: Insufficient engine temperature" />
-			<parse expr="A[1]" true="Fuel System 1: Closed Loop: Using oxygen sensor feedback to determine fuel mix" />
-			<parse expr="A[2]" true="Fuel System 1: Open Loop: Due to engine load OR fuel cut due to acceleration" />
-			<parse expr="A[3]" true="Fuel System 1: Open Loop: Due to system failure" />
-			<parse expr="A[4]" true="Fuel System 1: Closed loop: Using at least one oxygen sensor, 
-												   but there is a fault in the feedback system" />
-			
-			<parse expr="B[0]" true="Fuel System 2: Open Loop: Insufficient engine temperature" />
-			<parse expr="B[1]" true="Fuel System 2: Closed Loop: Using oxygen sensor feedback to determine fuel mix" />
-			<parse expr="B[2]" true="Fuel System 2: Open Loop: Due to engine load OR fuel cut due to acceleration" />
-			<parse expr="B[3]" true="Fuel System 2: Open Loop: Due to system failure" />
-			<parse expr="B[4]" true="Fuel System 2: Closed loop: Using at least one oxygen sensor, 
-												   but there is a fault in the feedback system" />
-		</parameter>
+      <!--  Response Params:
+            format:     0xDA: Physical Message  -->
+         <response prio="0x18" format="0xDA" target="0xF1" />
+      </address>
+   </protocol>
+   
+   <protocol name="ISO 15765-4 Standard">
+      <baudrate value="250000" />
+      <baudrate value="500000" />
+      <!--  Identifier Format: [11-bit identifier] -->
+      
+      <!--  Note: CAN 11-bit identifiers are not mapped to the
+            default "priority,target,source" style header found 
+            in typical OBD messages. Instead, they use a single
+            address for their identifier, which may represent a
+            physical node or functional group -->
+            
+      <address name="Default">
+      <!--  Default ISO 15765 11-bit OBD message identifier
+            for functional request from scan tool: -->
+      <!--  Request Params:
+            identifier: 0x7DF: id for functional request from scan tool -->
+         <request identifier="0x7DF" />
+      </address>
+      
+      <!--  Physical Request/Response Identifiers for ECUs
+            in the vehicle. 11-bit CAN allows for 8 ECUs in all. -->
+      <address name="ECU1">
+         <request identifier="0x7E0" />
+         <response identifier="0x7E8" />
+      </address>
+      
+      <address name="ECU2">
+         <request identifier="0x7E1" />
+         <response identifier="0x7E9" />
+      </address>
+      
+      <address name="ECU3">
+         <request identifier="0x7E2" />
+         <response identifier="0x7EA" />
+      </address>
+      
+      <address name="ECU4">
+         <request identifier="0x7E3" />
+         <response identifier="0x7EB" />
+      </address>
+      
+      <address name="ECU5">
+         <request identifier="0x7E4" />
+         <response identifier="0x7EC" />
+      </address>
+      
+      <address name="ECU6">
+         <request identifier="0x7E5" />
+         <response identifier="0x7ED" />
+      </address>
+      
+      <address name="ECU7">
+         <request identifier="0x7E6" />
+         <response identifier="0x7EE" />
+      </address>
+      
+      <address name="ECU8">
+         <request identifier="0x7E7" />
+         <response identifier="0x7EF" />
+      </address>
+   </protocol>
+   
+   <parameters address="Default">
+      
+      <!-- START MODE $01 PIDs -->
+      
+      <parameter name="PIDs Supported 0x01-0x20" 
+         request="0x01 0x00" response.prefix="0x41 0x00" response.bytes="4">
+         <parse expr="[0][7]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[0][6]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[0][5]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[0][4]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[0][3]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[0][2]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[0][1]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[0][0]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         
+         <parse expr="[1][7]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[1][6]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[1][5]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[1][4]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[1][3]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[1][2]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[1][1]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[1][0]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         
+         <parse expr="[2][7]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[2][6]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[2][5]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[2][4]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[2][3]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[2][2]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[2][1]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[2][0]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         
+         <parse expr="[3][7]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[3][6]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[3][5]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[3][4]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[3][3]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[3][2]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[3][1]" desc="PID 0x01" true="Supported" false="Unsupported" />
+         <parse expr="[3][0]" desc="PID 0x01" true="Supported" false="Unsupported" />
+      </parameter>
+      
+      <parameter name="Monitor Status Since DTCs Cleared"
+         request="0x01 0x01" response.prefix="0x41 0x01" response.bytes="4">
+               
+         <parse expr="[0][7]" desc="Check Engine Light Status" true="ON" false="OFF" />
+         
+         <parse expr="([0] & 0b01111111)" min="0" max="127"
+            desc="Number of confirmed emissions-related DTCs available for display" />
+            
+         <parse expr="[1][3]"   desc="Vehicle Ignition Type"    true="Compression"      false="Spark" />
+         
+         <parse expr="[1][0]"   desc="Misfire Monitoring"       true="Test Available"   false="Test Unavailable" />
+         <parse expr="[1][1]"   desc="Fuel System Monitoring"   true="Test Available"   false="Test Unavailable" />
+         <parse expr="[1][2]"   desc="Components Monitoring"    true="Test Available"   false="Test Unavailable" />     
+    
+         <parse expr="[1][4]"   desc="Misfire Test Status"      true="Complete"         false="Incomplete" />
+         <parse expr="[1][5]"   desc="Fuel System Test Status"  true="Complete"         false="Incomplete" />
+         <parse expr="[1][6]"   desc="Components Test Status"   true="Complete"         false="Incomplete" />
 
-		<parameter name="Calculated Engine Load"
-			request="0x01 0x04" response.prefix="0x41 0x04" response.bytes="1">			
-			<parse units="%" expr="[0]*100/255" min="0" max="100"/>
-		</parameter>
-		
-		<parameter name="Engine Coolant Temperature"
-			request="0x01 0x05" response.prefix="0x41 0x05" response.bytes="1">			
-			<parse units="C" expr="A-40" min="-40" max="215" />
-		</parameter>
-		
-		<parameter name="Short Term Fuel % Trim - Bank 1"
-			request="0x01 0x06" response.prefix="0x41 0x06" response.bytes="1">			
-			<parse units="%" expr="(A-128)*(100/128)" min="-100" max="100" />
-		</parameter>
+         <condition expr="[1][3]">
+            <parse expr="[2][0]" desc="NMHC Cat Test"               true="Test Available"   false="Test Unavailable" />
+            <parse expr="[2][1]" desc="NOx/SCR Monitor Test"        true="Test Available"   false="Test Unavailable" />
+            <parse expr="[2][3]" desc="Boost Pressure Test"         true="Test Available"   false="Test Unavailable" />
+            <parse expr="[2][5]" desc="Exhaust Gas Sensor Test"     true="Test Available"   false="Test Unavailable" />
+            <parse expr="[2][6]" desc="PM Filter Monitoring Test"   true="Test Available"   false="Test Unavailable" />
+            <parse expr="[2][7]" desc="EGR/VVT System Test"         true="Test Available"   false="Test Unavailable" />
 
-		<parameter name="Long Term Fuel % Trim - Bank 1"
-			request="0x01 0x07" response.prefix="0x41 0x07" response.bytes="1">			
-			<parse units="%" expr="(A-128)*(100/128)" min="-100" max="100" />
-		</parameter>
-		
-		<parameter name="Long Term Fuel % Trim - Bank 2"
-			request="0x01 0x08" response.prefix="0x41 0x08" response.bytes="1">			
-			<parse units="%" expr="(A-128)*(100/128)" min="-100" max="100" />
-		</parameter>
-		
-		<parameter name="Long Term Fuel % Trim - Bank 2"
-			request="0x01 0x09" response.prefix="0x41 0x09" response.bytes="1">			
-			<parse units="%" expr="(A-128)*(100/128)" min="-100" max="100" />
-		</parameter>
-		
-		<parameter name="Fuel Pressure"
-			request="0x01 0x0A" response.prefix="0x41 0x0A" response.bytes="1">			
-			<parse units="kPa (gauge)" expr="A*3" min="0" max="765" />
-		</parameter>
+            <parse expr="[3][0]" desc="NMHC Cat Test Status"               true="Incomplete"  false="Complete" />
+            <parse expr="[3][1]" desc="NOx/SCR Monitor Test Status"        true="Incomplete"  false="Complete" />
+            <parse expr="[3][3]" desc="Boost Pressure Test Status"         true="Incomplete"  false="Complete" />
+            <parse expr="[3][5]" desc="Exhaust Gas Sensor Test Status"     true="Incomplete"  false="Complete" />
+            <parse expr="[3][6]" desc="PM Filter Monitoring Test Status"   true="Incomplete"  false="Complete" />
+            <parse expr="[3][7]" desc="EGR/VVT System Test Status"         true="Incomplete"  false="Complete" />
+         </condition>
+         
+         <condition expr="![1][3]">
+            <parse expr="[2][0]" desc="Catalyst Test"               true="Test Available"   false="Test Unavailable" />
+            <parse expr="[2][1]" desc="Heated Catalyst Test"        true="Test Available"   false="Test Unavailable" />
+            <parse expr="[2][2]" desc="Evaporative System Test"     true="Test Available"   false="Test Unavailable" />
+            <parse expr="[2][3]" desc="Secondary Air System Test"   true="Test Available"   false="Test Unavailable" />
+            <parse expr="[2][3]" desc="A/C Refrigerant Test"        true="Test Available"   false="Test Unavailable" />
+            <parse expr="[2][4]" desc="Oxygen Sensor Test"          true="Test Available"   false="Test Unavailable" />
+            <parse expr="[2][5]" desc="Oxygen Sensor Heater Test"   true="Test Available"   false="Test Unavailable" />
+            <parse expr="[2][6]" desc="EGR System Test"             true="Test Available"   false="Test Unavailable" />
 
-		<parameter name="Intake Manifold Absolute Pressure"
-			request="0x01 0x0B" response.prefix="0x41 0x0B" response.bytes="1">			
-			<parse units="kPa (absolute)" expr="A" min="0" max="255"/>
-		</parameter>
+            <parse expr="[3][0]" desc="Catalyst Test Status"                true="Incomplete"  false="Complete" />
+            <parse expr="[3][1]" desc="Heated Catalyst Test Status"         true="Incomplete"  false="Complete" />
+            <parse expr="[3][2]" desc="Evaporative System Test Status"      true="Incomplete"  false="Complete" />
+            <parse expr="[3][3]" desc="Secondary Air System Test Status"    true="Incomplete"  false="Complete" />
+            <parse expr="[3][3]" desc="A/C Refrigerant Test Status"         true="Incomplete"  false="Complete" />
+            <parse expr="[3][4]" desc="Oxygen Sensor Test Status"           true="Incomplete"  false="Complete" />
+            <parse expr="[3][5]" desc="Oxygen Sensor Heater Test Status"    true="Incomplete"  false="Complete" />
+            <parse expr="[3][6]" desc="EGR System Test Status"              true="Incomplete"  false="Complete" />
+         </condition>
+      </parameter>
+      
+      <parameter name="Fuel System Status"
+         request="0x01 0x03" response.prefix="0x41 0x03" response.bytes="2">
+         <parse expr="[0][0]" desc="Fuel System 1 Status" true="Open Loop: Insufficient engine temperature" />
+         <parse expr="[0][1]" desc="Fuel System 1 Status" true="Closed Loop: Using oxygen sensor feedback to determine fuel mix" />
+         <parse expr="[0][2]" desc="Fuel System 1 Status" true="Open Loop: Due to engine load OR fuel cut due to acceleration" />
+         <parse expr="[0][3]" desc="Fuel System 1 Status" true="Open Loop: Due to system failure" />
+         <parse expr="[0][4]" desc="Fuel System 1 Status" true="Closed loop: Using at least one oxygen sensor, 
+                                       but there is a fault in the feedback system" />
+         
+         <parse expr="[1][0]" desc="Fuel System 2 Status" true="Open Loop: Insufficient engine temperature" />
+         <parse expr="[1][1]" desc="Fuel System 2 Status" true="Closed Loop: Using oxygen sensor feedback to determine fuel mix" />
+         <parse expr="[1][2]" desc="Fuel System 2 Status" true="Open Loop: Due to engine load OR fuel cut due to acceleration" />
+         <parse expr="[1][3]" desc="Fuel System 2 Status" true="Open Loop: Due to system failure" />
+         <parse expr="[1][4]" desc="Fuel System 2 Status" true="Closed loop: Using at least one oxygen sensor, 
+                                       but there is a fault in the feedback system" />
+      </parameter>
 
-		<parameter name="Engine RPM"
-			request="0x01 0x0C" response.prefix="0x41 0x0C" response.bytes="2">
-			<parse units="rpm" expr="((A*256)+B)/4" min="0" max="16383.75" />
-		</parameter>
-		
-		<parameter name="Vehicle Speed"
-			request="0x01 0x0D" response.prefix="0x41 0x0D" response.bytes="1">
-			<parse units="km/h" expr="A" min="0" max="255" />
-		</parameter>
-		
-		<parameter name="Timing Advance"
-			request="0x01 0x0E" response.prefix="0x41 0x0E" response.bytes="1">
-			<parse units="deg" expr="(A/2)-64" min="-64" max="63.5" />
-		</parameter>
+      <parameter name="Calculated Engine Load"
+         request="0x01 0x04" response.prefix="0x41 0x04" response.bytes="1">        
+         <parse expr="[0]*100/255" units="%" min="0" max="100"/>
+      </parameter>
+      
+      <parameter name="Engine Coolant Temperature"
+         request="0x01 0x05" response.prefix="0x41 0x05" response.bytes="1">        
+         <parse expr="[0]-40" units="C" min="-40" max="215" />
+      </parameter>
+      
+      <parameter name="Short Term Fuel % Trim - Bank 1"
+         request="0x01 0x06" response.prefix="0x41 0x06" response.bytes="1">        
+         <parse expr="([0]-128)*(100/128)" units="%" min="-100" max="100" />
+      </parameter>
 
-		<parameter name="Intake Air Temperature"
-			request="0x01 0x0F" response.prefix="0x41 0x0F" response.bytes="1">
-			<parse units="C" expr="A-40" max="-40" max="215" />
-		</parameter>
+      <parameter name="Long Term Fuel % Trim - Bank 1"
+         request="0x01 0x07" response.prefix="0x41 0x07" response.bytes="1">        
+         <parse expr="([0]-128)*(100/128)" units="%" min="-100" max="100" />
+      </parameter>
+      
+      <parameter name="Long Term Fuel % Trim - Bank 2"
+         request="0x01 0x08" response.prefix="0x41 0x08" response.bytes="1">        
+         <parse expr="([0]-128)*(100/128)" units="%" min="-100" max="100" />
+      </parameter>
+      
+      <parameter name="Long Term Fuel % Trim - Bank 2"
+         request="0x01 0x09" response.prefix="0x41 0x09" response.bytes="1">        
+         <parse expr="([0]-128)*(100/128)" units="%" min="-100" max="100" />
+      </parameter>
+      
+      <parameter name="Fuel Pressure"
+         request="0x01 0x0A" response.prefix="0x41 0x0A" response.bytes="1">        
+         <parse expr="[0]*3" units="kPa (gauge)" min="0" max="765" />
+      </parameter>
 
-		<parameter name="MAF Air Flow Rate"
-			request="0x01 0x10" response.prefix="0x41 0x10" response.bytes="2">
-			<parse units="g/s" expr="((A*256)+B)/100" min="0" max="655.35" />
-		</parameter>
+      <parameter name="Intake Manifold Absolute Pressure"
+         request="0x01 0x0B" response.prefix="0x41 0x0B" response.bytes="1">        
+         <parse expr="[0]" units="kPa (absolute)" min="0" max="255"/>
+      </parameter>
 
-		<parameter name="Throttle Position"
-			request="0x01 0x11" response.prefix="0x41 0x11" response.bytes="1">
-			<parse units="%" expr="A*100/255" min="0" max="100" />
-		</parameter>
-		
-		<parameter name="Commanded Secondary Air Status"
-			request="0x01 0x12" response.prefix="0x41 0x12" response.bytes="1">
-			<parse expr="A[0]" true="Upstream of catalytic converter" />
-			<parse expr="A[1]" true="Downstream of catalytic converter" />
-			<parse expr="A[2]" true="From the outside atmosphere or off" />
-		</parameter>
-		
-		<parameter name="Oxygen Sensors Present (Banks 1-2)"
-			request="0x01 0x13" response.prefix="0x41 0x13" response.bytes="1">
-			<parse expr="A[0]" true="Bank 1, Sensor 1 Present" />
-			<parse expr="A[1]" true="Bank 1, Sensor 2 Present" />
-			<parse expr="A[2]" true="Bank 1, Sensor 3 Present" />
-			<parse expr="A[3]" true="Bank 1, Sensor 4 Present" />
-			<parse expr="A[4]" true="Bank 2, Sensor 1 Present" />
-			<parse expr="A[5]" true="Bank 2, Sensor 2 Present" />
-			<parse expr="A[6]" true="Bank 2, Sensor 3 Present" />
-			<parse expr="A[7]" true="Bank 2, Sensor 4 Present" />
-		</parameter>
-		
-		<parameter name="Bank 1, Sensor 1: Oxygen Sensor Voltage, Short Term Fuel Trim"
-			request="0x01 0x14" response.prefix="0x41 0x14" response.bytes="2">
-			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-			<parse units="V" expr="A/200" min="0" max="1.275" />
-			<parse units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
-		</parameter>
+      <parameter name="Engine RPM"
+         request="0x01 0x0C" response.prefix="0x41 0x0C" response.bytes="2">
+         <parse expr="(([0]*256)+[1])/4" units="rpm" min="0" max="16383.75" />
+      </parameter>
+      
+      <parameter name="Vehicle Speed"
+         request="0x01 0x0D" response.prefix="0x41 0x0D" response.bytes="1">
+         <parse expr="[0]" units="km/h" min="0" max="255" />
+      </parameter>
+      
+      <parameter name="Timing Advance"
+         request="0x01 0x0E" response.prefix="0x41 0x0E" response.bytes="1">
+         <parse expr="([0]/2)-64" units="deg" min="-64" max="63.5" />
+      </parameter>
 
-		<parameter name="Bank 1, Sensor 2: Oxygen Sensor Voltage, Short Term Fuel Trim"
-			request="0x01 0x15" response.prefix="0x41 0x15" response.bytes="2">
-			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-			<parse units="V" expr="A/200" min="0" max="1.275" />
-			<parse units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
-		</parameter>
-		
-		<parameter name="Bank 1, Sensor 3: Oxygen Sensor Voltage, Short Term Fuel Trim"
-			request="0x01 0x16" response.prefix="0x41 0x16" response.bytes="2">
-			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-			<parse units="V" expr="A/200" min="0" max="1.275" />
-			<parse units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
-		</parameter>
-		
-		<parameter name="Bank 1, Sensor 4: Oxygen Sensor Voltage, Short Term Fuel Trim"
-			request="0x01 0x17" response.prefix="0x41 0x17" response.bytes="2">
-			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-			<parse units="V" expr="A/200" min="0" max="1.275" />
-			<parse units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
-		</parameter>
-		
-		<parameter name="Bank 2, Sensor 1: Oxygen Sensor Voltage, Short Term Fuel Trim"
-			request="0x01 0x18" response.prefix="0x41 0x18" response.bytes="2">
-			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-			<parse units="V" expr="A/200" min="0" max="1.275" />
-			<parse units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
-		</parameter>
-		
-		<parameter name="Bank 2, Sensor 2: Oxygen Sensor Voltage, Short Term Fuel Trim"
-			request="0x01 0x19" response.prefix="0x41 0x19" response.bytes="2">
-			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-			<parse units="V" expr="A/200" min="0" max="1.275" />
-			<parse units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
-		</parameter>
-		
-		<parameter name="Bank 2, Sensor 3: Oxygen Sensor Voltage, Short Term Fuel Trim"
-			request="0x01 0x1A" response.prefix="0x41 0x1A" response.bytes="2">
-			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-			<parse units="V" expr="A/200" min="0" max="1.275" />
-			<parse units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
-		</parameter>
-		
-		<parameter name="Bank 2, Sensor 4: Oxygen Sensor Voltage, Short Term Fuel Trim"
-			request="0x01 0x1B" response.prefix="0x41 0x1B" response.bytes="2">
-			<!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-			<parse units="V" expr="A/200" min="0" max="1.275" />
-			<parse units="%" expr="(B-128)*100/128" min="-100" max="99.2" /> 
-		</parameter>
-		
-		<parameter name="OBD Standards This Vehicle Conforms To"
-			request="0x01 0x1C" response.prefix="0x41 0x18" response.bytes="1">
-			<parse expr="A == 0x01" true="OBDII as defined by the CARB"/>
-			<parse expr="A == 0x02" true="OBD as defined by the EPA"/>
-			<parse expr="A == 0x03" true="OBD and OBDII"/>
-			<parse expr="A == 0x04" true="OBDI"/>
-			<parse expr="A == 0x05" true="Not meant to comply with any OBD standard"/>
-			<parse expr="A == 0x06" true="EOBD (Europe)"/>
-			<parse expr="A == 0x07" true="EOBD and OBDII"/>
-			<parse expr="A == 0x08" true="EOBD and OBD"/>
-			<parse expr="A == 0x09" true="EOBD, OBD and OBDII"/>
-			<parse expr="A == 0x0A" true="JOBD (Japan)"/>
-			<parse expr="A == 0x0B" true="JOBD and OBDII"/>
-			<parse expr="A == 0x0C" true="JOBD and EOBD"/>
-			<parse expr="A == 0x0D" true="JOBD, EOBD and OBDII"/>
-		</parameter>
-		
-		<parameter name="Oxygen Sensors Present (Banks 1-4)"
-			request="0x01 0x1D" response.prefix="0x41 0x1D" response.bytes="1">
-			<parse expr="A[0]" true="Bank 1, Sensor 1 Present" />
-			<parse expr="A[1]" true="Bank 1, Sensor 2 Present" />
-			<parse expr="A[2]" true="Bank 2, Sensor 1 Present" />
-			<parse expr="A[3]" true="Bank 2, Sensor 2 Present" />
-			<parse expr="A[4]" true="Bank 3, Sensor 1 Present" />
-			<parse expr="A[5]" true="Bank 3, Sensor 2 Present" />
-			<parse expr="A[6]" true="Bank 4, Sensor 1 Present" />
-			<parse expr="A[7]" true="Bank 4, Sensor 2 Present" />
-		</parameter>
-		
-		<parameter name="Auxiliary Input Status"
-			request="0x01 0x1E" response.prefix="0x41 0x1E" response.bytes="1">
-			<parse expr="A[0]" true="Power Take Off Active" />
-		</parameter>
-		
-		<parameter name="Runtime Since Engine Start"
-			request="0x01 0x1F" response.prefix="0x41 0x1F" response.bytes="2">
-			<parse units="seconds" expr="(A*256)+B" min="0" max="65535" />
-		</parameter>
+      <parameter name="Intake Air Temperature"
+         request="0x01 0x0F" response.prefix="0x41 0x0F" response.bytes="1">
+         <parse expr="[0]-40" units="C" max="-40" max="215" />
+      </parameter>
 
-		<parameter name="PIDs Supported 0x21-0x40"
-			request="0x01 0x20" response.prefix="0x41 0x20" response.bytes="4">
-			<parse expr="A[7]" true="PID 0x21 Supported" false="PID 0x21 Unsupported" />
-			<parse expr="A[6]" true="PID 0x22 Supported" false="PID 0x22 Unsupported" />
-			<parse expr="A[5]" true="PID 0x23 Supported" false="PID 0x23 Unsupported" />
-			<parse expr="A[4]" true="PID 0x24 Supported" false="PID 0x24 Unsupported" />
-			<parse expr="A[3]" true="PID 0x25 Supported" false="PID 0x25 Unsupported" />
-			<parse expr="A[2]" true="PID 0x26 Supported" false="PID 0x26 Unsupported" />
-			<parse expr="A[1]" true="PID 0x27 Supported" false="PID 0x27 Unsupported" />
-			<parse expr="A[0]" true="PID 0x28 Supported" false="PID 0x28 Unsupported" />
-			
-			<parse expr="B[7]" true="PID 0x29 Supported" false="PID 0x29 Unsupported" />
-			<parse expr="B[6]" true="PID 0x2A Supported" false="PID 0x2A Unsupported" />
-			<parse expr="B[5]" true="PID 0x2B Supported" false="PID 0x2B Unsupported" />
-			<parse expr="B[4]" true="PID 0x2C Supported" false="PID 0x2C Unsupported" />
-			<parse expr="B[3]" true="PID 0x2D Supported" false="PID 0x2D Unsupported" />
-			<parse expr="B[2]" true="PID 0x2E Supported" false="PID 0x2E Unsupported" />
-			<parse expr="B[1]" true="PID 0x2F Supported" false="PID 0x2F Unsupported" />
-			<parse expr="B[0]" true="PID 0x30 Supported" false="PID 0x30 Unsupported" />
-			
-			<parse expr="C[7]" true="PID 0x31 Supported" false="PID 0x31 Unsupported" />
-			<parse expr="C[6]" true="PID 0x32 Supported" false="PID 0x32 Unsupported" />
-			<parse expr="C[5]" true="PID 0x33 Supported" false="PID 0x33 Unsupported" />
-			<parse expr="C[4]" true="PID 0x34 Supported" false="PID 0x34 Unsupported" />
-			<parse expr="C[3]" true="PID 0x35 Supported" false="PID 0x35 Unsupported" />
-			<parse expr="C[2]" true="PID 0x36 Supported" false="PID 0x36 Unsupported" />
-			<parse expr="C[1]" true="PID 0x37 Supported" false="PID 0x37 Unsupported" />
-			<parse expr="C[0]" true="PID 0x38 Supported" false="PID 0x38 Unsupported" />
-			
-			<parse expr="D[7]" true="PID 0x39 Supported" false="PID 0x39 Unsupported" />
-			<parse expr="D[6]" true="PID 0x3A Supported" false="PID 0x3A Unsupported" />
-			<parse expr="D[5]" true="PID 0x3B Supported" false="PID 0x3B Unsupported" />
-			<parse expr="D[4]" true="PID 0x3C Supported" false="PID 0x3C Unsupported" />
-			<parse expr="D[3]" true="PID 0x3D Supported" false="PID 0x3D Unsupported" />
-			<parse expr="D[2]" true="PID 0x3E Supported" false="PID 0x3E Unsupported" />
-			<parse expr="D[1]" true="PID 0x3F Supported" false="PID 0x3F Unsupported" />
-			<parse expr="D[0]" true="PID 0x40 Supported" false="PID 0x40 Unsupported" />
-		</parameter>
-		
-		<parameter name="Distance Travelled with MIL On"
-			request="0x01 0x21" response.prefix="0x41 0x21" response.bytes="2">
-			<parse units="km" expr="(A*256)+B" min="0" max="65535" />
-		</parameter>
+      <parameter name="MAF Air Flow Rate"
+         request="0x01 0x10" response.prefix="0x41 0x10" response.bytes="2">
+         <parse expr="(([0]*256)+[1])/100" units="g/s" min="0" max="655.35" />
+      </parameter>
 
-		<parameter name="Fuel Rail Pressure"
-			request="0x01 0x22" response.prefix="0x41 0x22" response.bytes="2">
-			<parse units="kPa" expr="(((A*256)+B) * 10) / 128" min="0" max="5177.265" />
-		</parameter>
-		
-		<parameter name="Fuel Rail Pressure (Diesel or Gasoline Direct Injection)"
-			request="0x01 0x23" response.prefix="0x41 0x23" response.bytes="2">
-			<parse units="kPa (gauge)" expr="((A*256)+B) * 10" min="0" max="655350" />
-		</parameter>
+      <parameter name="Throttle Position"
+         request="0x01 0x11" response.prefix="0x41 0x11" response.bytes="1">
+         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+      </parameter>
+      
+      <parameter name="Commanded Secondary Air Status"
+         request="0x01 0x12" response.prefix="0x41 0x12" response.bytes="1">
+         <parse expr="[0][0]" desc="Secondary air exhaust input location" true="Upstream of Catalytic Converter" />
+         <parse expr="[0][1]" desc="Secondary air exhaust input location" true="Downstream of Catalytic Converter" />
+         <parse expr="[0][2]" desc="Secondary air exhaust input location" true="From Atmosphere or OFF" />
+      </parameter>
+      
+      <parameter name="Oxygen Sensors Present (Banks 1-2)"
+         request="0x01 0x13" response.prefix="0x41 0x13" response.bytes="1">
+         <parse expr="[0][0]" desc="Bank 1, Sensor 1" true="Present" false="N/A" />
+         <parse expr="[0][1]" desc="Bank 1, Sensor 2" true="Present" false="N/A" />
+         <parse expr="[0][2]" desc="Bank 1, Sensor 3" true="Present" false="N/A" />
+         <parse expr="[0][3]" desc="Bank 1, Sensor 4" true="Present" false="N/A" />
+         <parse expr="[0][4]" desc="Bank 2, Sensor 1" true="Present" false="N/A" />
+         <parse expr="[0][5]" desc="Bank 2, Sensor 2" true="Present" false="N/A" />
+         <parse expr="[0][6]" desc="Bank 2, Sensor 3" true="Present" false="N/A" />
+         <parse expr="[0][7]" desc="Bank 2, Sensor 4" true="Present" false="N/A" />
+      </parameter>
+      
+      <parameter name="Bank 1, Sensor 1: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x14" response.prefix="0x41 0x14" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <parse expr="[0]/200" units="V" min="0" max="1.275" />
+         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+      </parameter>
 
-		<parameter name="O2S1_WR_lambda(1): Equivalence Ratio, Voltage"
-			request="0x01 0x24" response.prefix="0x41 0x23" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
-			<parse units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
-		</parameter>
-		
-		<parameter name="O2S2_WR_lambda(1): Equivalence Ratio, Voltage"
-			request="0x01 0x25" response.prefix="0x41 0x25" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
-			<parse units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
-		</parameter>
-		
-		<parameter name="O2S3_WR_lambda(1): Equivalence Ratio, Voltage"
-			request="0x01 0x26" response.prefix="0x41 0x26" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
-			<parse units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
-		</parameter>
-		
-		<parameter name="O2S4_WR_lambda(1): Equivalence Ratio, Voltage"
-			request="0x01 0x27" response.prefix="0x41 0x27" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
-			<parse units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
-		</parameter>
-		
-		<parameter name="O2S5_WR_lambda(1): Equivalence Ratio, Voltage"
-			request="0x01 0x28" response.prefix="0x41 0x28" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
-			<parse units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
-		</parameter>
-		
-		<parameter name="O2S6_WR_lambda(1): Equivalence Ratio, Voltage"
-			request="0x01 0x29" response.prefix="0x41 0x29" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
-			<parse units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
-		</parameter>
-		
-		<parameter name="O2S7_WR_lambda(1): Equivalence Ratio, Voltage"
-			request="0x01 0x2A" response.prefix="0x41 0x2A" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
-			<parse units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
-		</parameter>
-		
-		<parameter name="O2S8_WR_lambda(1): Equivalence Ratio, Voltage"
-			request="0x01 0x2B" response.prefix="0x41 0x2B" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)*2/65535" min="0" max="2" />
-			<parse units="V" expr="((C*256)+D)*8/65535" min="0" max="8" />
-		</parameter>
-		
-		<parameter name="Commanded EGR"
-			request="0x01 0x2C" response.prefix="0x41 0x2C" response.bytes="1">
-			<parse units="%" expr="100*A/255" min="0" max="100" />
-		</parameter>
-		
-		<parameter name="EGR Error"
-			request="0x01 0x2D" response.prefix="0x41 0x2D" response.bytes="1">
-			<parse units="%" expr="(A-128)*100/128" min="-100" max="99.2" />
-		</parameter>
-		
-		<parameter name="Commanded Evaporative Purge"
-			request="0x01 0x2E" response.prefix="0x41 0x2E" response.bytes="1">
-			<parse units="%" expr="100*A/255" min="0" max="100" />
-		</parameter>
-		
-		<parameter name="Fuel Level Input"
-			request="0x01 0x2F" response.prefix="0x41 0x2F" response.bytes="1">
-			<parse units="%" expr="100*A/255" min="0" max="100" />
-		</parameter>
+      <parameter name="Bank 1, Sensor 2: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x15" response.prefix="0x41 0x15" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <parse expr="[0]/200" units="V" min="0" max="1.275" />
+         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+      </parameter>
+      
+      <parameter name="Bank 1, Sensor 3: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x16" response.prefix="0x41 0x16" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <parse expr="[0]/200" units="V" min="0" max="1.275" />
+         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+      </parameter>
+      
+      <parameter name="Bank 1, Sensor 4: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x17" response.prefix="0x41 0x17" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <parse expr="[0]/200" units="V" min="0" max="1.275" />
+         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+      </parameter>
+      
+      <parameter name="Bank 2, Sensor 1: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x18" response.prefix="0x41 0x18" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <parse expr="[0]/200" units="V" min="0" max="1.275" />
+         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+      </parameter>
+      
+      <parameter name="Bank 2, Sensor 2: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x19" response.prefix="0x41 0x19" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <parse expr="[0]/200" units="V" min="0" max="1.275" />
+         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+      </parameter>
+      
+      <parameter name="Bank 2, Sensor 3: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x1A" response.prefix="0x41 0x1A" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <parse expr="[0]/200" units="V" min="0" max="1.275" />
+         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+      </parameter>
+      
+      <parameter name="Bank 2, Sensor 4: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x1B" response.prefix="0x41 0x1B" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <parse expr="[0]/200" units="V" min="0" max="1.275" />
+         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+      </parameter>
+      
+      <parameter name="OBD Standards This Vehicle Conforms To"
+         request="0x01 0x1C" response.prefix="0x41 0x18" response.bytes="1">
+         <parse expr="[0] == 0x01" true="OBDII as defined by the CARB"/>
+         <parse expr="[0] == 0x02" true="OBD as defined by the EPA"/>
+         <parse expr="[0] == 0x03" true="OBD and OBDII"/>
+         <parse expr="[0] == 0x04" true="OBDI"/>
+         <parse expr="[0] == 0x05" true="Does not comply with any OBD Standard"/>
+         <parse expr="[0] == 0x06" true="EOBD (Europe)"/>
+         <parse expr="[0] == 0x07" true="EOBD and OBDII"/>
+         <parse expr="[0] == 0x08" true="EOBD and OBD"/>
+         <parse expr="[0] == 0x09" true="EOBD, OBD and OBDII"/>
+         <parse expr="[0] == 0x0A" true="JOBD (Japan)"/>
+         <parse expr="[0] == 0x0B" true="JOBD and OBDII"/>
+         <parse expr="[0] == 0x0C" true="JOBD and EOBD"/>
+         <parse expr="[0] == 0x0D" true="JOBD, EOBD and OBDII"/>
+      </parameter>
+      
+      <parameter name="Oxygen Sensors Present (Banks 1-4)"
+         request="0x01 0x1D" response.prefix="0x41 0x1D" response.bytes="1">
+         <parse expr="[0][0]" desc="Bank 1, Sensor 1" true="Present" false="N/A"/>
+         <parse expr="[0][1]" desc="Bank 1, Sensor 2" true="Present" false="N/A"/>
+         <parse expr="[0][2]" desc="Bank 2, Sensor 1" true="Present" false="N/A"/>
+         <parse expr="[0][3]" desc="Bank 2, Sensor 2" true="Present" false="N/A"/>
+         <parse expr="[0][4]" desc="Bank 3, Sensor 1" true="Present" false="N/A"/>
+         <parse expr="[0][5]" desc="Bank 3, Sensor 2" true="Present" false="N/A"/>
+         <parse expr="[0][6]" desc="Bank 4, Sensor 1" true="Present" false="N/A"/>
+         <parse expr="[0][7]" desc="Bank 4, Sensor 2" true="Present" false="N/A"/>
+      </parameter>
+      
+      <parameter name="Auxiliary Input Status"
+         request="0x01 0x1E" response.prefix="0x41 0x1E" response.bytes="1">
+         <parse expr="[0][0]" true="Power Take Off Active" />
+      </parameter>
+      
+      <parameter name="Runtime Since Engine Start"
+         request="0x01 0x1F" response.prefix="0x41 0x1F" response.bytes="2">
+         <parse expr="([0]*256)+[1]" units="seconds" min="0" max="65535" />
+      </parameter>
 
-		<parameter name="Number of Warm Ups Since Codes Cleared"
-			request="0x01 0x30" response.prefix="0x41 0x30" response.bytes="1">
-			<parse units="number" expr="A" min="0" max="255" />
-		</parameter>
+      <parameter name="PIDs Supported 0x21-0x40"
+         request="0x01 0x20" response.prefix="0x41 0x20" response.bytes="4">
+         <parse expr="[0][7]" desc="PID 0x21" true="Supported" false="Unsupported" />
+         <parse expr="[0][6]" desc="PID 0x22" true="Supported" false="Unsupported" />
+         <parse expr="[0][5]" desc="PID 0x23" true="Supported" false="Unsupported" />
+         <parse expr="[0][4]" desc="PID 0x24" true="Supported" false="Unsupported" />
+         <parse expr="[0][3]" desc="PID 0x25" true="Supported" false="Unsupported" />
+         <parse expr="[0][2]" desc="PID 0x26" true="Supported" false="Unsupported" />
+         <parse expr="[0][1]" desc="PID 0x27" true="Supported" false="Unsupported" />
+         <parse expr="[0][0]" desc="PID 0x28" true="Supported" false="Unsupported" />
+         
+         <parse expr="[1][7]" desc="PID 0x29" true="Supported" false="Unsupported" />
+         <parse expr="[1][6]" desc="PID 0x2A" true="Supported" false="Unsupported" />
+         <parse expr="[1][5]" desc="PID 0x2B" true="Supported" false="Unsupported" />
+         <parse expr="[1][4]" desc="PID 0x2C" true="Supported" false="Unsupported" />
+         <parse expr="[1][3]" desc="PID 0x2D" true="Supported" false="Unsupported" />
+         <parse expr="[1][2]" desc="PID 0x2E" true="Supported" false="Unsupported" />
+         <parse expr="[1][1]" desc="PID 0x2F" true="Supported" false="Unsupported" />
+         <parse expr="[1][0]" desc="PID 0x30" true="Supported" false="Unsupported" />
+         
+         <parse expr="[2][7]" desc="PID 0x31" true="Supported" false="Unsupported" />
+         <parse expr="[2][6]" desc="PID 0x32" true="Supported" false="Unsupported" />
+         <parse expr="[2][5]" desc="PID 0x33" true="Supported" false="Unsupported" />
+         <parse expr="[2][4]" desc="PID 0x34" true="Supported" false="Unsupported" />
+         <parse expr="[2][3]" desc="PID 0x35" true="Supported" false="Unsupported" />
+         <parse expr="[2][2]" desc="PID 0x36" true="Supported" false="Unsupported" />
+         <parse expr="[2][1]" desc="PID 0x37" true="Supported" false="Unsupported" />
+         <parse expr="[2][0]" desc="PID 0x38" true="Supported" false="Unsupported" />
+         
+         <parse expr="[3][7]" desc="PID 0x39" true="Supported" false="Unsupported" />
+         <parse expr="[3][6]" desc="PID 0x3A" true="Supported" false="Unsupported" />
+         <parse expr="[3][5]" desc="PID 0x3B" true="Supported" false="Unsupported" />
+         <parse expr="[3][4]" desc="PID 0x3C" true="Supported" false="Unsupported" />
+         <parse expr="[3][3]" desc="PID 0x3D" true="Supported" false="Unsupported" />
+         <parse expr="[3][2]" desc="PID 0x3E" true="Supported" false="Unsupported" />
+         <parse expr="[3][1]" desc="PID 0x3F" true="Supported" false="Unsupported" />
+         <parse expr="[3][0]" desc="PID 0x40" true="Supported" false="Unsupported" />
+      </parameter>
+      
+      <parameter name="Distance Travelled with MIL On"
+         request="0x01 0x21" response.prefix="0x41 0x21" response.bytes="2">
+         <parse expr="([0]*256)+[1]" units="km" min="0" max="65535" />
+      </parameter>
 
-		<parameter name="Distance Traveled Since Codes Cleared"
-			request="0x01 0x31" response.prefix="0x41 0x31" response.bytes="2">
-			<parse units="km" expr="(A*256)+B" min="0" max="65535" />
-		</parameter>
-		
-		<parameter name="Evaporative System Vapour Pressure (1)"
-			request="0x01 0x32" response.prefix="0x41 0x32" response.bytes="2">
-			<!--	A is signed (+ve) with (I THINK) 2's complement -- needs to be VERIFIED
-					min, max are different than values listed on Wikipedia since they don't
-					make sense to me if the value is signed with 2's complement  -->
-			<condition expr="(A & 0b10000000) == 0"> 
-				<parse units="Pa" expr="((A*256)+B)/4" min="-8192" max="8192" />
-			</condition>
-			<!--	A is signed (-ve) with (I THINK) 2's complement -- needs to be VERIFIED
-					min, max are different than values listed on Wikipedia since they don't
-					make sense to me if the value is signed with 2's complement  -->
-			<condition expr="(A & 0b10000000) == 1">
-				<parse units="Pa" expr="(((~(A-1))*256)+B)/4" min="-8192" max="8192" />
-			</condition>
-		</parameter>
+      <parameter name="Fuel Rail Pressure"
+         request="0x01 0x22" response.prefix="0x41 0x22" response.bytes="2">
+         <parse expr="((([0]*256)+[1]) * 10) / 128" units="kPa" min="0" max="5177.265" />
+      </parameter>
+      
+      <parameter name="Fuel Rail Pressure (Diesel or Gasoline Direct Injection)"
+         request="0x01 0x23" response.prefix="0x41 0x23" response.bytes="2">
+         <parse expr="(([0]*256)+[1]) * 10" units="kPa (gauge)" min="0" max="655350" />
+      </parameter>
 
-		<parameter name="Barometric Pressure"
-			request="0x01 0x33" response.prefix="0x41 0x33" response.bytes="1">
-			<parse units="kPa" expr="A" min="0" max="255" />
-		</parameter>
+      <parameter name="O2S1_WR_lambda(1): Equivalence Ratio, Voltage"
+         request="0x01 0x24" response.prefix="0x41 0x23" response.bytes="4">
+         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+      </parameter>
+      
+      <parameter name="O2S2_WR_lambda(1): Equivalence Ratio, Voltage"
+         request="0x01 0x25" response.prefix="0x41 0x25" response.bytes="4">
+         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+      </parameter>
+      
+      <parameter name="O2S3_WR_lambda(1): Equivalence Ratio, Voltage"
+         request="0x01 0x26" response.prefix="0x41 0x26" response.bytes="4">
+         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+      </parameter>
+      
+      <parameter name="O2S4_WR_lambda(1): Equivalence Ratio, Voltage"
+         request="0x01 0x27" response.prefix="0x41 0x27" response.bytes="4">
+         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+      </parameter>
+      
+      <parameter name="O2S5_WR_lambda(1): Equivalence Ratio, Voltage"
+         request="0x01 0x28" response.prefix="0x41 0x28" response.bytes="4">
+         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+      </parameter>
+      
+      <parameter name="O2S6_WR_lambda(1): Equivalence Ratio, Voltage"
+         request="0x01 0x29" response.prefix="0x41 0x29" response.bytes="4">
+         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+      </parameter>
+      
+      <parameter name="O2S7_WR_lambda(1): Equivalence Ratio, Voltage"
+         request="0x01 0x2A" response.prefix="0x41 0x2A" response.bytes="4">
+         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+      </parameter>
+      
+      <parameter name="O2S8_WR_lambda(1): Equivalence Ratio, Voltage"
+         request="0x01 0x2B" response.prefix="0x41 0x2B" response.bytes="4">
+         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+      </parameter>
+      
+      <parameter name="Commanded EGR"
+         request="0x01 0x2C" response.prefix="0x41 0x2C" response.bytes="1">
+         <parse expr="100*[0]/255" units="%" min="0" max="100" />
+      </parameter>
+      
+      <parameter name="EGR Error"
+         request="0x01 0x2D" response.prefix="0x41 0x2D" response.bytes="1">
+         <parse expr="([0]-128)*100/128" units="%" min="-100" max="99.2" />
+      </parameter>
+      
+      <parameter name="Commanded Evaporative Purge"
+         request="0x01 0x2E" response.prefix="0x41 0x2E" response.bytes="1">
+         <parse expr="100*[0]/255" units="%" min="0" max="100" />
+      </parameter>
+      
+      <parameter name="Fuel Level Input"
+         request="0x01 0x2F" response.prefix="0x41 0x2F" response.bytes="1">
+         <parse expr="100*[0]/255" units="%" min="0" max="100" />
+      </parameter>
 
-		<parameter name="O2S1_WR_lambda(1): Equivalence Ratio, Current"
-			request="0x01 0x34" response.prefix="0x41 0x34" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
-			<parse units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
-		</parameter>
+      <parameter name="Number of Warm Ups Since Codes Cleared"
+         request="0x01 0x30" response.prefix="0x41 0x30" response.bytes="1">
+         <parse expr="[0]" units="number" min="0" max="255" />
+      </parameter>
 
-		<parameter name="O2S2_WR_lambda(1): Equivalence Ratio, Current"
-			request="0x01 0x35" response.prefix="0x41 0x35" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
-			<parse units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
-		</parameter>
+      <parameter name="Distance Traveled Since Codes Cleared"
+         request="0x01 0x31" response.prefix="0x41 0x31" response.bytes="2">
+         <parse expr="([0]*256)+[1]" units="km" min="0" max="65535" />
+      </parameter>
+      
+      <parameter name="Evaporative System Vapour Pressure (1)"
+         request="0x01 0x32" response.prefix="0x41 0x32" response.bytes="2">
+         <!--  A is signed (+ve) with (I THINK) 2's complement -- needs to be VERIFIED
+               min, max are different than values listed on Wikipedia since they don't
+               make sense to me if the value is signed with 2's complement  -->
+         <condition expr="([0] & 0b10000000) == 0"> 
+            <parse expr="(([0]*256)+[1])/4" units="Pa" min="-8192" max="8192" />
+         </condition>
+         <!--  A is signed (-ve) with (I THINK) 2's complement -- needs to be VERIFIED
+               min, max are different than values listed on Wikipedia since they don't
+               make sense to me if the value is signed with 2's complement  -->
+         <condition expr="([0] & 0b10000000) == 1">
+            <parse expr="(((~([0]-1))*256)+[1])/4" units="Pa" min="-8192" max="8192" />
+         </condition>
+      </parameter>
 
-		<parameter name="O2S3_WR_lambda(1): Equivalence Ratio, Current"
-			request="0x01 0x36" response.prefix="0x41 0x36" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
-			<parse units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
-		</parameter>
+      <parameter name="Barometric Pressure"
+         request="0x01 0x33" response.prefix="0x41 0x33" response.bytes="1">
+         <parse units="kPa" expr="[0]" min="0" max="255" />
+      </parameter>
 
-		<parameter name="O2S4_WR_lambda(1): Equivalence Ratio, Current"
-			request="0x01 0x37" response.prefix="0x41 0x37" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
-			<parse units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
-		</parameter>
-		
-		<parameter name="O2S5_WR_lambda(1): Equivalence Ratio, Current"
-			request="0x01 0x38" response.prefix="0x41 0x38" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
-			<parse units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
-		</parameter>
-		
-		<parameter name="O2S6_WR_lambda(1): Equivalence Ratio, Current"
-			request="0x01 0x39" response.prefix="0x41 0x39" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
-			<parse units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
-		</parameter>
-		
-		<parameter name="O2S7_WR_lambda(1): Equivalence Ratio, Current"
-			request="0x01 0x3A" response.prefix="0x41 0x3A" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
-			<parse units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
-		</parameter>
-		
-		<parameter name="O2S8_WR_lambda(1): Equivalence Ratio, Current"
-			request="0x01 0x3B" response.prefix="0x41 0x3B" response.bytes="4">
-			<parse units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
-			<parse units="mA" expr="((C*256)+D)/256 - 128" min="-128" max="128" />
-		</parameter>
-		
-		<parameter name="Catalyst Temperature Bank 1, Sensor 1"
-			request="0x01 0x3C" response.prefix="0x41 0x3C" response.bytes="2">
-			<parse units="C" expr="((A*256)+B)/10 - 40" min="-40" max="6513.5" />
-		</parameter>
-		
-		<parameter name="Catalyst Temperature Bank 2, Sensor 1"
-			request="0x01 0x3D" response.prefix="0x41 0x3D" response.bytes="2">
-			<parse units="C" expr="((A*256)+B)/10 - 40" min="-40" max="6513.5" />
-		</parameter>
-		
-		<parameter name="Catalyst Temperature Bank 1, Sensor 2"
-			request="0x01 0x3E" response.prefix="0x41 0x3E" response.bytes="2">
-			<parse units="C" expr="((A*256)+B)/10 - 40" min="-40" max="6513.5" />
-		</parameter>
+      <parameter name="O2S1_WR_lambda(1): Equivalence Ratio, Current"
+         request="0x01 0x34" response.prefix="0x41 0x34" response.bytes="4">
+         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+      </parameter>
 
-		<parameter name="Catalyst Temperature Bank 2, Sensor 2"
-			request="0x01 0x3F" response.prefix="0x41 0x3F" response.bytes="2">
-			<parse units="C" expr="((A*256)+B)/10 - 40" min="-40" max="6513.5" />
-		</parameter>
+      <parameter name="O2S2_WR_lambda(1): Equivalence Ratio, Current"
+         request="0x01 0x35" response.prefix="0x41 0x35" response.bytes="4">
+         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+      </parameter>
 
-		<parameter name="PIDs Supported 0x41-0x60"
-			request="0x01 0x40" response.prefix="0x41 0x40" response.bytes="2">
-			<parse expr="A[7]" true="PID 0x41 Supported" false="PID 0x41 Unsupported" />
-			<parse expr="A[6]" true="PID 0x42 Supported" false="PID 0x42 Unsupported" />
-			<parse expr="A[5]" true="PID 0x43 Supported" false="PID 0x43 Unsupported" />
-			<parse expr="A[4]" true="PID 0x44 Supported" false="PID 0x44 Unsupported" />
-			<parse expr="A[3]" true="PID 0x45 Supported" false="PID 0x45 Unsupported" />
-			<parse expr="A[2]" true="PID 0x46 Supported" false="PID 0x46 Unsupported" />
-			<parse expr="A[1]" true="PID 0x47 Supported" false="PID 0x47 Unsupported" />
-			<parse expr="A[0]" true="PID 0x48 Supported" false="PID 0x48 Unsupported" />
-			
-			<parse expr="B[7]" true="PID 0x49 Supported" false="PID 0x49 Unsupported" />
-			<parse expr="B[6]" true="PID 0x4A Supported" false="PID 0x4A Unsupported" />
-			<parse expr="B[5]" true="PID 0x4B Supported" false="PID 0x4B Unsupported" />
-			<parse expr="B[4]" true="PID 0x4C Supported" false="PID 0x4C Unsupported" />
-			<parse expr="B[3]" true="PID 0x4D Supported" false="PID 0x4D Unsupported" />
-			<parse expr="B[2]" true="PID 0x4E Supported" false="PID 0x4E Unsupported" />
-			<parse expr="B[1]" true="PID 0x4F Supported" false="PID 0x4F Unsupported" />
-			<parse expr="B[0]" true="PID 0x50 Supported" false="PID 0x50 Unsupported" />
-			
-			<parse expr="C[7]" true="PID 0x51 Supported" false="PID 0x51 Unsupported" />
-			<parse expr="C[6]" true="PID 0x52 Supported" false="PID 0x52 Unsupported" />
-			<parse expr="C[5]" true="PID 0x53 Supported" false="PID 0x53 Unsupported" />
-			<parse expr="C[4]" true="PID 0x54 Supported" false="PID 0x54 Unsupported" />
-			<parse expr="C[3]" true="PID 0x55 Supported" false="PID 0x55 Unsupported" />
-			<parse expr="C[2]" true="PID 0x56 Supported" false="PID 0x56 Unsupported" />
-			<parse expr="C[1]" true="PID 0x57 Supported" false="PID 0x57 Unsupported" />
-			<parse expr="C[0]" true="PID 0x58 Supported" false="PID 0x58 Unsupported" />
-			
-			<parse expr="D[7]" true="PID 0x59 Supported" false="PID 0x59 Unsupported" />
-			<parse expr="D[6]" true="PID 0x5A Supported" false="PID 0x5A Unsupported" />
-			<parse expr="D[5]" true="PID 0x5B Supported" false="PID 0x5B Unsupported" />
-			<parse expr="D[4]" true="PID 0x5C Supported" false="PID 0x5C Unsupported" />
-			<parse expr="D[3]" true="PID 0x5D Supported" false="PID 0x5D Unsupported" />
-			<parse expr="D[2]" true="PID 0x5E Supported" false="PID 0x5E Unsupported" />
-			<parse expr="D[1]" true="PID 0x5F Supported" false="PID 0x5F Unsupported" />
-			<parse expr="D[0]" true="PID 0x60 Supported" false="PID 0x60 Unsupported" />
-		</parameter>
+      <parameter name="O2S3_WR_lambda(1): Equivalence Ratio, Current"
+         request="0x01 0x36" response.prefix="0x41 0x36" response.bytes="4">
+         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+      </parameter>
 
-		<parameter name="Monitor Status this Drive Cycle"
-			request="0x01 0x41" response.prefix="0x41 0x41" response.bytes="2">
-			
-			<!-- Byte B represents Continuous Monitoring tests -->
-			<parse expr="B[0]" true="Misfire monitoring supported" false="Misfire monitoring unsupported"/>
-			<parse expr="B[1]" true="Fuel System monitoring supported" false="Fuel System monitoring unsupported" />
-			<parse expr="B[2]" true="Component monitoring supported" false="Component monitoring unsupported" />
-			
-			<parse expr="B[4]" true="Misfire monitoring incomplete" false="Misfire monitoring complete" />
-			<parse expr="B[5]" true="Fuel System monitoring incomplete" false="Fuel System monitoring complete" />
-			<parse expr="B[6]" true="Component monitoring incomplete" false="Component monitoring complete" />
-			
-			<!-- Bytes C and D represent Non-Continuous Monitoring tests -->
-			<parse expr="C[0]" true="Catalyst monitoring supported" false="Catalyst monitoring unsupported" />
-			<parse expr="C[1]" true="Heated Catalyst monitoring supported" false="Heated Catalyst monitoring unsupported" />
-			<parse expr="C[2]" true="Evaporative System monitoring supported" false="Evaporative System monitoring unsupported" />
-			<parse expr="C[3]" true="Secondary Air System monitoring supported" false="Secondary Air System monitoring unsupported" />
-			<parse expr="C[4]" true="A/C Refrigerant monitoring supported" false="A/C Refrigerant monitoring unsupported" />
-			<parse expr="C[5]" true="Oxygen Sensor monitoring supported" false="Oxygen Sensor monitoring unsupported" />
-			<parse expr="C[6]" true="Oxygen Sensor Heater monitoring supported" false="Oxygen Sensor Heater monitoring unsupported" />
-			<parse expr="C[7]" true="EGR System monitoring" false="EGR System monitoring unsupported" />
-			
-			<parse expr="D[0]" true="Catalyst monitoring incomplete" false="Catalyst monitoring complete" />
-			<parse expr="D[1]" true="Heated Catalyst monitoring incomplete" false="Heated Catalyst monitoring complete" />
-			<parse expr="D[2]" true="Evaporative System monitoring incomplete" false="Evaporative System monitoring complete" />
-			<parse expr="D[3]" true="Secondary Air System monitoring incomplete" false="Secondary Air System monitoring complete" />
-			<parse expr="D[4]" true="A/C Refrigerant monitoring incomplete" false="A/C Refrigerant monitoring complete" />
-			<parse expr="D[5]" true="Oxygen Sensor monitoring incomplete" false="Oxygen Sensor monitoring complete" />
-			<parse expr="D[6]" true="Oxygen Sensor Heater monitoring incomplete" false="Oxygen Sensor Heater monitoring complete" />
-			<parse expr="D[7]" true="EGR System monitoring incomplete" false="EGR System monitoring complete" />
-		</parameter>
+      <parameter name="O2S4_WR_lambda(1): Equivalence Ratio, Current"
+         request="0x01 0x37" response.prefix="0x41 0x37" response.bytes="4">
+         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+      </parameter>
+      
+      <parameter name="O2S5_WR_lambda(1): Equivalence Ratio, Current"
+         request="0x01 0x38" response.prefix="0x41 0x38" response.bytes="4">
+         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+      </parameter>
+      
+      <parameter name="O2S6_WR_lambda(1): Equivalence Ratio, Current"
+         request="0x01 0x39" response.prefix="0x41 0x39" response.bytes="4">
+         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+      </parameter>
+      
+      <parameter name="O2S7_WR_lambda(1): Equivalence Ratio, Current"
+         request="0x01 0x3A" response.prefix="0x41 0x3A" response.bytes="4">
+         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+      </parameter>
+      
+      <parameter name="O2S8_WR_lambda(1): Equivalence Ratio, Current"
+         request="0x01 0x3B" response.prefix="0x41 0x3B" response.bytes="4">
+         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
+         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+      </parameter>
+      
+      <parameter name="Catalyst Temperature Bank 1, Sensor 1"
+         request="0x01 0x3C" response.prefix="0x41 0x3C" response.bytes="2">
+         <parse expr="(([0]*256)+[1])/10 - 40" units="C" min="-40" max="6513.5" />
+      </parameter>
+      
+      <parameter name="Catalyst Temperature Bank 2, Sensor 1"
+         request="0x01 0x3D" response.prefix="0x41 0x3D" response.bytes="2">
+         <parse expr="(([0]*256)+[1])/10 - 40" units="C" min="-40" max="6513.5" />
+      </parameter>
+      
+      <parameter name="Catalyst Temperature Bank 1, Sensor 2"
+         request="0x01 0x3E" response.prefix="0x41 0x3E" response.bytes="2">
+         <parse expr="(([0]*256)+[1])/10 - 40" units="C" min="-40" max="6513.5" />
+      </parameter>
 
-		<parameter name="Control Module Voltage"
-			request="0x01 0x42" response.prefix="0x41 0x42" response.bytes="2">
-			<parse units="V" expr="((A*256)+B)/1000" min="0" max="65.535" />
-		</parameter>
+      <parameter name="Catalyst Temperature Bank 2, Sensor 2"
+         request="0x01 0x3F" response.prefix="0x41 0x3F" response.bytes="2">
+         <parse expr="(([0]*256)+[1])/10 - 40" units="C" min="-40" max="6513.5" />
+      </parameter>
 
-		<parameter name="Absolute Load Value"
-			request="0x01 0x43" response.prefix="0x41 0x43" response.bytes="2">
-			<parse units="%" expr="((A*256)+B)*100/255" min="0" max="25700" />
-		</parameter>
+      <parameter name="PIDs Supported 0x41-0x60"
+         request="0x01 0x40" response.prefix="0x41 0x40" response.bytes="2">
+         <parse expr="[0][7]" desc="PID 0x41" true="Supported" false="Unsupported" />
+         <parse expr="[0][6]" desc="PID 0x42" true="Supported" false="Unsupported" />
+         <parse expr="[0][5]" desc="PID 0x43" true="Supported" false="Unsupported" />
+         <parse expr="[0][4]" desc="PID 0x44" true="Supported" false="Unsupported" />
+         <parse expr="[0][3]" desc="PID 0x45" true="Supported" false="Unsupported" />
+         <parse expr="[0][2]" desc="PID 0x46" true="Supported" false="Unsupported" />
+         <parse expr="[0][1]" desc="PID 0x47" true="Supported" false="Unsupported" />
+         <parse expr="[0][0]" desc="PID 0x48" true="Supported" false="Unsupported" />
+         
+         <parse expr="[1][7]" desc="PID 0x49" true="Supported" false="Unsupported" />
+         <parse expr="[1][6]" desc="PID 0x4A" true="Supported" false="Unsupported" />
+         <parse expr="[1][5]" desc="PID 0x4B" true="Supported" false="Unsupported" />
+         <parse expr="[1][4]" desc="PID 0x4C" true="Supported" false="Unsupported" />
+         <parse expr="[1][3]" desc="PID 0x4D" true="Supported" false="Unsupported" />
+         <parse expr="[1][2]" desc="PID 0x4E" true="Supported" false="Unsupported" />
+         <parse expr="[1][1]" desc="PID 0x4F" true="Supported" false="Unsupported" />
+         <parse expr="[1][0]" desc="PID 0x50" true="Supported" false="Unsupported" />
+         
+         <parse expr="[2][7]" desc="PID 0x51" true="Supported" false="Unsupported" />
+         <parse expr="[2][6]" desc="PID 0x52" true="Supported" false="Unsupported" />
+         <parse expr="[2][5]" desc="PID 0x53" true="Supported" false="Unsupported" />
+         <parse expr="[2][4]" desc="PID 0x54" true="Supported" false="Unsupported" />
+         <parse expr="[2][3]" desc="PID 0x55" true="Supported" false="Unsupported" />
+         <parse expr="[2][2]" desc="PID 0x56" true="Supported" false="Unsupported" />
+         <parse expr="[2][1]" desc="PID 0x57" true="Supported" false="Unsupported" />
+         <parse expr="[2][0]" desc="PID 0x58" true="Supported" false="Unsupported" />
+         
+         <parse expr="[3][7]" desc="PID 0x59" true="Supported" false="Unsupported" />
+         <parse expr="[3][6]" desc="PID 0x5A" true="Supported" false="Unsupported" />
+         <parse expr="[3][5]" desc="PID 0x5B" true="Supported" false="Unsupported" />
+         <parse expr="[3][4]" desc="PID 0x5C" true="Supported" false="Unsupported" />
+         <parse expr="[3][3]" desc="PID 0x5D" true="Supported" false="Unsupported" />
+         <parse expr="[3][2]" desc="PID 0x5E" true="Supported" false="Unsupported" />
+         <parse expr="[3][1]" desc="PID 0x5F" true="Supported" false="Unsupported" />
+         <parse expr="[3][0]" desc="PID 0x60" true="Supported" false="Unsupported" />
+      </parameter>
 
-		<parameter name="Command Equivalence Ratio"
-			request="0x01 0x44" response.prefix="0x41 0x44" response.bytes="2">
-			<parse units="ratio" expr="((A*256)+B)/32768" min="0" max="2" />
-		</parameter>
+      <parameter name="Monitor Status this Drive Cycle"
+         request="0x01 0x41" response.prefix="0x41 0x41" response.bytes="2">
+         
+         <!-- Byte B represents Continuous Monitoring tests -->
+         <parse expr="[1][0]" desc="Misfire Monitoring"       true="Enabled"    false="Disabled" />
+         <parse expr="[1][1]" desc="Fuel System Monitoring"   true="Enabled"    false="Disabled" />
+         <parse expr="[1][2]" desc="Component Monitoring"     true="Enabled"    false="Disabled" />
+         
+         <parse expr="[1][4]" desc="Misfire Test Status"      true="Complete"   false="Incomplete" />
+         <parse expr="[1][5]" true="Fuel System Test Status"  true="Complete"   false="Incomplete" />
+         <parse expr="[1][6]" true="Component Test Status"    true="Complete"   false="Incomplete" />
+         
+         <!-- Bytes C and D represent Non-Continuous Monitoring tests -->
+         <parse expr="[2][0]" desc="Catalyst Test"               true="Enabled"   false="Disabled" />
+         <parse expr="[2][1]" desc="Heated Catalyst Test"        true="Enabled"   false="Disabled" />
+         <parse expr="[2][2]" desc="Evaporative System Test"     true="Enabled"   false="Disabled" />
+         <parse expr="[2][3]" desc="Secondary Air System Test"   true="Enabled"   false="Disabled" />
+         <parse expr="[2][3]" desc="A/C Refrigerant Test"        true="Enabled"   false="Disabled" />
+         <parse expr="[2][4]" desc="Oxygen Sensor Test"          true="Enabled"   false="Disabled" />
+         <parse expr="[2][5]" desc="Oxygen Sensor Heater Test"   true="Enabled"   false="Disabled" />
+         <parse expr="[2][6]" desc="EGR System Test"             true="Enabled"   false="Disabled" />
 
-		<parameter name="Relative Throttle Position"
-			request="0x01 0x45" response.prefix="0x41 0x45" response.bytes="1">
-			<parse units="%" expr="A*100/255" min="0" max="100" />
-		</parameter>
-		
-		<parameter name="Ambient Air Temperature"
-			request="0x01 0x46" response.prefix="0x41 0x46" response.bytes="1">
-			<parse units="C" expr="A-40" min="-40" max="215" />
-		</parameter>
-		
-		<parameter name="Absolute Throttle Position B"
-			request="0x01 0x47" response.prefix="0x41 0x47" response.bytes="1">
-			<parse units="%" expr="A*100/255" min="0" max="100" />
-		</parameter>
+         <parse expr="[3][0]" desc="Catalyst Test Status"                true="Incomplete"  false="Complete" />
+         <parse expr="[3][1]" desc="Heated Catalyst Test Status"         true="Incomplete"  false="Complete" />
+         <parse expr="[3][2]" desc="Evaporative System Test Status"      true="Incomplete"  false="Complete" />
+         <parse expr="[3][3]" desc="Secondary Air System Test Status"    true="Incomplete"  false="Complete" />
+         <parse expr="[3][3]" desc="A/C Refrigerant Test Status"         true="Incomplete"  false="Complete" />
+         <parse expr="[3][4]" desc="Oxygen Sensor Test Status"           true="Incomplete"  false="Complete" />
+         <parse expr="[3][5]" desc="Oxygen Sensor Heater Test Status"    true="Incomplete"  false="Complete" />
+         <parse expr="[3][6]" desc="EGR System Test Status"              true="Incomplete"  false="Complete" />
+      </parameter>
 
-		<parameter name="Absolute Throttle Position C"
-			request="0x01 0x48" response.prefix="0x41 0x48" response.bytes="1">
-			<parse units="%" expr="A*100/255" min="0" max="100" />
-		</parameter>
-		
-		<parameter name="Absolute Throttle Position D"
-			request="0x01 0x49" response.prefix="0x41 0x49" response.bytes="1">
-			<parse units="%" expr="A*100/255" min="0" max="100" />
-		</parameter>
-		
-		<parameter name="Absolute Throttle Position E"
-			request="0x01 0x4A" response.prefix="0x41 0x4A" response.bytes="1">
-			<parse units="%" expr="A*100/255" min="0" max="100" />
-		</parameter>
-		
-		<parameter name="Absolute Throttle Position F"
-			request="0x01 0x4B" response.prefix="0x41 0x4B" response.bytes="1">
-			<parse units="%" expr="A*100/255" min="0" max="100" />
-		</parameter>
+      <parameter name="Control Module Voltage"
+         request="0x01 0x42" response.prefix="0x41 0x42" response.bytes="2">
+         <parse expr="(([0]*256)+[1])/1000" units="V" min="0" max="65.535" />
+      </parameter>
 
-		<parameter name="Commanded Throttle Actuator"
-			request="0x01 0x4C" response.prefix="0x41 0x4C" response.bytes="1">
-			<parse units="%" expr="A*100/255" min="0" max="100" />
-		</parameter>
-		
-		<parameter name="Time Run with MIL On"
-			request="0x01 0x4D" response.prefix="0x41 0x4D" response.bytes="2">
-			<parse units="minutes" expr="(A*256)+B" min="0" max="65535" />
-		</parameter>
+      <parameter name="Absolute Load Value"
+         request="0x01 0x43" response.prefix="0x41 0x43" response.bytes="2">
+         <parse expr="(([0]*256)+[1])*100/255" units="%" min="0" max="25700" />
+      </parameter>
 
-		<parameter name="Time Since Trouble Codes Cleared"
-			request="0x01 0x4E" response.prefix="0x41 0x4E" response.bytes="2">
-			<parse units="minutes" expr="(A*256)+B" min="0" max="65535" />
-		</parameter>
+      <parameter name="Command Equivalence Ratio"
+         request="0x01 0x44" response.prefix="0x41 0x44" response.bytes="2">
+         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
+      </parameter>
 
-		<parameter name="Maximum Value for Equivalence Ratio, Oxygen Sensor Voltage,
-								Oxygen Sensor Current, and Intake Manifold Absolute Pressure"
-			request="0x01 0x4F" response.prefix="0x41 0x4F" response.bytes="4">
-			<parse units="ratio" expr="A" min="0" max="255" />
-			<parse units="V" expr="B" min="0" max="255" />
-			<parse units="mA" expr="C" min="0" max="255" />
-			<parse units="kPa" expr="D*10" min="0" max="2550" />
-		</parameter>
+      <parameter name="Relative Throttle Position"
+         request="0x01 0x45" response.prefix="0x41 0x45" response.bytes="1">
+         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+      </parameter>
+      
+      <parameter name="Ambient Air Temperature"
+         request="0x01 0x46" response.prefix="0x41 0x46" response.bytes="1">
+         <parse expr="[0]-40" units="C" min="-40" max="215" />
+      </parameter>
+      
+      <parameter name="Absolute Throttle Position B"
+         request="0x01 0x47" response.prefix="0x41 0x47" response.bytes="1">
+         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+      </parameter>
 
-		<parameter name="Maximum value for Air Flow Rate from Mass Air Flow Sensor"
-			request="0x01 0x50" response.prefix="0x41 0x50" response.bytes="4">
-			<parse units="g/s" expr="A*10" min="0" max="2550" />
-		</parameter>
-		
-		<parameter name="Fuel Type"
-			request="0x01 0x51" response.prefix="0x41 0x51" response.bytes="1">
-			<parse expr="A == 0x01" true="Gasoline" />
-			<parse expr="A == 0x02" true="Methanol" />
-			<parse expr="A == 0x03" true="Ethanol" />
-			<parse expr="A == 0x04" true="Diesel" />
-			<parse expr="A == 0x05" true="LPG" /> 			<!-- LPG: Liquified Petroleum Gas -->
-			<parse expr="A == 0x06" true="CNG" /> 			<!-- CNG: Compressed Natural Gas -->
-			<parse expr="A == 0x07" true="Propane" /> 		<!-- and propane accessories -->
-			<parse expr="A == 0x08" true="Electric" />
-			<parse expr="A == 0x09" true="Bifuel running Gasoline" />
-			<parse expr="A == 0x0A" true="Bifuel running Methanol" />
-			<parse expr="A == 0x0B" true="Bifuel running Ethanol" />
-			<parse expr="A == 0x0C" true="Bifuel running LPG" />
-			<parse expr="A == 0x0D" true="Bifuel running CNG" />
-			<parse expr="A == 0x0E" true="Bifuel running Propane" />
-			<parse expr="A == 0x0F" true="Bifuel running Electricity" />
-			<parse expr="A == 0x10" true="Bifuel Mixed Gas/Electric" />
-			<parse expr="A == 0x11" true="Hybrid Gasoline" />
-			<parse expr="A == 0x12" true="Hybrid Ethanol" />
-			<parse expr="A == 0x13" true="Hybrid Diesel" />
-			<parse expr="A == 0x14" true="Hybrid Electric" />
-			<parse expr="A == 0x15" true="Hybrid Mixed Fuel" />
-			<parse expr="A == 0x16" true="Hybrid Regenerative" />
-		</parameter>
-		
-		<parameter name="Ethanol Fuel %"
-			request="0x01 0x52" response.prefix="0x41 0x52" response.bytes="1">
-			<parse units="%" expr="A*100/255" min="0" max="100" />
-		</parameter>
-		
-		<parameter name="Absolute Evaporative System Vapour Pressure"
-			request="0x01 0x53" response.prefix="0x41 0x53" response.bytes="2">
-			<parse units="kPa" expr="((A*256)+B)*0.005" min="0" max="327.675" />
-		</parameter>
-		
-		<parameter name="Evaporative System Vapour Pressure (2)"
-			request="0x01 0x54" response.prefix="0x41 0x54" response.bytes="2">
-			<!--	A is signed (+ve) with (I THINK) 2's complement -- needs to be VERIFIED
-					min, max are different than values listed on Wikipedia since they don't
-					make sense to me if the value is signed with 2's complement  -->
-			<condition expr="(A & 0b10000000) == 0"> 
-				<parse units="Pa" expr="(A*256)+B" min="-32768" max="32767" />
-			</condition>
-			<!--	A is signed (-ve) with (I THINK) 2's complement -- needs to be VERIFIED
-					min, max are different than values listed on Wikipedia since they don't
-					make sense to me if the value is signed with 2's complement  -->
-			<condition expr="(A & 0b10000000) == 1">
-				<parse units="Pa" expr="((~(A-1))*256) + B" min="-32768" max="32767" />
-			</condition>
-		</parameter>
-		
-		<parameter name="Short Term Secondary Oxygen Sensor Fuel Trim - Bank 1 [and Bank 3]"
-			request="0x01 0x55" response.prefix="0x41 0x55" response.bytes="N">
-			<parse units="%" expr="(A-128)*100/128" min="-100" max="99.22" />
-		</parameter>
-		
-		<parameter name="Long Term Secondary Oxygen Sensor Fuel Trim - Bank 1 [and Bank 3]"
-			request="0x01 0x56" response.prefix="0x41 0x56" response.bytes="N">
-			<parse units="%" expr="(A-128)*100/128" min="-100" max="99.22" />
-		</parameter>
-		
-		<parameter name="Short Term Secondary Oxygen Sensor Fuel Trim - Bank 2 [and Bank 4]"
-			request="0x01 0x57" response.prefix="0x41 0x57" response.bytes="N">
-			<parse units="%" expr="(A-128)*100/128" min="-100" max="99.22" />
-		</parameter>
-		
-		<parameter name="Long Term Secondary Oxygen Sensor Fuel Trim - Bank 2 [and Bank 4]"
-			request="0x01 0x58" response.prefix="0x41 0x58" response.bytes="N">
-			<parse units="%" expr="(A-128)*100/128" min="-100" max="99.22" />
-		</parameter>
-		
-		<parameter name="Fuel Rail Pressure (Absolute)"
-			request="0x01 0x59" response.prefix="0x41 0x59" response.bytes="2">
-			<parse units="kPa" expr="((A*256)+B)*10" min="0" max="655350" />
-		</parameter>
-		
-		<parameter name="Relative Accelerator Pedal Position"
-			request="0x01 0x5A" response.prefix="0x41 0x5A" response.bytes="1">
-			<parse units="%" expr="A*100/255" min="0" max="100" />
-		</parameter>
-		
-		<parameter name="Hybrid Battery Pack Remaining Life"
-			request="0x01 0x5B" response.prefix="0x41 0x5B" response.bytes="1">
-			<parse units="%" expr="A*100/255" min="0" max="100" />
-		</parameter>
-		
-		<parameter name="Engine Oil Temperature" 
-			request="0x01 0x5C" response.prefix="0x41 0x5C" response.bytes="1">
-			<parse units="C" expr="A-40" min="-40" max="210" />
-		</parameter>
-		
-		<parameter name="Fuel Injection Timing" 
-			request="0x01 0x5D" response.prefix="0x41 0x5D" response.bytes="2">
-			<parse units="degrees" expr="(((A*256)+B)-26,880)/128" min="-210" max="301.992" />
-		</parameter>
-		
-		<parameter name="Engine Fuel Rate" 
-			request="0x01 0x5E" response.prefix="0x41 0x5E" response.bytes="2">
-			<parse units="L/h" expr="((A*256)+B)*0.05" min="0" max="3212.75" />
-		</parameter>
-		
-		<!-- TESTING! IGNORE -->
-		<parameter name="SSM Engine Speed"
-			request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
-			request2="0xA8 0x00 0x00 0x00 0x0F" request2.delay="100" response2.prefix="0xE8" response2.bytes="1">
-			<parse units="rpm" expr="((resp1[0]*256)+resp2[0])/4" min="0" max="16384" />
-		</parameter>
-			
-		<!-- END TESTING -->
-		
-		<!-- END MODE $01 PIDs -->
-		
-		<!-- START MODE $02 PIDs -->
-		<parameter name="Freeze Frame DTC"
-			request="0x02 0x02 0x00" response.prefix="0x42 0x02 0x00" response.bytes="2">
-			<!--	0x02 0x02 0x00 returns the DTC which caused the freeze frame data
-					available in Mode $02 to be saved. Freeze frame 0x00 is set the
-					generic frame set by default -- any other frames set are
-					manufacturer specific, so we request 0x00.
-					
-			<!--	Note: If nothing is returned, it may indicate that no freeze
-							frame data is available -->
-							
-			<parse expr="!(A || B)" true="No Freeze Frame Data Available" />
-			<condition expr="(A || B)">
-				<parse expr="(A & 0b11000000) == 0b00000000" true="P" desc="First DTC Character is P (Powertrain)" />
-				<parse expr="(A & 0b11000000) == 0b01000000" true="C" desc="First DTC Character is C (Chassis)" />
-				<parse expr="(A & 0b11000000) == 0b10000000" true="B" desc="First DTC Character is B (Body)" />
-				<parse expr="(A & 0b11000000) == 0b11000000" true="U" desc="First DTC Character is U (Network)" />
-				<parse expr="(A & 0b00110000)" min="0" max="3" desc="Second DTC Character" />
-				<parse expr="(A & 0b00001111)" min="0" max="F" desc="Third DTC Character" />
-				<parse expr="(B & 0b11110000)" min="0" max="F" desc="Fourth DTC Character" />
-				<parse expr="(B & 0b00001111)" min="0" max="F" desc="Fifth DTC Character" />
-			</condition>
-		</parameter>
-		<!-- END MODE $02 PIDs -->
-		
-		<!-- START MODE $03 -->
-		<parameter name="Request Stored Diagnostic Trouble Codes"
-			request="0x03" response.prefix="0x43" response.bytes="2N">
+      <parameter name="Absolute Throttle Position C"
+         request="0x01 0x48" response.prefix="0x41 0x48" response.bytes="1">
+         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+      </parameter>
+      
+      <parameter name="Absolute Throttle Position D"
+         request="0x01 0x49" response.prefix="0x41 0x49" response.bytes="1">
+         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+      </parameter>
+      
+      <parameter name="Absolute Throttle Position E"
+         request="0x01 0x4A" response.prefix="0x41 0x4A" response.bytes="1">
+         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+      </parameter>
+      
+      <parameter name="Absolute Throttle Position F"
+         request="0x01 0x4B" response.prefix="0x41 0x4B" response.bytes="1">
+         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+      </parameter>
 
-			<!--	Mode $03 is to request stored DTCs. The vehicle returns 2*N bytes excluding
-					the response prefix, with each set of 2 bytes specifying a single DTC.
-					If no DTCs are stored, the vehicle might respond with (0x00 0x00) for each
-					possible DTC that would fit into a frame (3 DTCs, 6 bytes all 0x00 in a
-					single standard OBD frame), or the vehicle may not respond at all. -->
-							
-			<parse expr="!(A || B)" true="No DTCs Stored" />
-			<condition expr="(A || B)">
-				<parse expr="(A & 0b11000000) == 0" true="P" desc="First DTC Character is P (Powertrain)" />
-				<parse expr="(A & 0b11000000) == 1" true="C" desc="First DTC Character is C (Chassis)" />
-				<parse expr="(A & 0b11000000) == 2" true="B" desc="First DTC Character is B (Body)" />
-				<parse expr="(A & 0b11000000) == 3" true="U" desc="First DTC Character is U (Network)" />
-				<parse expr="(A & 0b00110000)" min="0" max="3" desc="Second DTC Character" />
-				<parse expr="(A & 0b00001111)" min="0" max="F" desc="Third DTC Character" />
-				<parse expr="(B & 0b11110000)" min="0" max="F" desc="Fourth DTC Character" />
-				<parse expr="(B & 0b00001111)" min="0" max="F" desc="Fifth DTC Character" />
-			</condition>
-		</parameter>
-		
-		
-	</parameters>
+      <parameter name="Commanded Throttle Actuator"
+         request="0x01 0x4C" response.prefix="0x41 0x4C" response.bytes="1">
+         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+      </parameter>
+      
+      <parameter name="Time Run with MIL On"
+         request="0x01 0x4D" response.prefix="0x41 0x4D" response.bytes="2">
+         <parse expr="([0]*256)+[1]" units="minutes" min="0" max="65535" />
+      </parameter>
+
+      <parameter name="Time Since Trouble Codes Cleared"
+         request="0x01 0x4E" response.prefix="0x41 0x4E" response.bytes="2">
+         <parse expr="([0]*256)+[1]" units="minutes" min="0" max="65535" />
+      </parameter>
+
+      <parameter name="Maximum Value for Equivalence Ratio, Oxygen Sensor Voltage,
+                        Oxygen Sensor Current, and Intake Manifold Absolute Pressure"
+         request="0x01 0x4F" response.prefix="0x41 0x4F" response.bytes="4">
+         <parse expr="[0]" units="ratio" min="0" max="255" />
+         <parse expr="[1]" units="V" min="0" max="255" />
+         <parse expr="[2]" units="mA" min="0" max="255" />
+         <parse expr="[3]*10" units="kPa" min="0" max="2550" />
+      </parameter>
+
+      <parameter name="Maximum value for Air Flow Rate from Mass Air Flow Sensor"
+         request="0x01 0x50" response.prefix="0x41 0x50" response.bytes="4">
+         <parse expr="[0]*10" units="g/s" min="0" max="2550" />
+      </parameter>
+      
+      <parameter name="Fuel Type"
+         request="0x01 0x51" response.prefix="0x41 0x51" response.bytes="1">
+         <parse expr="[0] == 0x01" true="Gasoline" />
+         <parse expr="[0] == 0x02" true="Methanol" />
+         <parse expr="[0] == 0x03" true="Ethanol" />
+         <parse expr="[0] == 0x04" true="Diesel" />
+         <parse expr="[0] == 0x05" true="LPG" />        <!-- LPG: Liquified Petroleum Gas -->
+         <parse expr="[0] == 0x06" true="CNG" />        <!-- CNG: Compressed Natural Gas -->
+         <parse expr="[0] == 0x07" true="Propane" />       <!-- and propane accessories -->
+         <parse expr="[0] == 0x08" true="Electric" />
+         <parse expr="[0] == 0x09" true="Bifuel running Gasoline" />
+         <parse expr="[0] == 0x0A" true="Bifuel running Methanol" />
+         <parse expr="[0] == 0x0B" true="Bifuel running Ethanol" />
+         <parse expr="[0] == 0x0C" true="Bifuel running LPG" />
+         <parse expr="[0] == 0x0D" true="Bifuel running CNG" />
+         <parse expr="[0] == 0x0E" true="Bifuel running Propane" />
+         <parse expr="[0] == 0x0F" true="Bifuel running Electricity" />
+         <parse expr="[0] == 0x10" true="Bifuel Mixed Gas/Electric" />
+         <parse expr="[0] == 0x11" true="Hybrid Gasoline" />
+         <parse expr="[0] == 0x12" true="Hybrid Ethanol" />
+         <parse expr="[0] == 0x13" true="Hybrid Diesel" />
+         <parse expr="[0] == 0x14" true="Hybrid Electric" />
+         <parse expr="[0] == 0x15" true="Hybrid Mixed Fuel" />
+         <parse expr="[0] == 0x16" true="Hybrid Regenerative" />
+      </parameter>
+      
+      <parameter name="Ethanol Fuel %"
+         request="0x01 0x52" response.prefix="0x41 0x52" response.bytes="1">
+         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+      </parameter>
+      
+      <parameter name="Absolute Evaporative System Vapour Pressure"
+         request="0x01 0x53" response.prefix="0x41 0x53" response.bytes="2">
+         <parse expr="(([0]*256)+[1])*0.005" units="kPa" min="0" max="327.675" />
+      </parameter>
+      
+      <parameter name="Evaporative System Vapour Pressure (2)"
+         request="0x01 0x54" response.prefix="0x41 0x54" response.bytes="2">
+         <!--  A is signed (+ve) with (I THINK) 2's complement - needs to be VERIFIED
+               min, max are different than values listed on Wikipedia since they don't
+               make sense to me if the value is signed with 2's complement  -->
+         <condition expr="([0] & 0b10000000) == 0"> 
+            <parse expr="([0]*256)+[1]" units="Pa" min="-32768" max="32767" />
+         </condition>
+         <!--  A is signed (-ve) with (I THINK) 2's complement - needs to be VERIFIED
+               min, max are different than values listed on Wikipedia since they don't
+               make sense to me if the value is signed with 2's complement  -->
+         <condition expr="(A & 0b10000000) == 1">
+            <parse expr="((~([0]-1))*256)+[1]" units="Pa" min="-32768" max="32767" />
+         </condition>
+      </parameter>
+      
+      <parameter name="Short Term Secondary Oxygen Sensor Fuel Trim - Bank 1 [and Bank 3]"
+         request="0x01 0x55" response.prefix="0x41 0x55" response.bytes="N">
+         <parse expr="([0]-128)*100/128" units="%" min="-100" max="99.22" />
+      </parameter>
+      
+      <parameter name="Long Term Secondary Oxygen Sensor Fuel Trim - Bank 1 [and Bank 3]"
+         request="0x01 0x56" response.prefix="0x41 0x56" response.bytes="N">
+         <parse expr="([0]-128)*100/128" units="%" min="-100" max="99.22" />
+      </parameter>
+      
+      <parameter name="Short Term Secondary Oxygen Sensor Fuel Trim - Bank 2 [and Bank 4]"
+         request="0x01 0x57" response.prefix="0x41 0x57" response.bytes="N">
+         <parse expr="([0]-128)*100/128" units="%" min="-100" max="99.22" />
+      </parameter>
+      
+      <parameter name="Long Term Secondary Oxygen Sensor Fuel Trim - Bank 2 [and Bank 4]"
+         request="0x01 0x58" response.prefix="0x41 0x58" response.bytes="N">
+         <parse expr="([0]-128)*100/128" units="%" min="-100" max="99.22" />
+      </parameter>
+      
+      <parameter name="Fuel Rail Pressure (Absolute)"
+         request="0x01 0x59" response.prefix="0x41 0x59" response.bytes="2">
+         <parse expr="(([0]*256)+[1])*10" units="kPa" min="0" max="655350" />
+      </parameter>
+      
+      <parameter name="Relative Accelerator Pedal Position"
+         request="0x01 0x5A" response.prefix="0x41 0x5A" response.bytes="1">
+         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+      </parameter>
+      
+      <parameter name="Hybrid Battery Pack Remaining Life"
+         request="0x01 0x5B" response.prefix="0x41 0x5B" response.bytes="1">
+         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+      </parameter>
+      
+      <parameter name="Engine Oil Temperature" 
+         request="0x01 0x5C" response.prefix="0x41 0x5C" response.bytes="1">
+         <parse expr="[0]-40" units="C" min="-40" max="210" />
+      </parameter>
+      
+      <parameter name="Fuel Injection Timing" 
+         request="0x01 0x5D" response.prefix="0x41 0x5D" response.bytes="2">
+         <parse expr="((([0]*256)+[1])-26,880)/128" units="degrees" min="-210" max="301.992" />
+      </parameter>
+      
+      <parameter name="Engine Fuel Rate" 
+         request="0x01 0x5E" response.prefix="0x41 0x5E" response.bytes="2">
+         <parse expr="(([0]*256)+[1])*0.05" units="L/h" min="0" max="3212.75" />
+      </parameter>           
+      <!-- END MODE $01 PIDs -->
+      
+      <!-- START MODE $02 PIDs -->
+      <parameter name="Freeze Frame DTC"
+         request="0x02 0x02 0x00" response.prefix="0x42 0x02 0x00" response.bytes="2">
+         <!--  0x02 0x02 0x00 returns the DTC which caused the freeze frame data
+               available in Mode $02 to be saved. Freeze frame 0x00 is set the
+               generic frame set by default - any other frames set are
+               manufacturer specific, so we request 0x00.
+               
+               Note: If nothing is returned, it may indicate that no freeze
+                     frame data is available -->
+                     
+         <parse expr="!([0] || [1])" true="No Freeze Frame Data Available" />
+         <condition expr="([0] || [1])">
+            <parse expr="([0] & 0b11000000) == 0b00000000" desc="DTC Character 1 (Powertrain)"  true="P" />
+            <parse expr="([0] & 0b11000000) == 0b01000000" desc="DTC Character 1 (Chassis)"     true="C" />
+            <parse expr="([0] & 0b11000000) == 0b10000000" desc="DTC Character 1 (Body)"        true="B" />
+            <parse expr="([0] & 0b11000000) == 0b11000000" desc="DTC Character 1 (Network)"     true="U" />
+            <parse expr="([0] & 0b00110000)" desc="DTC Character 2" min="0" max="3" />
+            <parse expr="([0] & 0b00001111)" desc="DTC Character 3" min="0" max="F" />
+            <parse expr="([1] & 0b11110000)" desc="DTC Character 4" min="0" max="F" />
+            <parse expr="([1] & 0b00001111)" desc="DTC Character 5" min="0" max="F" />
+         </condition>
+      </parameter>
+      <!-- END MODE $02 PIDs -->
+      
+      <!-- START MODE $03 -->
+      <parameter name="Request Stored Diagnostic Trouble Codes"
+         request="0x03" response.prefix="0x43" response.bytes="2N">
+
+         <!--  Mode $03 is to request stored DTCs. The vehicle returns 2*N bytes excluding
+               the response prefix, with each set of 2 bytes specifying a single DTC.
+               If no DTCs are stored, the vehicle might respond with (0x00 0x00) for each
+               possible DTC that would fit into a frame (3 DTCs, 6 bytes all 0x00 in a
+               single standard OBD frame), or the vehicle may not respond at all. -->
+                     
+         <parse expr="!([0] || [1])" true="No DTCs Stored" />
+         <condition expr="([0] || [1])">
+            <parse expr="([0] & 0b11000000) == 0b00000000" desc="DTC Character 1 (Powertrain)"  true="P" />
+            <parse expr="([0] & 0b11000000) == 0b01000000" desc="DTC Character 1 (Chassis)"     true="C" />
+            <parse expr="([0] & 0b11000000) == 0b10000000" desc="DTC Character 1 (Body)"        true="B" />
+            <parse expr="([0] & 0b11000000) == 0b11000000" desc="DTC Character 1 (Network)"     true="U" />
+            <parse expr="([0] & 0b00110000)" desc="DTC Character 2" min="0" max="3" />
+            <parse expr="([0] & 0b00001111)" desc="DTC Character 3" min="0" max="F" />
+            <parse expr="([1] & 0b11110000)" desc="DTC Character 4" min="0" max="F" />
+            <parse expr="([1] & 0b00001111)" desc="DTC Character 5" min="0" max="F" />
+         </condition>
+      </parameter>
+      
+      
+   </parameters>
 </spec>
 
 <spec name="NCON3" desc="Nissan Consult III">
 </spec>
 
 <spec name="SSM3" desc="Subaru Select Monitor III">
-	<!-- idea for how to send multi-message request, like engine rpm
-	     with ssm2, ssm3 -->
-	     <!-- or maybe i should do expr="((r1A*256)+r2A/4)" ? -->
+
+      <!-- TESTING! IGNORE -->
+      <parameter name="SSM Engine Speed"
+         request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
+         request2="0xA8 0x00 0x00 0x00 0x0F" request2.delay="100" response2.prefix="0xE8" response2.bytes="1">
+         <parse units="rpm" expr="((resp1[0]*256)+resp2[0])/4" min="0" max="16384" />
+      </parameter>
+      <!-- END TESTING -->
 
 </spec>
 
