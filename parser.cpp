@@ -83,6 +83,66 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
+    QStringList Parser::GetParameterNames(const QString &specName,
+                                          const QString &protocolName,
+                                          const QString &addressName)
+    {
+        bool foundSpec = false;
+        bool foundProtocol = false;
+        bool foundAddress = false;
+        bool foundParams = false;
+        QStringList myParamList;
+
+        pugi::xml_node nodeSpec = m_xmlDoc.child("spec");
+        for(nodeSpec; nodeSpec; nodeSpec = nodeSpec.next_sibling("spec"))
+        {
+            QString fileSpecName(nodeSpec.attribute("name").value());
+            if(fileSpecName == specName)
+            {
+                foundSpec = true;
+                pugi::xml_node nodeProtocol = nodeSpec.child("protocol");
+                for(nodeProtocol; nodeProtocol; nodeProtocol = nodeProtocol.next_sibling("protocol"))
+                {
+                    QString fileProtocolName(nodeProtocol.attribute("name").value());
+                    if(fileProtocolName == protocolName)
+                    {
+                        foundProtocol = true;
+                        pugi::xml_node nodeAddress = nodeProtocol.child("address");
+                        for(nodeAddress; nodeAddress; nodeAddress = nodeAddress.next_sibling("address"))
+                        {
+                            QString fileAddressName(nodeAddress.attribute("name").value());
+                            if(fileAddressName == addressName)
+                            {
+                                foundAddress = true;
+                            }
+                        }
+                    }
+                }
+
+                if(!foundAddress)
+                {   break;   }
+
+                pugi::xml_node nodeParams = nodeSpec.child("parameters");
+                for(nodeParams; nodeParams; nodeParams = nodeProtocol.next_sibling("parameters"))
+                {
+                    QString fileParamsName(nodeParams.attribute("address").value());
+                    if(fileParamsName == addressName)
+                    {
+                        foundParams = true;
+                        pugi::xml_node nodeParameter = nodeParams.child("parameter");
+                        for(nodeParameter; nodeParameter; nodeParameter = nodeParameter.next_sibling("parameter"))
+                        {
+                            QString fileParameterName(nodeParameter.attribute("name").value());
+                            myParamList << fileParameterName;
+                        }
+                    }
+                }
+            }
+        }
+
+        return myParamList;
+    }
+
     bool Parser::BuildMessageFrame(const QString &specName, const QString &protocolName,
                                    const QString &addressName, const QString &paramName,
                                    MessageFrame &msgFrame)
@@ -261,7 +321,7 @@ namespace obdref
                     }
                 }
 
-                if(!foundProtocol)
+                if(!foundAddress)
                 {   break;   }
 
                 pugi::xml_node nodeParams = nodeSpec.child("parameters");
@@ -399,14 +459,19 @@ namespace obdref
 
                                             if(parseChild.attribute("units"))
                                             {   parseInfo.numericalData.units = QString(parseChild.attribute("units").value());   }
+
+                                            if(parseChild.attribute("desc"))
+                                            {   parseInfo.numericalData.desc = QString(parseChild.attribute("desc").value());   }
                                         }
                                         else
                                         {   // assume value is literal
                                             parseInfo.isLiteral = true;
                                             parseInfo.literalData.valueIfFalse = pExprFalse;
                                             parseInfo.literalData.valueIfTrue = pExprTrue;
-                                        }
 
+                                            if(parseChild.attribute("desc"))
+                                            {   parseInfo.literalData.desc = QString(parseChild.attribute("desc").value());   }
+                                        }
                                         msgFrame.listParseInfo.append(parseInfo);
                                     }
                                 }
@@ -522,9 +587,19 @@ namespace obdref
                 }
                 else if(msgFrame.listParseInfo.at(i).isLiteral)
                 {
-                    // TODO throw out value if not 0 or 1
-                    paramData.listLiteralData.append(msgFrame.listParseInfo.at(i).literalData);
-                    paramData.listLiteralData.last().value = myResult;
+                    // throw out value if true/false value strings are empty
+                    bool trueAndTrueStrEmpty = bool(myResult) && msgFrame.listParseInfo[i].literalData.valueIfTrue.isEmpty();
+                    bool falseAndFalseStrEmpty = (bool(!myResult)) && msgFrame.listParseInfo[i].literalData.valueIfFalse.isEmpty();
+
+                    if(trueAndTrueStrEmpty || falseAndFalseStrEmpty)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        paramData.listLiteralData.append(msgFrame.listParseInfo.at(i).literalData);
+                        paramData.listLiteralData.last().value = bool(myResult);
+                    }
                 }
             }
         }
@@ -569,12 +644,18 @@ namespace obdref
 
                     if(parseChild.attribute("units"))
                     {   parseInfo.numericalData.units = QString(parseChild.attribute("units").value());   }
+
+                    if(parseChild.attribute("data"))
+                    {   parseInfo.numericalData.desc = QString(parseChild.attribute("data").value());   }
                 }
                 else
                 {   // assume value is literal
                     parseInfo.isLiteral = true;
                     parseInfo.literalData.valueIfFalse = pExprFalse;
                     parseInfo.literalData.valueIfTrue = pExprTrue;
+
+                    if(parseChild.attribute("desc"))
+                    {   parseInfo.literalData.desc = QString(parseChild.attribute("desc").value());   }
                 }
 
                 // save parse info (with conditions!)
@@ -690,8 +771,6 @@ namespace obdref
                 pos += rx.matchedLength();
             }
 
-            qDebug() << "!" << listRegExpMatches;
-
             // map the data required to calc expression
             for(int i=0; i < listRegExpMatches.size(); i++)
             {
@@ -771,8 +850,6 @@ namespace obdref
                 pos += rx.matchedLength();
             }
 
-            qDebug() << listRegExpMatches;
-
             // map the data required to calc expression
             for(int i=0; i < listRegExpMatches.size(); i++)
             {
@@ -792,8 +869,6 @@ namespace obdref
                 }
 
                 uint byteVal = uint(msgFrame.listMessageData[0].dataBytes.at(byteNum));
-                qDebug() << "BYTENUM:" << byteNumStr;
-                qDebug() << "BYTEVAL:" << byteVal;
 
                 // check for bit num
                 int posBitStart = listRegExpMatches.at(i).indexOf("[",posByteEnd) + 1;
@@ -804,9 +879,6 @@ namespace obdref
                     QString bitNumStr = listRegExpMatches.at(i).mid(posBitStart,1);
                     uint bitNum = stringToUInt(convOk,bitNumStr);
                     uint bitMask = m_listDecValOfBitPos[bitNum];
-
-                    qDebug() << "BITNUM:" << bitNumStr;
-                    qDebug() << "BITVAL:" << double(byteVal & bitMask);
 
                     m_listExprVars[i] = double(byteVal & bitMask) / bitMask;
                     m_parser.DefineVar(listRegExpMatches.at(i).toStdString(),
@@ -851,7 +923,7 @@ namespace obdref
         QRegExp rx; bool convOk = false;
 
         int pos=0;
-        rx.setPattern("(0b[01]+)+");
+        rx.setPattern("(0b[0-1]+)+");
         while ((pos = rx.indexIn(parseExpr, pos)) != -1)
         {
             uint decVal = stringToUInt(convOk,rx.cap(1));

@@ -261,12 +261,12 @@
          <parse expr="[1][6]"   true="Components Test Status Complete"          false="Components Test Status Incomplete" />
 
          <condition expr="[1][3]">
-            <parse expr="[2][0]" true="NMHC Cat Test Available"              false="NMHC Cat Test Unavailable" />
-            <parse expr="[2][1]" true="NOx/SCR Monitor Test Available"       false="NOx/SCR Monitor Test Unavailable" />
-            <parse expr="[2][3]" true="Boost Pressure Test Available"        false="Boost Pressure Test Unavailable" />
-            <parse expr="[2][5]" true="Exhaust Gas Sensor Test Available"    false="Exhaust Gas Sensor Test Unavailable" />
-            <parse expr="[2][6]" true="PM Filter Monitoring Test Available"  false="PM Filter Monitoring Unavailable" />
-            <parse expr="[2][7]" true="EGR/VVT System Test Available"        false="EGR/VVT System Test Unavailable" />
+            <parse expr="[2][0]"    true="NMHC Cat Test Available"              false="NMHC Cat Test Unavailable" />
+            <parse expr="[2][1]"    true="NOx/SCR Monitor Test Available"       false="NOx/SCR Monitor Test Unavailable" />
+            <parse expr="[2][3]"    true="Boost Pressure Test Available"        false="Boost Pressure Test Unavailable" />
+            <parse expr="[2][5]"    true="Exhaust Gas Sensor Test Available"    false="Exhaust Gas Sensor Test Unavailable" />
+            <parse expr="[2][6]"    true="PM Filter Monitoring Test Available"  false="PM Filter Monitoring Unavailable" />
+            <parse expr="[2][7]"    true="EGR/VVT System Test Available"        false="EGR/VVT System Test Unavailable" />
 
             <parse expr="[3][0]" true="NMHC Cat Test Status Incomplete"             false="NMHC Cat Test Status Complete" />
             <parse expr="[3][1]" true="NOx/SCR Monitor Test Status Incomplete"      false="NOx/SCR Monitor Test Status Complete" />

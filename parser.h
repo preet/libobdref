@@ -56,6 +56,10 @@ public:
     bool ParseMessageFrame(MessageFrame const &msgFrame,
                            Data &paramData);
 
+    QStringList GetParameterNames(QString const &specName,
+                                  QString const &protocolName,
+                                  QString const &addressName);
+
     QStringList GetLastKnownErrors();
 
 private:
