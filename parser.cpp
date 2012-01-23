@@ -153,6 +153,12 @@ namespace obdref
         bool foundParams = false;
         bool foundParameter = false;
 
+        // save spec, protocol, address and param info
+        msgFrame.spec = specName;
+        msgFrame.protocol = protocolName;
+        msgFrame.address = addressName;
+        msgFrame.name = paramName;
+
         pugi::xml_node nodeSpec = m_xmlDoc.child("spec");
         for(nodeSpec; nodeSpec; nodeSpec = nodeSpec.next_sibling("spec"))
         {
@@ -469,6 +475,11 @@ namespace obdref
                                             parseInfo.literalData.valueIfFalse = pExprFalse;
                                             parseInfo.literalData.valueIfTrue = pExprTrue;
 
+                                            if(parseChild.attribute("property"))
+                                            {   parseInfo.literalData.property = QString(parseChild.attribute("property").value());   }
+                                            else
+                                            {   parseInfo.literalData.property = paramName;   }
+
                                             if(parseChild.attribute("desc"))
                                             {   parseInfo.literalData.desc = QString(parseChild.attribute("desc").value());   }
                                         }
@@ -481,12 +492,6 @@ namespace obdref
                                 pugi::xml_node condChild = nodeParameter.child("condition");
                                 for(condChild; condChild; condChild = condChild.next_sibling("condition"))
                                 {   walkConditionTree(condChild, listConditionExprs, msgFrame);   }
-
-                                // save spec, protocol, address and param info
-                                msgFrame.spec = specName;
-                                msgFrame.protocol = protocolName;
-                                msgFrame.address = addressName;
-                                msgFrame.name = paramName;
 
                                 return true;
                             }
@@ -615,6 +620,7 @@ namespace obdref
     {
         // add this condition expr to list
         QString conditionExpr(nodeCondition.attribute("expr").value());
+        convToDecEquivExpression(conditionExpr);
         listConditionExprs.push_back(conditionExpr);
 
         // save <parse /> children nodes this condition has
@@ -654,8 +660,13 @@ namespace obdref
                     parseInfo.literalData.valueIfFalse = pExprFalse;
                     parseInfo.literalData.valueIfTrue = pExprTrue;
 
+                    if(parseChild.attribute("property"))
+                    {   parseInfo.literalData.property = QString(parseChild.attribute("property").value());   }
+                    else
+                    {   parseInfo.literalData.property = msgFrame.name;   }
+
                     if(parseChild.attribute("desc"))
-                    {   parseInfo.literalData.desc = QString(parseChild.attribute("desc").value());   }
+                    {   parseInfo.literalData.desc = QString(parseChild.attribute("desc").value());   }                    
                 }
 
                 // save parse info (with conditions!)

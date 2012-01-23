@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
         // have an actual device response
         for(int j=0; j < myMsg.listMessageData.size(); j++)
         {
-            srand(j);
+            srand(j+123);
             for(int k=0; k < 99; k++)
             {
                 // generate data bytes (0-255)
@@ -110,12 +110,12 @@ int main(int argc, char* argv[])
             {
                 if(myData.listLiteralData[i].value)
                 {
-                    qDebug() << myData.listLiteralData[i].desc
+                    qDebug() << myData.listLiteralData[i].property
                              << myData.listLiteralData[i].valueIfTrue;
                 }
                 else
                 {
-                    qDebug() << myData.listLiteralData[i].desc
+                    qDebug() << myData.listLiteralData[i].property
                              << myData.listLiteralData[i].valueIfFalse;
                 }
             }

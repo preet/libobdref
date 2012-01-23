@@ -915,7 +915,7 @@
          <!--  A is signed (-ve) with (I THINK) 2's complement - needs to be VERIFIED
                min, max are different than values listed on Wikipedia since they don't
                make sense to me if the value is signed with 2's complement  -->
-         <condition expr="(A & 0b10000000) == 1">
+         <condition expr="([0] & 0b10000000) == 1">
             <parse expr="((~([0]-1))*256)+[1]" units="Pa" min="-32768" max="32767" />
          </condition>
       </parameter>
@@ -962,7 +962,7 @@
       
       <parameter name="Fuel Injection Timing" 
          request="0x01 0x5D" response.prefix="0x41 0x5D" response.bytes="2">
-         <parse expr="((([0]*256)+[1])-26,880)/128" units="degrees" min="-210" max="301.992" />
+         <parse expr="((([0]*256)+[1])-26880)/128" units="degrees" min="-210" max="301.992" />
       </parameter>
       
       <parameter name="Engine Fuel Rate" 

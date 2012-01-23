@@ -39,6 +39,7 @@ public:
     bool value;
     QString valueIfFalse;
     QString valueIfTrue;
+    QString property;
     QString desc;
 };
 
