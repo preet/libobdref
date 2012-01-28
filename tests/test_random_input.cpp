@@ -30,7 +30,10 @@ int main(int argc, char* argv[])
     // to the definitions file to be tested
     bool opOk = false;
     QString filePath(argv[1]);
-
+    if(filePath.isEmpty())
+    {
+        filePath = "/home/preet/Dev/obdref/definitions/obd2.xml";
+    }
 
     // read in xml definitions file
     obdref::Parser myParser(filePath,opOk);
@@ -45,21 +48,21 @@ int main(int argc, char* argv[])
     }
     qDebug() << "OBDREF: Successfully read in XML Defs file";
 
-
     // get a list of default parameters
     QStringList myParamList;
     myParamList = myParser.GetParameterNames("SAEJ1979",
                                              "ISO 15765-4 Standard",
                                              "Default");
-    for(int i=0; i < myParamList.size(); i++)
+    for(int i=4; i < 6; i++)
     {
         // build a message frame for the current param
         obdref::MessageFrame myMsg;
-        opOk = myParser.BuildMessageFrame("SAEJ1979",
-                                          "ISO 15765-4 Standard",
-                                          "Default",
-                                          myParamList.at(i),
-                                          myMsg);
+        myMsg.spec = "SAEJ1979";
+        myMsg.protocol = "ISO 15765-4 Standard";
+        myMsg.address = "Default";
+        myMsg.name = myParamList.at(i);
+
+        opOk = myParser.BuildMessageFrame(myMsg);
         if(!opOk)
         {
             qDebug() << "BuildMessageFrame for" << myParamList.at(i)
@@ -76,18 +79,38 @@ int main(int argc, char* argv[])
         // have an actual device response
         for(int j=0; j < myMsg.listMessageData.size(); j++)
         {
-            srand(j+123);
-            for(int k=0; k < 99; k++)
+            obdref::ByteList randomData;
+            srand(j+153);
+
+            // response 1
+            randomData.data << 0x07 << 0xE8 << 0x07;
+            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
+            int prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
+            for(int k=0; k < 7-prefixSize; k++)
             {
-                // generate data bytes (0-255)
                 obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
-                myMsg.listMessageData[j].dataBytes.append(myDataByte);
+                randomData.data << myDataByte;
             }
+            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
+            randomData.data.clear();
+
+            // response 2
+            srand(j+32);
+            randomData.data << 0x07 << 0xE9 << 0x07;
+            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
+            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
+            for(int k=0; k < 7-prefixSize; k++)
+            {
+                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
+                randomData.data << myDataByte;
+            }
+            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
         }
 
         // parse message frame
-        obdref::Data myData;
-        opOk = myParser.ParseMessageFrame(myMsg, myData);
+        QList<obdref::Data> listData;
+        opOk = myParser.ParseMessageFrame(myMsg, listData);
+
         if(!opOk)
         {
             qDebug() << "ParseMessageFrame for" << myParamList.at(i)
@@ -102,44 +125,38 @@ int main(int argc, char* argv[])
 
         // print out data
         qDebug() << "================================================";
-        qDebug() << myParamList.at(i);
-        if(myData.listLiteralData.size() > 0)
+        qDebug() << myParamList.at(i) << "| Found" << listData.size() << "results";
+
+        for(int i=0; i < listData.size(); i++)
         {
-            qDebug() << "[Literal Data]";
-            for(int i=0; i < myData.listLiteralData.size(); i++)
+            if(listData.at(i).listLiteralData.size() > 0)
+            {   qDebug() << "[Literal Data]";   }
+
+            for(int j=0; j < listData.at(i).listLiteralData.size(); j++)
             {
-                if(myData.listLiteralData[i].value)
+                if(listData.at(i).listLiteralData.at(j).value)
                 {
-                    qDebug() << myData.listLiteralData[i].property
-                             << myData.listLiteralData[i].valueIfTrue;
+                    qDebug() << listData.at(i).listLiteralData.at(j).property;
+                    qDebug() << listData.at(i).listLiteralData.at(j).valueIfTrue;
                 }
                 else
                 {
-                    qDebug() << myData.listLiteralData[i].property
-                             << myData.listLiteralData[i].valueIfFalse;
+                    qDebug() << listData.at(i).listLiteralData.at(j).property;
+                    qDebug() << listData.at(i).listLiteralData.at(j).valueIfFalse;
                 }
             }
-        }
 
-        if(myData.listNumericalData.size() > 0)
-        {
-            qDebug() << "[Numerical Data]";
-            for(int i=0; i < myData.listNumericalData.size(); i++)
+            if(listData.at(i).listNumericalData.size() > 0)
+            {   qDebug() << "[Numerical Data]";   }
+
+            for(int j=0; j < listData.at(i).listNumericalData.size(); j++)
             {
-                qDebug() << myData.listNumericalData[i].value
-                         << myData.listNumericalData[i].units;
+                qDebug() << listData.at(i).listNumericalData.at(j).value
+                         << listData.at(i).listNumericalData.at(j).units;
             }
         }
         qDebug() << "================================================";
     }
-
-
-
-
-
-
-
-
 
     return 0;
 }

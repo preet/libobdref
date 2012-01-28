@@ -36,27 +36,26 @@ class ByteList
 {
 public:
     QList<ubyte> data;
-
-    bool operator < (ByteList const &a) const
+    bool operator < (ByteList &a, ByteList &b)
     {
         int valA=0;  int valB=0;
 
         for(int i=0; i < a.data.size(); i++)
-        {   valA += a.data.at(i) * int(pow(256, a.data.size()-(i+1)));   }
+        {   valA += a.data * int(pow(256, a.data.size()-(i+1)));   }
 
-        for(int i=0; i < data.size(); i++)
-        {   valB += data.at(i) * int(pow(256, data.size()-(i+1)));   }
+        for(int i=0; i < b.data.size(); i++)
+        {   valB += b.data * int(pow(256, a.data.size()-(i+1)));   }
 
         return (valA < valB);
     }
 
-    bool operator == (ByteList const &a) const
+    bool operator == (ByteList &a, ByteList &b)
     {
-        if(a.data.size() == data.size())
+        if(a.data.size() == b.data.size())
         {
             for(int i=0; i < a.data.size(); i++)
             {
-                if(a.data.at(i) != data.at(i))
+                if(a.data.at(i) != b.data.at(i))
                 {   return false;   }
             }
             return true;
@@ -117,9 +116,9 @@ class MessageData
 public:
     MessageData() : reqDataDelayMs(0) {}
 
-    ByteList            reqDataBytes;
-    ByteList            expDataPrefix;
-    QList<ByteList>     listRawDataFrames;      // [list of raw data frames]
+    QList<ubyte>            reqDataBytes;
+    QList<ubyte>            expDataPrefix;
+    QList<QList<ubyte> >    listRawDataFrames;      // [list of raw data frames]
 
                                                     // 'raw' meaning including all received
                                                     // bytes (header, prefix, etc)
@@ -129,7 +128,7 @@ public:
                                                     // from different source addresses
 
 
-    QList<ByteList>     listCleanData;          // [list of cleaned data]
+    QList<QList<ubyte> >    listCleanData;          // [list of cleaned data]
 
                                                     // after multi-frame/multiple node responses
                                                     // have been processed, they are stored in
@@ -154,8 +153,8 @@ public:
     QString name;
     uint baudRate;
 
-    ByteList  reqHeaderBytes;
-    ByteList  expHeaderBytes;
+    QList<ubyte>  reqHeaderBytes;
+    QList<ubyte>  expHeaderBytes;
 
     QList<MessageData>  listMessageData;            // [list of message data for this chain]
 

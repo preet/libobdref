@@ -72,7 +72,7 @@ namespace obdref
             parsedOk = false;
         }
 
-        // setup muParser
+        // setup parser
         m_parser.DefineInfixOprt("!",muLogicalNot);
         m_parser.DefineInfixOprt("~",muBitwiseNot);
         m_parser.DefineOprt("&",muBitwiseAnd,3);
@@ -81,6 +81,8 @@ namespace obdref
         for(int i=0; i < MAX_EXPR_VARS; i++)
         {  m_listExprVars[i] = 0;   }
 
+        // TODO i dont know if adding "[", "]" as
+        // variable characters is appropriate -- need to double check
         m_parser.DefineNameChars("0123456789_[]"
                                  "abcdefghijklmnopqrstuvwxyz"
                                  "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -88,6 +90,66 @@ namespace obdref
 
     // ========================================================================== //
     // ========================================================================== //
+
+    QStringList Parser::GetParameterNames(const QString &specName,
+                                          const QString &protocolName,
+                                          const QString &addressName)
+    {
+        bool foundSpec = false;
+        bool foundProtocol = false;
+        bool foundAddress = false;
+        bool foundParams = false;
+        QStringList myParamList;
+
+        pugi::xml_node nodeSpec = m_xmlDoc.child("spec");
+        for(nodeSpec; nodeSpec; nodeSpec = nodeSpec.next_sibling("spec"))
+        {
+            QString fileSpecName(nodeSpec.attribute("name").value());
+            if(fileSpecName == specName)
+            {
+                foundSpec = true;
+                pugi::xml_node nodeProtocol = nodeSpec.child("protocol");
+                for(nodeProtocol; nodeProtocol; nodeProtocol = nodeProtocol.next_sibling("protocol"))
+                {
+                    QString fileProtocolName(nodeProtocol.attribute("name").value());
+                    if(fileProtocolName == protocolName)
+                    {
+                        foundProtocol = true;
+                        pugi::xml_node nodeAddress = nodeProtocol.child("address");
+                        for(nodeAddress; nodeAddress; nodeAddress = nodeAddress.next_sibling("address"))
+                        {
+                            QString fileAddressName(nodeAddress.attribute("name").value());
+                            if(fileAddressName == addressName)
+                            {
+                                foundAddress = true;
+                            }
+                        }
+                    }
+                }
+
+                if(!foundAddress)
+                {   break;   }
+
+                pugi::xml_node nodeParams = nodeSpec.child("parameters");
+                for(nodeParams; nodeParams; nodeParams = nodeProtocol.next_sibling("parameters"))
+                {
+                    QString fileParamsName(nodeParams.attribute("address").value());
+                    if(fileParamsName == addressName)
+                    {
+                        foundParams = true;
+                        pugi::xml_node nodeParameter = nodeParams.child("parameter");
+                        for(nodeParameter; nodeParameter; nodeParameter = nodeParameter.next_sibling("parameter"))
+                        {
+                            QString fileParameterName(nodeParameter.attribute("name").value());
+                            myParamList << fileParameterName;
+                        }
+                    }
+                }
+            }
+        }
+
+        return myParamList;
+    }
 
     bool Parser::BuildMessageFrame(MessageFrame &msgFrame)
     {
@@ -142,8 +204,8 @@ namespace obdref
                                             uint upperByte = headerVal & 3840;      // 0b0000111100000000 = 3840
                                             uint lowerByte = headerVal & 255;       // 0b0000000011111111 = 255
 
-                                            msgFrame.reqHeaderBytes.data.append(char(upperByte));
-                                            msgFrame.reqHeaderBytes.data.append(char(lowerByte));
+                                            msgFrame.reqHeaderBytes.append(char(upperByte));
+                                            msgFrame.reqHeaderBytes.append(char(lowerByte));
                                         }
                                     }
 
@@ -158,8 +220,8 @@ namespace obdref
                                             uint upperByte = headerVal & 3840;      // 0b0000111100000000 = 3840
                                             uint lowerByte = headerVal & 255;       // 0b0000000011111111 = 255
 
-                                            msgFrame.expHeaderBytes.data.append(char(upperByte));
-                                            msgFrame.expHeaderBytes.data.append(char(lowerByte));
+                                            msgFrame.expHeaderBytes.append(char(upperByte));
+                                            msgFrame.expHeaderBytes.append(char(lowerByte));
                                         }
                                     }
                                 }
@@ -182,16 +244,16 @@ namespace obdref
                                         bool convOk = false;
 
                                         uint prioByte = stringToUInt(convOk,headerPrio);
-                                        msgFrame.reqHeaderBytes.data.append(char(prioByte));
+                                        msgFrame.reqHeaderBytes.append(char(prioByte));
 
                                         uint formatByte = stringToUInt(convOk,headerFormat);
-                                        msgFrame.reqHeaderBytes.data.append(char(formatByte));
+                                        msgFrame.reqHeaderBytes.append(char(formatByte));
 
                                         uint targetByte = stringToUInt(convOk,headerTarget);
-                                        msgFrame.reqHeaderBytes.data.append(char(targetByte));
+                                        msgFrame.reqHeaderBytes.append(char(targetByte));
 
                                         uint sourceByte = stringToUInt(convOk,headerSource);
-                                        msgFrame.reqHeaderBytes.data.append(char(sourceByte));
+                                        msgFrame.reqHeaderBytes.append(char(sourceByte));
                                     }
 
                                     pugi::xml_node nodeResp = nodeAddress.child("response");
@@ -205,18 +267,18 @@ namespace obdref
                                         bool convOk = false;
 
                                         uint prioByte = stringToUInt(convOk,headerPrio);
-                                        msgFrame.expHeaderBytes.data.append(char(prioByte));
+                                        msgFrame.expHeaderBytes.append(char(prioByte));
 
                                         uint formatByte = stringToUInt(convOk,headerFormat);
-                                        msgFrame.expHeaderBytes.data.append(char(formatByte));
+                                        msgFrame.expHeaderBytes.append(char(formatByte));
 
                                         uint targetByte = stringToUInt(convOk,headerTarget);
-                                        msgFrame.expHeaderBytes.data.append(char(targetByte));
+                                        msgFrame.expHeaderBytes.append(char(targetByte));
 
                                         if(!headerSource.isEmpty())
                                         {
                                             uint sourceByte = stringToUInt(convOk,headerSource);
-                                            msgFrame.expHeaderBytes.data.append(char(sourceByte));
+                                            msgFrame.expHeaderBytes.append(char(sourceByte));
                                         }
                                     }
                                 }
@@ -236,13 +298,13 @@ namespace obdref
 
                                         bool convOk = false;
                                         uint prioByte = stringToUInt(convOk,headerPrio);
-                                        msgFrame.reqHeaderBytes.data.append(char(prioByte));
+                                        msgFrame.reqHeaderBytes.append(char(prioByte));
 
                                         uint targetByte = stringToUInt(convOk,headerTarget);
-                                        msgFrame.reqHeaderBytes.data.append(char(targetByte));
+                                        msgFrame.reqHeaderBytes.append(char(targetByte));
 
                                         uint sourceByte = stringToUInt(convOk,headerSource);
-                                        msgFrame.reqHeaderBytes.data.append(char(sourceByte));
+                                        msgFrame.reqHeaderBytes.append(char(sourceByte));
                                     }
 
                                     pugi::xml_node nodeResp = nodeAddress.child("response");
@@ -254,15 +316,15 @@ namespace obdref
 
                                         bool convOk = false;
                                         uint prioByte = stringToUInt(convOk,headerPrio);
-                                        msgFrame.expHeaderBytes.data.append(char(prioByte));
+                                        msgFrame.expHeaderBytes.append(char(prioByte));
 
                                         uint targetByte = stringToUInt(convOk,headerTarget);
-                                        msgFrame.expHeaderBytes.data.append(char(targetByte));
+                                        msgFrame.expHeaderBytes.append(char(targetByte));
 
                                         if(!headerSource.isEmpty())
                                         {
                                             uint sourceByte = stringToUInt(convOk,headerSource);
-                                            msgFrame.expHeaderBytes.data.append(char(sourceByte));
+                                            msgFrame.expHeaderBytes.append(char(sourceByte));
                                         }
                                     }
                                 }
@@ -291,7 +353,8 @@ namespace obdref
 
                                 // BUILD DATA BYTES HERE
                                 // TODO ISO14230 special case
-                                bool convOk = false; int n=0; int t=0;
+                                bool convOk = false;
+                                int n=0; int t=0;
 
                                 // we can have multiple request/response data stored
                                 // within a single parameter, marked as follows:
@@ -339,7 +402,7 @@ namespace obdref
                                         for(int i=0; i < listRespPrefix.size(); i++)
                                         {
                                             uint dataByte = stringToUInt(convOk,listRespPrefix.at(i));
-                                            myMsgData.expDataPrefix.data.append(char(dataByte));
+                                            myMsgData.expDataPrefix.append(char(dataByte));
                                         }
 
                                         if(nodeParameter.attribute(respBytesAttrStr.c_str()))   // [responseN.bytes]
@@ -361,7 +424,7 @@ namespace obdref
                                             for(int i=0; i < listReqData.size(); i++)
                                             {
                                                 uint dataByte = stringToUInt(convOk,listReqData.at(i));
-                                                myMsgData.reqDataBytes.data.append(char(dataByte));
+                                                myMsgData.reqDataBytes.append(char(dataByte));
                                             }
                                         }
 
@@ -476,11 +539,11 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    bool Parser::ParseMessageFrame(MessageFrame &msgFrame, QList<obdref::Data> &listData)
+    bool Parser::ParseMessageFrame(MessageFrame &msgFrame, QList<obdref::Data> &listParamData)
     {
         if(msgFrame.listParseInfo.size() == 0)
         {
-            OBDREFDEBUG << "OBDREF: Error: No parse info "
+            OBDREFDEBUG << "OBDREF: Error: No parsing info "
                         << "found in message frame\n";
             return false;
         }
@@ -492,173 +555,74 @@ namespace obdref
             return false;
         }
 
-        // clean up response data based on protocol type
-        if(msgFrame.protocol == "ISO 15765-4 Standard")
-        {   cleanRawData_ISO_15765_4_ST(msgFrame);   }
+        // process/clean up the response data so it can be parsed
+        // processRawData(msgFrame);
 
-        else if(msgFrame.protocol == "ISO 15765-4 Extended")
-        {   cleanRawData_ISO_15765_4_EX(msgFrame);   }
+//        Data paramData;
 
-        else
-        {   // TODO
-        }
+//        for(int i=0; i < msgFrame.listParseInfo.size(); i++)
+//        {
+//            double myResult = 0;
+//            bool parsedOk = false;
+//            bool allConditionsValid = true;
+//            for(int j=0; j < msgFrame.listParseInfo[i].listConditions.size(); j++)
+//            {
+//                parsedOk = parseMessage(msgFrame,msgFrame.listParseInfo[i].listConditions.at(j),myResult);
+//                if(!parsedOk)
+//                {   // error in condition expression
+//                    OBDREFDEBUG << "OBDREF: Error: Could not interpret "
+//                                << "condition expression: "
+//                                << msgFrame.listParseInfo[i].listConditions.at(j) << "\n";
+//                    return false;
+//                }
+//                if(myResult == 0)
+//                {   // condition failed, ignore this parse expr
+//                    allConditionsValid = false;
+//                    break;
+//                }
+//            }
 
-        // parse data
-        for(int i=0; i < msgFrame.listParseInfo.size(); i++)
-        {
-            QList<double> listResults;
-            bool parsedOk = false;
-            bool allConditionsValid = true;
+//            if(allConditionsValid)
+//            {
+//                parsedOk = parseMessage(msgFrame, msgFrame.listParseInfo.at(i).expr, myResult);
+//                if(!parsedOk)
+//                {   // error in parse expression
+//                    OBDREFDEBUG << "OBDREF: Error: Could not solve "
+//                                << "parameter expression"
+//                                << msgFrame.listParseInfo.at(i).expr << "\n";
+//                    return false;
+//                }
 
-            // evaluate conditions
-            for(int j=0; j < msgFrame.listParseInfo[i].listConditions.size(); j++)
-            {
-                parsedOk = parseMessage(msgFrame, msgFrame.listParseInfo[i].listConditions.at(j),
-                                        listResults);
-                if(!parsedOk)
-                {
-                    OBDREFDEBUG << "OBDREF: Error: Could not interpret "
-                                << "condition expression: "
-                                << msgFrame.listParseInfo[i].listConditions.at(j) << "\n";
-                    return false;
-                }
-                if(listResults.contains(0))
-                {   // condition failed, ignore this parse expr
-                    allConditionsValid = false;
-                    break;
-                }
-            }
+//                // save result
+//                paramData.name = msgFrame.name;
+//                if(msgFrame.listParseInfo.at(i).isNumerical)
+//                {
+//                    // TODO should we throw out value if not within min/max?
+//                    paramData.listNumericalData.append(msgFrame.listParseInfo.at(i).numericalData);
+//                    paramData.listNumericalData.last().value = myResult;
+//                }
+//                else if(msgFrame.listParseInfo.at(i).isLiteral)
+//                {
+//                    // throw out value if true/false value strings are empty
+//                    bool trueAndTrueStrEmpty = bool(myResult) && msgFrame.listParseInfo[i].literalData.valueIfTrue.isEmpty();
+//                    bool falseAndFalseStrEmpty = (bool(!myResult)) && msgFrame.listParseInfo[i].literalData.valueIfFalse.isEmpty();
 
-            if(allConditionsValid)
-            {
-                listResults.clear();
-                parsedOk = parseMessage(msgFrame, msgFrame.listParseInfo.at(i).expr,
-                                        listResults);
-                if(!parsedOk)
-                {
-                    OBDREFDEBUG << "OBDREF: Error: Could not solve "
-                                << "parameter expression"
-                                << msgFrame.listParseInfo.at(i).expr << "\n";
-                    return false;
-                }
+//                    if(trueAndTrueStrEmpty || falseAndFalseStrEmpty)
+//                    {
+//                        continue;
+//                    }
+//                    else
+//                    {
+//                        paramData.listLiteralData.append(msgFrame.listParseInfo.at(i).literalData);
+//                        paramData.listLiteralData.last().value = bool(myResult);
+//                    }
+//                }
+//            }
+//        }
 
-                // save results
-                for(int j=0; j < listResults.size(); j++)
-                {
-                    Data paramData;
-                    paramData.name = msgFrame.name;
+//        listParamData << paramData;
 
-                    if(msgFrame.listParseInfo.at(i).isNumerical)
-                    {   // TODO should we throw out value if not within min/max?
-                        paramData.listNumericalData << msgFrame.listParseInfo.at(i).numericalData;
-                        paramData.listNumericalData.last().value = listResults.at(j);
-                    }
-                    else if(msgFrame.listParseInfo.at(i).isLiteral)
-                    {   // throw out value if true/false value strings are empty
-
-                        bool trueAndTrueStrEmpty = bool(listResults.at(j)) &&
-                                msgFrame.listParseInfo[i].literalData.valueIfTrue.isEmpty();
-
-                        bool falseAndFalseStrEmpty = (bool(!listResults.at(j))) &&
-                                msgFrame.listParseInfo[i].literalData.valueIfFalse.isEmpty();
-
-                        if(trueAndTrueStrEmpty || falseAndFalseStrEmpty)
-                        {   continue;   }
-                        else
-                        {
-                            paramData.listLiteralData << msgFrame.listParseInfo.at(i).literalData;
-                            paramData.listLiteralData.last().value = bool(listResults.at(j));
-                        }
-                    }
-
-                    listData << paramData;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    // ========================================================================== //
-    // ========================================================================== //
-
-    QStringList Parser::GetParameterNames(const QString &specName,
-                                          const QString &protocolName,
-                                          const QString &addressName)
-    {
-        bool foundSpec = false;
-        bool foundProtocol = false;
-        bool foundAddress = false;
-        bool foundParams = false;
-        QStringList myParamList;
-
-        pugi::xml_node nodeSpec = m_xmlDoc.child("spec");
-        for(nodeSpec; nodeSpec; nodeSpec = nodeSpec.next_sibling("spec"))
-        {
-            QString fileSpecName(nodeSpec.attribute("name").value());
-            if(fileSpecName == specName)
-            {
-                foundSpec = true;
-                pugi::xml_node nodeProtocol = nodeSpec.child("protocol");
-                for(nodeProtocol; nodeProtocol; nodeProtocol = nodeProtocol.next_sibling("protocol"))
-                {
-                    QString fileProtocolName(nodeProtocol.attribute("name").value());
-                    if(fileProtocolName == protocolName)
-                    {
-                        foundProtocol = true;
-                        pugi::xml_node nodeAddress = nodeProtocol.child("address");
-                        for(nodeAddress; nodeAddress; nodeAddress = nodeAddress.next_sibling("address"))
-                        {
-                            QString fileAddressName(nodeAddress.attribute("name").value());
-                            if(fileAddressName == addressName)
-                            {
-                                foundAddress = true;
-                            }
-                        }
-                    }
-                }
-
-                if(!foundAddress)
-                {   break;   }
-
-                pugi::xml_node nodeParams = nodeSpec.child("parameters");
-                for(nodeParams; nodeParams; nodeParams = nodeProtocol.next_sibling("parameters"))
-                {
-                    QString fileParamsName(nodeParams.attribute("address").value());
-                    if(fileParamsName == addressName)
-                    {
-                        foundParams = true;
-                        pugi::xml_node nodeParameter = nodeParams.child("parameter");
-                        for(nodeParameter; nodeParameter; nodeParameter = nodeParameter.next_sibling("parameter"))
-                        {
-                            QString fileParameterName(nodeParameter.attribute("name").value());
-                            myParamList << fileParameterName;
-                        }
-                    }
-                }
-            }
-        }
-
-        return myParamList;
-    }
-
-    // ========================================================================== //
-    // ========================================================================== //
-
-    QStringList Parser::GetLastKnownErrors()
-    {
-        QStringList listErrors;
-        QString lineError;
-        while(1)
-        {
-            lineError = m_lkErrors.readLine();
-            if(lineError.isNull())
-            {   break;   }
-
-            listErrors << lineError;
-        }
-
-        return listErrors;
+//        return true;
     }
 
     // ========================================================================== //
@@ -739,57 +703,48 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    void Parser::cleanRawData_ISO_15765_4_ST(MessageFrame &msgFrame)
+    bool Parser::processRawData_ISO_15765_4_ST(MessageFrame &msgFrame)
     {
+
+
         for(int i=0; i < msgFrame.listMessageData.size(); i++)
         {
-            QList<ByteList> const &listRawDataFrames =
-                    msgFrame.listMessageData.at(i).listRawDataFrames;
+            QList<QList<ubyte> > const &listRawDataFrames = msgFrame.listMessageData.at(i).listRawDataFrames;
 
-            QList<ByteList> listUniqueHeaders;
-            QList<QList<ByteList> > listMappedDataFrames;
-
+            // organize frames into a map
+            QMap<ByteList,ByteList> mapFramesByHeader;
             for(int j=0; j < listRawDataFrames.size(); j++)
-            {
+            {                                
                 // separate into header/data bytes
-                ByteList headerBytes,dataBytes;
-                for(int k=0; k < listRawDataFrames.at(j).data.size(); k++)
+                QList<ubyte> headerBytes;
+                QList<ubyte> dataBytes;
+                for(int k=0; k < listRawDataFrames.at(j).size(); k++)
                 {
-                    if(k < 2)   {   headerBytes.data << listRawDataFrames.at(j).data.at(k);   }
-                    else        {   dataBytes.data << listRawDataFrames.at(j).data.at(k);   }
+                    if(k < 2)   {   headerBytes << listRawDataFrames.at(j).at(k);   }
+                    else        {   dataBytes << listRawDataFrames.at(j).at(k);   }
                 }
 
                 // check if expected header bytes exist / match
                 bool headerBytesOk = false;
-                if((msgFrame.expHeaderBytes.data.size() == 0) ||
-                        (msgFrame.expHeaderBytes == headerBytes))
+
+                if(msgFrame.expHeaderBytes.size() == 0)
                 {   headerBytesOk = true;   }
-
-                // check if data bytes are CAN frames (check PCI byte)
-                bool dataBytesOk = false;
-                ubyte pciByte = dataBytes.data.at(0);
-                if(((pciByte & 0xF0) == 0) || ((pciByte & 0xF0) == 1) || ((pciByte & 0xF0) == 2))
-                {   dataBytesOk = true;   }
-
-                if(headerBytesOk && dataBytesOk)
+                else
                 {
-                    int headerIndx = listUniqueHeaders.indexOf(headerBytes);
-
-                    if(headerIndx < 0)
-                    {
-                        listUniqueHeaders << headerBytes;
-
-                        QList<ByteList> listDataBytes;
-                        listMappedDataFrames << (listDataBytes << dataBytes);
-                    }
-                    else
-                    {   listMappedDataFrames[headerIndx] << dataBytes;   }
+                    if((msgFrame.expHeaderBytes.size() == headerBytes.size()) &&
+                       (msgFrame.expHeaderBytes.at(0) == headerBytes.at(0)) &&
+                       (msgFrame.expHeaderBytes.at(1) == headerBytes.at(1)))
+                    {   headerBytesOk = true;   }
                 }
-            }
 
-            for(int j=0; j < listMappedDataFrames.size(); j++)
-            {
-                qDebug() << listMappedDataFrames.at(j).at(0).data;
+                if(headerBytesOk)
+                {
+                    int headerIndx = 0; bool foundMatch;
+                    for(int k=0; k < listUniqueHeaders.size(); k++)
+                    {
+                        if(listUniqueHeaders.at(k) == headerBytes)
+                    }
+                }
             }
 
             // sort data for each header using PCI byte:
@@ -798,87 +753,115 @@ namespace obdref
             // * if PCI == 0x1X 0xXX, first frame type, X XX == num data bytes
             // * if PCI == 0x2X, consecutive frame type, X == message order cyclic(1-F,0)
 
-            QList<ByteList> listConcatDataBytes;
-
-            for(int j=0; j < listUniqueHeaders.size(); j++)
+            QList<QList<ubyte> > listHeaders = mapFramesByHeader.uniqueKeys();
+            for(int j=0; j < listHeaders.size(); j++)
             {
-                if(listMappedDataFrames.at(j).size() == 1)                      // single-frame
+                QList<QList<ubyte> > listDataBytes;
+                QList<ubyte> listOrderedDataBytes;
+                listDataBytes = mapFramesByHeader.values(listHeaders.at(j));
+                for(int k=0; k < listDataBytes.size(); k++)
                 {
-
-                    listMappedDataFrames[j][0].data.removeAt(0);
-                    listConcatDataBytes << listMappedDataFrames.at(j).at(0);
-                    listMappedDataFrames[j].removeAt(0);
-                    qDebug() << j;
-                }
-                else
-                {                                                               // multi-frame
-                    ByteList orderedDataBytes; int frameNum = 0;
-                    while(listMappedDataFrames.at(j).size() > 0)
+                    if(k==0)    // k==0; arrange as first frame
                     {
-                        if(frameNum == 0)       // first frame
+                        for(int l=0; l < listDataBytes.size(); l++)
                         {
-                            for(int k=0; k < listMappedDataFrames.at(j).size(); k++)
+                            if((listDataBytes.at(l).at(0) & 240) == 0x10)
                             {
-                                if((listMappedDataFrames.at(j).at(k).data.at(0) & 0xF0) == 0x10)
-                                {
-                                    listMappedDataFrames[j][k].data.removeAt(0);
-                                    listMappedDataFrames[j][k].data.removeAt(0);
-                                    orderedDataBytes.data.append(listMappedDataFrames.at(j).at(k).data);
-                                    listMappedDataFrames[j].removeAt(k);
-                                    break;
-                                }
+                                listOrderedDataBytes.append(listDataBytes.at(l));
+                                listDataBytes.removeAt(l);
+                                break;
                             }
                         }
-                        else                    // consecutive frames
-                        {
-                            ubyte cfFirstByte = 0x20 + (frameNum & 0x0F);
-                            for(int k=0; k < listMappedDataFrames.at(j).size(); k++)
-                            {
-                                if(listMappedDataFrames.at(j).at(k).data.at(0) == cfFirstByte)
-                                {
-                                    listMappedDataFrames[j][k].data.removeAt(0);
-                                    orderedDataBytes.data.append(listMappedDataFrames.at(j).at(k).data);
-                                    listMappedDataFrames[j].removeAt(k);
-                                    break;
-                                }
-                            }
-                        }
-
-                        frameNum++;
                     }
 
-                    if(!orderedDataBytes.data.isEmpty())
-                    {   listConcatDataBytes << orderedDataBytes;   }
+                    else        // k > 0; arrange as consecutive frames
+                    {
+                        ubyte cfFirstByte = 0x20 + (k & 0x0F);
+
+                        for(int l=0; l < listDataBytes.size(); l++)
+                        {
+                            if(listDataBytes.at(l).at(0) == cfFirstByte)
+                            {
+                                listOrderedDataBytes.append(listDataBytes.at(l));
+                                listDataBytes.removeAt(l);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
 
-            // check against expected prefix and remove if it exists
-            for(int j=0; j < listUniqueHeaders.size(); j++)
-            {
-                bool prefixOk = true;
-                for(int k=0; k < msgFrame.listMessageData.at(i).expDataPrefix.data.size(); k++)
-                {
-                    if(listConcatDataBytes.at(j).data.at(k) !=
-                            msgFrame.listMessageData.at(i).expDataPrefix.data.at(k))
-                    {   prefixOk = false;   break;   }
-                }
-
-                if(prefixOk)
-                {
-                    for(int k=0; k < msgFrame.listMessageData.at(i).expDataPrefix.data.size(); k++)
-                    {   listConcatDataBytes[j].data.removeAt(0);   }
-
-                    msgFrame.listMessageData[i].listCleanData << listConcatDataBytes.at(j);
-                }
-            }
+            // prefix check
         }
     }
 
     // ========================================================================== //
     // ========================================================================== //
 
-    void Parser::cleanRawData_ISO_15765_4_EX(MessageFrame &msgFrame)
-    {}
+    QStringList Parser::GetLastKnownErrors()
+    {
+        QStringList listErrors;
+        QString lineError;
+        while(1)
+        {
+            lineError = m_lkErrors.readLine();
+            if(lineError.isNull())
+            {   break;   }
+
+            listErrors << lineError;
+        }
+
+        return listErrors;
+    }
+
+    ubyte Parser::GetHexByteStrValue(const QByteArray &hexByte)
+    {   return m_mapHexByteToVal.value(hexByte);   }
+
+    QByteArray Parser::GetValueHexByteStr(const ubyte &value)
+    {   return m_mapValToHexByte.value(value);   }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
+    uint Parser::stringToUInt(bool &convOk, const QString &parseStr)
+    {
+        // expect ONE token representing a number
+        // if str contains '0bXXXXX' -> parse as binary
+        // if str contains '0xXXXXX' -> parse as hex
+        // else parse as dec
+
+        // TODO: use maps! takes less time than conversion!
+
+        bool conv;
+        QString myString(parseStr);
+
+        if(myString.contains("0b"))
+        {
+            myString.remove("0b");
+            uint myVal = myString.toUInt(&conv,2);
+            if(conv)
+            {   convOk = conv;   return myVal;   }
+            else
+            {   convOk = false;   return 0;   }
+        }
+        else if(myString.contains("0x"))
+        {
+            myString.remove("0x");
+            uint myVal = myString.toUInt(&conv,16);
+            if(conv)
+            {   convOk = conv;   return myVal;   }
+            else
+            {   convOk = false;   return 0;   }
+        }
+        else
+        {
+            uint myVal = myString.toUInt(&conv,10);
+            if(conv)
+            {   convOk = conv;   return myVal;   }
+            else
+            {   convOk = false;   return 0;   }
+        }
+    }
 
     // ========================================================================== //
     // ========================================================================== //
@@ -887,6 +870,9 @@ namespace obdref
                               const QString &parseExpr,
                               QList<double> &myResults)
     {
+        if(msgFrame.listMessageData.isEmpty())
+        {   OBDREFDEBUG << "OBDREF: Error: No message data\n";   return false;   }
+
         bool convOk;
         if(parseExpr.contains("resp"))
         {
@@ -944,7 +930,7 @@ namespace obdref
                 listByteNums << byteNum;
                 for(int j=0; j < msgFrame.listMessageData[msgRespNum].listCleanData.size(); j++)
                 {
-                    if(!(byteNum < msgFrame.listMessageData[msgRespNum].listCleanData[j].data.size()))
+                    if(!(byteNum < msgFrame.listMessageData[msgRespNum].listCleanData[j].size()))
                     {
                         OBDREFDEBUG << "OBDREF: Error: Data for " << msgFrame.name
                                     << " has insufficient bytes for parsing: "
@@ -974,7 +960,7 @@ namespace obdref
                     uint const &byteNum = listByteNums.at(j);
                     uint const &bitNum = listBitNums.at(j);
 
-                    uint byteVal = uint(msgFrame.listMessageData.at(msgNum).listCleanData.at(i).data.at(byteNum));
+                    uint byteVal = uint(msgFrame.listMessageData.at(msgNum).listCleanData.at(i).at(byteNum));
 
                     if(bitNum < 8)  // bit variable
                     {
@@ -1038,7 +1024,7 @@ namespace obdref
                 listByteNums << byteNum;
                 for(int j=0; j < msgFrame.listMessageData[0].listCleanData.size(); j++)
                 {
-                    if(!(byteNum < msgFrame.listMessageData[0].listCleanData[j].data.size()))
+                    if(!(byteNum < msgFrame.listMessageData[0].listCleanData[j].size()))
                     {
                         OBDREFDEBUG << "OBDREF: Error: Data for " << msgFrame.name
                                     << " has insufficient bytes for parsing: "
@@ -1067,7 +1053,7 @@ namespace obdref
                     uint const &byteNum = listByteNums.at(j);
                     uint const &bitNum = listBitNums.at(j);
 
-                    uint byteVal = uint(msgFrame.listMessageData.at(0).listCleanData.at(i).data.at(byteNum));
+                    uint byteVal = uint(msgFrame.listMessageData.at(0).listCleanData.at(i).at(byteNum));
 
                     if(bitNum < 8)  // bit variable
                     {
@@ -1106,52 +1092,6 @@ namespace obdref
         }
     }
 
-    // ========================================================================== //
-    // ========================================================================== //
-
-    uint Parser::stringToUInt(bool &convOk, const QString &parseStr)
-    {
-        // expect ONE token representing a number
-        // if str contains '0bXXXXX' -> parse as binary
-        // if str contains '0xXXXXX' -> parse as hex
-        // else parse as dec
-
-        // TODO: use maps! takes less time than conversion!
-
-        bool conv;
-        QString myString(parseStr);
-
-        if(myString.contains("0b"))
-        {
-            myString.remove("0b");
-            uint myVal = myString.toUInt(&conv,2);
-            if(conv)
-            {   convOk = conv;   return myVal;   }
-            else
-            {   convOk = false;   return 0;   }
-        }
-        else if(myString.contains("0x"))
-        {
-            myString.remove("0x");
-            uint myVal = myString.toUInt(&conv,16);
-            if(conv)
-            {   convOk = conv;   return myVal;   }
-            else
-            {   convOk = false;   return 0;   }
-        }
-        else
-        {
-            uint myVal = myString.toUInt(&conv,10);
-            if(conv)
-            {   convOk = conv;   return myVal;   }
-            else
-            {   convOk = false;   return 0;   }
-        }
-    }
-
-    // ========================================================================== //
-    // ========================================================================== //
-
     void Parser::convToDecEquivExpression(QString &parseExpr)
     {
         // replaces binary and hex notation numbers
@@ -1181,9 +1121,6 @@ namespace obdref
             pos += decStr.length();
         }
     }
-
-    // ========================================================================== //
-    // ========================================================================== //
 
     QTextStream & Parser::getErrorStream()
     {

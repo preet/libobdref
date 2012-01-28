@@ -58,24 +58,26 @@ public:
 
     QStringList GetLastKnownErrors();
 
-private:  
 
-    bool parseMessage(MessageFrame const &msgFrame,
-                      QString const &parseExpr,
-                      QList<double> &myResults);
 
+private:
     void walkConditionTree(pugi::xml_node &nodeParameter,
                            QStringList &listConditions,
                            MessageFrame &msgFrame);
 
-    void cleanRawData_ISO_15765_4_ST(MessageFrame &msgFrame);
-    void cleanRawData_ISO_15765_4_EX(MessageFrame &msgFrame);
+    bool processRawData_ISO_15765_4_ST(MessageFrame &msgFrame);
+
+    bool parseMessage(MessageFrame const &msgFrame,
+                      QString const &parseExpr,
+                      QList<double> &myResults);
 
     void convToDecEquivExpression(QString &parseExpr);
 
     uint stringToUInt(bool &convOk, QString const &parseStr);
 
     QTextStream & getErrorStream();
+    ubyte GetHexByteStrValue(QByteArray const &hexByte);
+    QByteArray GetValueHexByteStr(ubyte const &value);
 
     static mu::value_type muLogicalNot(mu::value_type);
     static mu::value_type muBitwiseNot(mu::value_type);

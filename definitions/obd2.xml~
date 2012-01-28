@@ -200,7 +200,17 @@
    </protocol>
    
    <parameters address="Default">
-		  
+		
+		<parameter name="Calibration ID"
+			request="0x09 0x04" response.prefix="0x49 0x04" response.bytes="N">
+			<condition protocols="ISO 15765-4 Standard, ISO 15765-4 Extended">
+			
+			</condition>
+			<condition protocols="SAE J1850 PWM, SAE J1850 VPW, ISO 9141-2, ISO 14230-4">
+			
+			</condition>
+		</parameter>
+      
       <!-- START MODE $01 PIDs -->
       
       <parameter name="PIDs Supported 0x01-0x20" 
