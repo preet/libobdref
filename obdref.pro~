@@ -1,4 +1,0 @@
-TEMPLATE = subdirs
-SUBDIRS += libobdref
-libobdref.file = libobdref.pro
-CONFIG += ordered

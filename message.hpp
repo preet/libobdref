@@ -128,6 +128,7 @@ public:
                                                     // separate data frame, which may originate
                                                     // from different source addresses
 
+    QList<ByteList>     listHeaders;
 
     QList<ByteList>     listCleanData;          // [list of cleaned data]
 

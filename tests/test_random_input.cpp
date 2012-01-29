@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
             srand(j+153);
 
             // response 1
-            randomData.data << 0x07 << 0xE8 << 0x07;
+            randomData.data << 0x07 << 0xE9 << 0x24;
             randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
             int prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
             for(int k=0; k < 7-prefixSize; k++)
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 
             // response 2
             srand(j+32);
-            randomData.data << 0x07 << 0xE9 << 0x07;
+            randomData.data << 0x07 << 0xEB << 0x26;
             randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
             prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
             for(int k=0; k < 7-prefixSize; k++)
@@ -105,13 +105,40 @@ int main(int argc, char* argv[])
                 randomData.data << myDataByte;
             }
             myMsg.listMessageData[j].listRawDataFrames.append(randomData);
+            randomData.data.clear();
+
+            // response 3
+            srand(j+32);
+            randomData.data << 0x07 << 0xA9 << 0x23 << 0x06;
+            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
+            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
+            for(int k=0; k < 7-prefixSize; k++)
+            {
+                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
+                randomData.data << myDataByte;
+            }
+            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
+            randomData.data.clear();
+
+            // response 4
+            srand(j+32);
+            randomData.data << 0x07 << 0xA9 << 0x16;
+            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
+            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
+            for(int k=0; k < 7-prefixSize; k++)
+            {
+                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
+                randomData.data << myDataByte;
+            }
+            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
+            randomData.data.clear();
         }
 
         // parse message frame
         QList<obdref::Data> listData;
         opOk = myParser.ParseMessageFrame(myMsg, listData);
 
-        if(!opOk)
+        if(!opOk || listData.size() == 0)
         {
             qDebug() << "ParseMessageFrame for" << myParamList.at(i)
                      << "Failed! Exiting...";

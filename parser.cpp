@@ -34,7 +34,6 @@ namespace obdref
         m_lkErrors.setString(&m_lkErrorString, QIODevice::ReadWrite);
 
         // fast lookup tables for different vars
-
         m_listDecValOfBitPos[0] = 1;
         m_listDecValOfBitPos[1] = 2;
         m_listDecValOfBitPos[2] = 4;
@@ -139,8 +138,8 @@ namespace obdref
                                         {
                                             bool convOk = false;
                                             uint headerVal = stringToUInt(convOk,myHeader);
-                                            uint upperByte = headerVal & 3840;      // 0b0000111100000000 = 3840
-                                            uint lowerByte = headerVal & 255;       // 0b0000000011111111 = 255
+                                            uint upperByte = headerVal & 0xF00;      // 0b0000111100000000 = 3840
+                                            uint lowerByte = headerVal & 0xFF;       // 0b0000000011111111 = 255
 
                                             msgFrame.reqHeaderBytes.data.append(char(upperByte));
                                             msgFrame.reqHeaderBytes.data.append(char(lowerByte));
@@ -155,8 +154,8 @@ namespace obdref
                                         {
                                             bool convOk = false;
                                             uint headerVal = stringToUInt(convOk,myHeader);
-                                            uint upperByte = headerVal & 3840;      // 0b0000111100000000 = 3840
-                                            uint lowerByte = headerVal & 255;       // 0b0000000011111111 = 255
+                                            uint upperByte = headerVal & 0xF00;      // 0b0000111100000000 = 3840
+                                            uint lowerByte = headerVal & 0xFF;       // 0b0000000011111111 = 255
 
                                             msgFrame.expHeaderBytes.data.append(char(upperByte));
                                             msgFrame.expHeaderBytes.data.append(char(lowerByte));
@@ -485,23 +484,20 @@ namespace obdref
             return false;
         }
 
-        if(msgFrame.listMessageData.size() < 1)
-        {
-            OBDREFDEBUG << "OBDREF: Error: No messages "
-                        << "found in message frame\n";
-            return false;
-        }
-
         // clean up response data based on protocol type
+        bool formatOk = false;
         if(msgFrame.protocol == "ISO 15765-4 Standard")
-        {   cleanRawData_ISO_15765_4_ST(msgFrame);   }
+        {   formatOk = cleanRawData_ISO_15765_4_ST(msgFrame);   }
 
         else if(msgFrame.protocol == "ISO 15765-4 Extended")
-        {   cleanRawData_ISO_15765_4_EX(msgFrame);   }
+        {   formatOk = cleanRawData_ISO_15765_4_EX(msgFrame);   }
 
         else
         {   // TODO
         }
+
+        if(!formatOk)
+        {   return false;   }
 
         // parse data
         for(int i=0; i < msgFrame.listParseInfo.size(); i++)
@@ -739,7 +735,7 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    void Parser::cleanRawData_ISO_15765_4_ST(MessageFrame &msgFrame)
+    bool Parser::cleanRawData_ISO_15765_4_ST(MessageFrame &msgFrame)
     {
         for(int i=0; i < msgFrame.listMessageData.size(); i++)
         {
@@ -760,58 +756,133 @@ namespace obdref
                 }
 
                 // check if expected header bytes exist / match
-                bool headerBytesOk = false;
-                if((msgFrame.expHeaderBytes.data.size() == 0) ||
-                        (msgFrame.expHeaderBytes == headerBytes))
-                {   headerBytesOk = true;   }
+                if((msgFrame.expHeaderBytes.data.size() > 0) && !(msgFrame.expHeaderBytes == headerBytes))
+                {   continue;   }
 
-                // check if data bytes are CAN frames (check PCI byte)
-                bool dataBytesOk = false;
-                ubyte pciByte = dataBytes.data.at(0);
-                if(((pciByte & 0xF0) == 0) || ((pciByte & 0xF0) == 1) || ((pciByte & 0xF0) == 2))
-                {   dataBytesOk = true;   }
-
-                if(headerBytesOk && dataBytesOk)
+                // save dataBytes based on frame type (pci byte)
+                if((dataBytes.data.at(0) & 0xF0) == 0)              // single frame
                 {
-                    int headerIndx = listUniqueHeaders.indexOf(headerBytes);
-
-                    if(headerIndx < 0)
+                    if(listUniqueHeaders.contains(headerBytes))
                     {
-                        listUniqueHeaders << headerBytes;
-
-                        QList<ByteList> listDataBytes;
-                        listMappedDataFrames << (listDataBytes << dataBytes);
+                        OBDREFDEBUG << "OBDREF: Error: Found multiple frame "
+                                    << "response types from single address:\n";
+                        for(int k=0; k < listRawDataFrames.size(); k++)
+                        {
+                            OBDREFDEBUG << "OBDREF: Raw Data Frame " << k << ": ";
+                            for(int l=0; l < listRawDataFrames.at(k).data.size(); l++)
+                            {   OBDREFDEBUG << listRawDataFrames.at(k).data.at(l) << ",";   }
+                            OBDREFDEBUG << "\n";
+                        }
+                        return false;
                     }
                     else
-                    {   listMappedDataFrames[headerIndx] << dataBytes;   }
+                    {
+                        QList<ByteList> listDataBytes;
+                        listMappedDataFrames << (listDataBytes << dataBytes);
+                        listUniqueHeaders << headerBytes;
+                    }
+                }
+                else if((dataBytes.data.at(0) & 0xF0) == 0x10)
+                {                                                   // multi frame [first]
+                    int headerIdx = listUniqueHeaders.indexOf(headerBytes);
+                    if(headerIdx > -1)
+                    {
+                        if(((listMappedDataFrames.at(headerIdx).at(0).data.at(0) & 0xF0) == 0))
+                        {
+                            OBDREFDEBUG << "OBDREF: Error: Found multiple frame "
+                                        << "response types from single address:\n";
+                            for(int k=0; k < listRawDataFrames.size(); k++)
+                            {
+                                OBDREFDEBUG << "OBDREF: Raw Data Frame " << k << ": ";
+                                for(int l=0; l < listRawDataFrames.at(k).data.size(); l++)
+                                {   OBDREFDEBUG << m_mapValToHexByte.value(listRawDataFrames.at(k).data.at(l)) << ",";   }
+                                OBDREFDEBUG << "\n";
+                            }
+                            return false;
+                        }
+                        else
+                        {
+                            for(int k=0; k < listMappedDataFrames.at(headerIdx).size(); k++)
+                            {
+                                if((listMappedDataFrames.at(headerIdx).at(k).data.at(0) & 0xF0) == 0x10)
+                                {
+                                    OBDREFDEBUG << "OBDREF: Error: Found multiple frame "
+                                                << "response types from single address:\n";
+                                    for(int l=0; l < listRawDataFrames.size(); l++)
+                                    {
+                                        OBDREFDEBUG << "OBDREF: Raw Data Frame " << l << ": ";
+                                        for(int m=0; m < listRawDataFrames.at(l).data.size(); m++)
+                                        {   OBDREFDEBUG << m_mapValToHexByte.value(listRawDataFrames.at(l).data.at(m)) << ",";   }
+                                        OBDREFDEBUG << "\n";
+                                    }
+                                    return false;
+                                }
+                            }
+                            listMappedDataFrames[headerIdx] << dataBytes;
+                        }
+                    }
+                    else
+                    {
+                        QList<ByteList> listDataBytes;
+                        listMappedDataFrames << (listDataBytes << dataBytes);
+                        listUniqueHeaders << headerBytes;
+                    }
+                }
+                else if((dataBytes.data.at(0) & 0xF0) == 0x20)
+                {                                                   // multi frame [consecutive]
+                    int headerIdx = listUniqueHeaders.indexOf(headerBytes);
+                    if(headerIdx > -1)
+                    {
+                        if((listMappedDataFrames.at(headerIdx).at(0).data.at(0) & 0xF0) == 0)
+                        {
+                            OBDREFDEBUG << "OBDREF: Error: Found mixed single/multi-frame "
+                                        << "response from single address:\n";
+                            for(int k=0; k < listRawDataFrames.size(); k++)
+                            {
+                                OBDREFDEBUG << "OBDREF: Raw Data Frame " << k << ": ";
+                                for(int l=0; l < listRawDataFrames.at(k).data.size(); l++)
+                                {   OBDREFDEBUG << m_mapValToHexByte.value(listRawDataFrames.at(k).data.at(l)) << ",";   }
+                                OBDREFDEBUG << "\n";
+                            }
+                            return false;
+                        }
+                        else
+                        {   listMappedDataFrames[headerIdx] << dataBytes;   }
+                    }
+                    else
+                    {
+                        QList<ByteList> listDataBytes;
+                        listMappedDataFrames << (listDataBytes << dataBytes);
+                        listUniqueHeaders << headerBytes;
+                    }
                 }
             }
 
-            for(int j=0; j < listMappedDataFrames.size(); j++)
+            if(listUniqueHeaders.size() == 0)
             {
-                qDebug() << listMappedDataFrames.at(j).at(0).data;
+                OBDREFDEBUG << "OBDREF: No valid data frames found: \n";
+                for(int k=0; k < listRawDataFrames.size(); k++)
+                {
+                    OBDREFDEBUG << "OBDREF: Raw Data Frame " << k << ": ";
+                    for(int l=0; l < listRawDataFrames.at(k).data.size(); l++)
+                    {   OBDREFDEBUG << m_mapValToHexByte.value(listRawDataFrames.at(k).data.at(l)) << ",";   }
+                    OBDREFDEBUG << "\n";
+                }
+                return false;
             }
 
-            // sort data for each header using PCI byte:
-            // expect msg to look like: hhh b0 b1 b2 b3 b4 b5 b6 b7
-            // * if PCI == 0x0X, single frame type, X == num data bytes
-            // * if PCI == 0x1X 0xXX, first frame type, X XX == num data bytes
-            // * if PCI == 0x2X, consecutive frame type, X == message order cyclic(1-F,0)
-
-            QList<ByteList> listConcatDataBytes;
-
+            // sort and merge data under each header
+            QList<ByteList> listCatDataBytes;                       // concatenated dataBytes
             for(int j=0; j < listUniqueHeaders.size(); j++)
             {
-                if(listMappedDataFrames.at(j).size() == 1)                      // single-frame
+                if(listMappedDataFrames.at(j).size() == 1)          // single frame
                 {
-
                     listMappedDataFrames[j][0].data.removeAt(0);
-                    listConcatDataBytes << listMappedDataFrames.at(j).at(0);
+                    listCatDataBytes << listMappedDataFrames.at(j).at(0);
                     listMappedDataFrames[j].removeAt(0);
-                    qDebug() << j;
                 }
                 else
-                {                                                               // multi-frame
+                {                                                   // multi frame
                     ByteList orderedDataBytes; int frameNum = 0;
                     while(listMappedDataFrames.at(j).size() > 0)
                     {
@@ -843,22 +914,22 @@ namespace obdref
                                 }
                             }
                         }
-
                         frameNum++;
                     }
-
-                    if(!orderedDataBytes.data.isEmpty())
-                    {   listConcatDataBytes << orderedDataBytes;   }
+                    // save ordered dataBytes
+                    listCatDataBytes << orderedDataBytes;
                 }
             }
 
-            // check against expected prefix and remove if it exists
+            // TODO check no missing consecutive frames
+
+            // check dataBytes against expected prefix
             for(int j=0; j < listUniqueHeaders.size(); j++)
             {
                 bool prefixOk = true;
                 for(int k=0; k < msgFrame.listMessageData.at(i).expDataPrefix.data.size(); k++)
                 {
-                    if(listConcatDataBytes.at(j).data.at(k) !=
+                    if(listCatDataBytes.at(j).data.at(k) !=
                             msgFrame.listMessageData.at(i).expDataPrefix.data.at(k))
                     {   prefixOk = false;   break;   }
                 }
@@ -866,18 +937,28 @@ namespace obdref
                 if(prefixOk)
                 {
                     for(int k=0; k < msgFrame.listMessageData.at(i).expDataPrefix.data.size(); k++)
-                    {   listConcatDataBytes[j].data.removeAt(0);   }
+                    {   listCatDataBytes[j].data.removeAt(0);   }    // remove prefix bytes
 
-                    msgFrame.listMessageData[i].listCleanData << listConcatDataBytes.at(j);
+                    msgFrame.listMessageData[i].listCleanData << listCatDataBytes.at(j);
+                    msgFrame.listMessageData[i].listHeaders << listUniqueHeaders.at(j);
                 }
             }
+
+//            //debug
+//            for(int j=0; j < msgFrame.listMessageData[i].listHeaders.size(); j++)
+//            {
+//                qDebug() << msgFrame.listMessageData[i].listHeaders.at(j).data << "|"
+//                         << msgFrame.listMessageData[i].listCleanData.at(j).data;
+//            }
         }
+
+        return true;
     }
 
     // ========================================================================== //
     // ========================================================================== //
 
-    void Parser::cleanRawData_ISO_15765_4_EX(MessageFrame &msgFrame)
+    bool Parser::cleanRawData_ISO_15765_4_EX(MessageFrame &msgFrame)
     {}
 
     // ========================================================================== //
@@ -961,7 +1042,7 @@ namespace obdref
                     listBitNums << stringToUInt(convOk,bitNumStr);
                 }
                 else
-                {   listBitNums << 8;   }   // any value above 7
+                {   listBitNums << 8;   }   // any value above 7 to ignore
             }
 
             // map resp,byte,bit to vars and solve
@@ -1055,7 +1136,7 @@ namespace obdref
                     listBitNums << stringToUInt(convOk,bitNumStr);
                 }
                 else
-                {   listBitNums << 8;   }   // any value above 7
+                {   listBitNums << 8;   }   // any value above 7 to ignore
             }
 
             // map resp,byte,bit to vars and solve

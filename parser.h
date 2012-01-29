@@ -68,8 +68,8 @@ private:
                            QStringList &listConditions,
                            MessageFrame &msgFrame);
 
-    void cleanRawData_ISO_15765_4_ST(MessageFrame &msgFrame);
-    void cleanRawData_ISO_15765_4_EX(MessageFrame &msgFrame);
+    bool cleanRawData_ISO_15765_4_ST(MessageFrame &msgFrame);
+    bool cleanRawData_ISO_15765_4_EX(MessageFrame &msgFrame);
 
     void convToDecEquivExpression(QString &parseExpr);
 
