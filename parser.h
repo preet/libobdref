@@ -24,19 +24,20 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+// stdlib includes
+#include <fstream>
+
 // Qt includes
 #include <QDebug>
 
 // pugixml includes
 #include "pugixml/pugixml.hpp"
 
-// muParser includes
-#include "muparser/muParser.h"
+// v8 includes
+#include <v8.h>
 
 // obdref data types
 #include "message.hpp"
-
-#define MAX_EXPR_VARS 64
 
 namespace obdref
 {
@@ -46,6 +47,7 @@ class Parser
 
 public:
     Parser(QString const &filePath, bool &parsedOk);
+    ~Parser();
 
     bool BuildMessageFrame(MessageFrame &msgFrame);
 
@@ -60,16 +62,14 @@ public:
 
 private:  
 
-    bool parseMessage(MessageFrame const &msgFrame,
-                      QString const &parseExpr,
-                      QList<double> &myResults);
-
-    void walkConditionTree(pugi::xml_node &nodeParameter,
-                           QStringList &listConditions,
-                           MessageFrame &msgFrame);
-
     bool cleanRawData_ISO_15765_4_ST(MessageFrame &msgFrame);
     bool cleanRawData_ISO_15765_4_EX(MessageFrame &msgFrame);
+
+    bool parseSinglePartResponse(MessageFrame const &msgFrame,
+                                 QList<Data> &listDataResults);
+
+    bool parseMultiPartResponse(MessageFrame const &msgFrame,
+                                QList<Data> &listDataResults);
 
     void convToDecEquivExpression(QString &parseExpr);
 
@@ -77,21 +77,19 @@ private:
 
     QTextStream & getErrorStream();
 
-    static mu::value_type muLogicalNot(mu::value_type);
-    static mu::value_type muBitwiseNot(mu::value_type);
-    static mu::value_type muBitwiseOr(mu::value_type,mu::value_type);
-    static mu::value_type muBitwiseAnd(mu::value_type,mu::value_type);
+    bool convTextFileToQStr(QString const &filePath,
+                            QString & fileDataAsStr);
+
+    QMap<ubyte,QByteArray> m_mapValToHexByte;   // TODO, conv to QHash
+    QMap<QByteArray,ubyte> m_mapHexByteToVal;
+
+    // v8 vars
+    v8::Persistent<v8::Context> m_v8_context;
+    v8::Persistent<v8::Object> m_v8_list_dataBytes;
 
     // pugixml vars
     QString m_xmlFilePath;
     pugi::xml_document m_xmlDoc;
-
-    // muParser vars
-    mu::Parser m_parser;
-    uint m_listDecValOfBitPos[8];
-    QMap<ubyte,QByteArray> m_mapValToHexByte;   // TODO, conv to QHash
-    QMap<QByteArray,ubyte> m_mapHexByteToVal;
-    double m_listExprVars[MAX_EXPR_VARS];
 
     // errors
     QTextStream m_lkErrors;

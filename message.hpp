@@ -93,8 +93,9 @@ public:
 class Data
 {
 public:
-    QString name;
-    QString address;
+    QString paramName;
+    QString srcAddress;
+    QString srcName;
     QList<LiteralData> listLiteralData;
     QList<NumericalData> listNumericalData;
 };
@@ -166,12 +167,7 @@ public:
                                                     // of parameters will only have one set
                                                     // of MessageData
 
-
-    QList<ParseInfo>    listParseInfo;              // [list of parse information]
-
-                                                    // contains all possible parse expressions
-                                                    // for this parameter; each parse expr may
-                                                    // have multiple conditions as well
+    QString             parseScript;                // [script (js) to parse message bytes into data]
 };
 
 

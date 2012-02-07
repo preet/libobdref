@@ -28,21 +28,12 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    Parser::Parser(QString const &filePath, bool &parsedOk)
+    Parser::Parser(QString const &filePath, bool &initOk)
     {
         // error logging
         m_lkErrors.setString(&m_lkErrorString, QIODevice::ReadWrite);
 
-        // fast lookup tables for different vars
-        m_listDecValOfBitPos[0] = 1;
-        m_listDecValOfBitPos[1] = 2;
-        m_listDecValOfBitPos[2] = 4;
-        m_listDecValOfBitPos[3] = 8;
-        m_listDecValOfBitPos[4] = 16;
-        m_listDecValOfBitPos[5] = 32;
-        m_listDecValOfBitPos[6] = 64;
-        m_listDecValOfBitPos[7] = 128;
-
+        // lookup maps for hex str conversion
         for(int i=0; i < 256; i++)
         {
             QByteArray hexByteStr = QByteArray::number(i,16);
@@ -57,7 +48,7 @@ namespace obdref
         xmlParseResult = m_xmlDoc.load_file(filePath.toStdString().c_str());
 
         if(xmlParseResult)
-        {   parsedOk = true;   }
+        {   initOk = true;   }
         else
         {
             OBDREFDEBUG << "XML [" << filePath << "] errors!\n";
@@ -68,21 +59,40 @@ namespace obdref
             OBDREFDEBUG << "OBDREF: Error Offset Char: "
                         << qint64(xmlParseResult.offset) << "\n";
 
-            parsedOk = false;
+            initOk = false;
+            return;
         }
 
-        // setup muParser
-        m_parser.DefineInfixOprt("!",muLogicalNot);
-        m_parser.DefineInfixOprt("~",muBitwiseNot);
-        m_parser.DefineOprt("&",muBitwiseAnd,3);
-        m_parser.DefineOprt("|",muBitwiseOr,3);
+        // setup v8
 
-        for(int i=0; i < MAX_EXPR_VARS; i++)
-        {  m_listExprVars[i] = 0;   }
+        // create persistent context and enter it
+        v8::HandleScope handleScope;
+        m_v8_context = v8::Context::New();
+        m_v8_context->Enter();
 
-        m_parser.DefineNameChars("0123456789_[]"
-                                 "abcdefghijklmnopqrstuvwxyz"
-                                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        // read in and compile globals js
+        QString scriptTxt;
+        QString scriptFilePath = "/home/preet/Dev/obdref/globals.js";
+        if(convTextFileToQStr(scriptFilePath,scriptTxt))
+        {   initOk = true;   }
+        else
+        {
+            OBDREFDEBUG << "OBDREF: Error: Could not find globals.js\n";
+            initOk = false;
+            return;
+        }
+
+        // compile and run
+        v8::Local<v8::String> scriptStr = v8::String::New(scriptTxt.toLocal8Bit().data());
+        v8::Local<v8::Script> scriptSrc = v8::Script::Compile(scriptStr);
+        scriptSrc->Run();
+    }
+
+    Parser::~Parser()
+    {
+        // exit and remove context handle
+        m_v8_context->Exit();
+        m_v8_context.Dispose();
     }
 
     // ========================================================================== //
@@ -380,60 +390,15 @@ namespace obdref
                                     return false;
                                 }
 
-                                // save all <parse /> children nodes this parameter has
-                                pugi::xml_node parseChild = nodeParameter.child("parse");
-                                for(parseChild; parseChild; parseChild = parseChild.next_sibling("parse"))
+                                // save parse code
+                                QString parseCode(nodeParameter.child_value("script"));
+                                if(parseCode.isEmpty())
                                 {
-                                    QString pExpr(parseChild.attribute("expr").value());
-                                    if(!pExpr.isEmpty())
-                                    {
-                                        // convert hex and binary notation
-                                        // to decimal for muParser
-                                        convToDecEquivExpression(pExpr);
-
-                                        ParseInfo parseInfo;
-                                        parseInfo.expr = pExpr;
-
-                                        QString pExprTrue(parseChild.attribute("true").value());
-                                        QString pExprFalse(parseChild.attribute("false").value());
-                                        if(pExprTrue.isEmpty() && pExprFalse.isEmpty())
-                                        {   // assume value is numerical
-                                            parseInfo.isNumerical = true;
-                                            if(parseChild.attribute("min"))
-                                            {   parseInfo.numericalData.min = parseChild.attribute("min").as_double();   }
-
-                                            if(parseChild.attribute("max"))
-                                            {   parseInfo.numericalData.max = parseChild.attribute("max").as_double();   }
-
-                                            if(parseChild.attribute("units"))
-                                            {   parseInfo.numericalData.units = QString(parseChild.attribute("units").value());   }
-
-                                            if(parseChild.attribute("desc"))
-                                            {   parseInfo.numericalData.desc = QString(parseChild.attribute("desc").value());   }
-                                        }
-                                        else
-                                        {   // assume value is literal
-                                            parseInfo.isLiteral = true;
-                                            parseInfo.literalData.valueIfFalse = pExprFalse;
-                                            parseInfo.literalData.valueIfTrue = pExprTrue;
-
-                                            if(parseChild.attribute("property"))
-                                            {   parseInfo.literalData.property = QString(parseChild.attribute("property").value());   }
-                                            else
-                                            {   parseInfo.literalData.property = paramName;   }
-
-                                            if(parseChild.attribute("desc"))
-                                            {   parseInfo.literalData.desc = QString(parseChild.attribute("desc").value());   }
-                                        }
-                                        msgFrame.listParseInfo.append(parseInfo);
-                                    }
+                                    OBDREFDEBUG << "OBDREF: Error: No parse info found for "
+                                                << "message: " << paramName;
+                                    return false;
                                 }
-
-                                // call walkConditionTree on <condition> children this parameter has
-                                QStringList listConditionExprs;
-                                pugi::xml_node condChild = nodeParameter.child("condition");
-                                for(condChild; condChild; condChild = condChild.next_sibling("condition"))
-                                {   walkConditionTree(condChild, listConditionExprs, msgFrame);   }
+                                msgFrame.parseScript = parseCode;
 
                                 return true;
                             }
@@ -477,7 +442,7 @@ namespace obdref
 
     bool Parser::ParseMessageFrame(MessageFrame &msgFrame, QList<obdref::Data> &listData)
     {
-        if(msgFrame.listParseInfo.size() == 0)
+        if(msgFrame.parseScript.isEmpty())
         {
             OBDREFDEBUG << "OBDREF: Error: No parse info "
                         << "found in message frame\n";
@@ -499,77 +464,14 @@ namespace obdref
         if(!formatOk)
         {   return false;   }
 
-        // parse data
-        for(int i=0; i < msgFrame.listParseInfo.size(); i++)
+        // determine if we have a single or multi-part response
+        if(msgFrame.listMessageData.size() > 1)
         {
-            QList<double> listResults;
-            bool parsedOk = false;
-            bool allConditionsValid = true;
-
-            // evaluate conditions
-            for(int j=0; j < msgFrame.listParseInfo[i].listConditions.size(); j++)
-            {
-                parsedOk = parseMessage(msgFrame, msgFrame.listParseInfo[i].listConditions.at(j),
-                                        listResults);
-                if(!parsedOk)
-                {
-                    OBDREFDEBUG << "OBDREF: Error: Could not interpret "
-                                << "condition expression: "
-                                << msgFrame.listParseInfo[i].listConditions.at(j) << "\n";
-                    return false;
-                }
-                if(listResults.contains(0))
-                {   // condition failed, ignore this parse expr
-                    allConditionsValid = false;
-                    break;
-                }
-            }
-
-            if(allConditionsValid)
-            {
-                listResults.clear();
-                parsedOk = parseMessage(msgFrame, msgFrame.listParseInfo.at(i).expr,
-                                        listResults);
-                if(!parsedOk)
-                {
-                    OBDREFDEBUG << "OBDREF: Error: Could not solve "
-                                << "parameter expression"
-                                << msgFrame.listParseInfo.at(i).expr << "\n";
-                    return false;
-                }
-
-                // save results
-                for(int j=0; j < listResults.size(); j++)
-                {
-                    Data paramData;
-                    paramData.name = msgFrame.name;
-
-                    if(msgFrame.listParseInfo.at(i).isNumerical)
-                    {   // TODO should we throw out value if not within min/max?
-                        paramData.listNumericalData << msgFrame.listParseInfo.at(i).numericalData;
-                        paramData.listNumericalData.last().value = listResults.at(j);
-                    }
-                    else if(msgFrame.listParseInfo.at(i).isLiteral)
-                    {   // throw out value if true/false value strings are empty
-
-                        bool trueAndTrueStrEmpty = bool(listResults.at(j)) &&
-                                msgFrame.listParseInfo[i].literalData.valueIfTrue.isEmpty();
-
-                        bool falseAndFalseStrEmpty = (bool(!listResults.at(j))) &&
-                                msgFrame.listParseInfo[i].literalData.valueIfFalse.isEmpty();
-
-                        if(trueAndTrueStrEmpty || falseAndFalseStrEmpty)
-                        {   continue;   }
-                        else
-                        {
-                            paramData.listLiteralData << msgFrame.listParseInfo.at(i).literalData;
-                            paramData.listLiteralData.last().value = bool(listResults.at(j));
-                        }
-                    }
-
-                    listData << paramData;
-                }
-            }
+            parseMultiPartResponse(msgFrame,listData);
+        }
+        else
+        {
+            parseSinglePartResponse(msgFrame,listData);
         }
 
         return true;
@@ -655,81 +557,6 @@ namespace obdref
         }
 
         return listErrors;
-    }
-
-    // ========================================================================== //
-    // ========================================================================== //
-
-    void Parser::walkConditionTree(pugi::xml_node &nodeCondition,
-                                   QStringList &listConditionExprs,
-                                   MessageFrame &msgFrame)
-    {
-        // add this condition expr to list
-        QString conditionExpr(nodeCondition.attribute("expr").value());
-        if(!conditionExpr.contains("protocols"))
-        {   convToDecEquivExpression(conditionExpr);   }
-        listConditionExprs.push_back(conditionExpr);
-
-        // save <parse /> children nodes this condition has
-        pugi::xml_node parseChild = nodeCondition.child("parse");
-        for(parseChild; parseChild; parseChild = parseChild.next_sibling("parse"))
-        {
-            QString pExpr(parseChild.attribute("expr").value());
-            if(!pExpr.isEmpty())
-            {
-                // convert hex and binary notation
-                // to decimal for muParser
-                convToDecEquivExpression(pExpr);
-
-                ParseInfo parseInfo;
-                parseInfo.expr = pExpr;
-
-                QString pExprTrue(parseChild.attribute("true").value());
-                QString pExprFalse(parseChild.attribute("false").value());
-                if(pExprTrue.isEmpty() && pExprFalse.isEmpty())
-                {   // assume value is numerical
-                    parseInfo.isNumerical = true;
-                    if(parseChild.attribute("min"))
-                    {   parseInfo.numericalData.min = parseChild.attribute("min").as_double();   }
-
-                    if(parseChild.attribute("max"))
-                    {   parseInfo.numericalData.max = parseChild.attribute("max").as_double();   }
-
-                    if(parseChild.attribute("units"))
-                    {   parseInfo.numericalData.units = QString(parseChild.attribute("units").value());   }
-
-                    if(parseChild.attribute("data"))
-                    {   parseInfo.numericalData.desc = QString(parseChild.attribute("data").value());   }
-                }
-                else
-                {   // assume value is literal
-                    parseInfo.isLiteral = true;
-                    parseInfo.literalData.valueIfFalse = pExprFalse;
-                    parseInfo.literalData.valueIfTrue = pExprTrue;
-
-                    if(parseChild.attribute("property"))
-                    {   parseInfo.literalData.property = QString(parseChild.attribute("property").value());   }
-                    else
-                    {   parseInfo.literalData.property = msgFrame.name;   }
-
-                    if(parseChild.attribute("desc"))
-                    {   parseInfo.literalData.desc = QString(parseChild.attribute("desc").value());   }                    
-                }
-
-                // save parse info (with conditions!)
-                parseInfo.listConditions = listConditionExprs;
-                msgFrame.listParseInfo.append(parseInfo);
-            }
-        }
-
-        // call walkConditionTree recursively on
-        // <condition> children this condition has
-        pugi::xml_node condChild = nodeCondition.child("condition");
-        for(condChild; condChild; condChild = condChild.next_sibling("condition"))
-        {   walkConditionTree(condChild, listConditionExprs, msgFrame);    }
-
-        // remove last condition expr added (since this is a DFS)
-        listConditionExprs.removeLast();
     }
 
     // ========================================================================== //
@@ -964,228 +791,21 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    bool Parser::parseMessage(const MessageFrame &msgFrame,
-                              const QString &parseExpr,
-                              QList<double> &myResults)
+    bool Parser::parseSinglePartResponse(const MessageFrame &msgFrame,
+                                         QList<Data> &listDataResults)
     {
-        bool convOk;
-        if(parseExpr.contains("resp"))
+        for(int i=0; i < msgFrame.listMessageData.at(0).listCleanData.size(); i++)
         {
-            // check for same num responses across message data list
-            for(int i=0; i < msgFrame.listMessageData.size()-1; i++)
-            {
-                if(msgFrame.listMessageData.at(i).listCleanData.size() !=
-                        msgFrame.listMessageData.at(i+1).listCleanData.size())
-                {
-                    OBDREFDEBUG << "OBDREF: Error: Data for " << msgFrame.name
-                                << " is ambiguous; there is a different number of "
-                                << "messages for each replying address across each "
-                                << "request. Try specifying a physical address."
-                                << parseExpr << "\n";
-                    return false;
-                }
-            }
+            ByteList const & headerBytes = msgFrame.listMessageData.at(0).listHeaders.at(i);
+            ByteList const & dataBytes = msgFrame.listMessageData.at(0).listCleanData.at(i);
 
-            // parse expression
-            QRegExp rx; int pos=0; double fVal = 0;
-            rx.setPattern("(resp[1-9][0-9]*\\[[0-9]+\\](\\[[0-7]\\])?)+");
 
-            QStringList listRegExpMatches;
-            while ((pos = rx.indexIn(parseExpr, pos)) != -1)
-            {
-                listRegExpMatches << rx.cap(1);
-                pos += rx.matchedLength();
-            }
-
-            // get resp,bit,byte num mappings
-            QList<uint> listMsgRespNums;
-            QList<uint> listByteNums;
-            QList<uint> listBitNums;
-
-            for(int i=0; i < listRegExpMatches.size(); i++)
-            {
-                // resp msg number
-                int posByteStart = listRegExpMatches.at(i).indexOf("[") + 1;
-                QString msgNumStr(listRegExpMatches.at(i).mid(4,posByteStart-1-4));
-                uint msgRespNum = stringToUInt(convOk,msgNumStr) - 1;
-                listMsgRespNums << msgRespNum;
-                if(msgFrame.listMessageData.size() <= msgRespNum)
-                {
-                    OBDREFDEBUG << "OBDREF: Error: Expression message "
-                                << "number prefix out of range: "
-                                << parseExpr << "\n";
-                    return false;
-                }
-
-                // byte number
-                int posByteEnd = listRegExpMatches.at(i).indexOf("]",posByteStart) - 1;
-                int numByteDigits = (posByteEnd-posByteStart) + 1;
-                QString byteNumStr = listRegExpMatches.at(i).mid(posByteStart,numByteDigits);
-                uint byteNum = stringToUInt(convOk,byteNumStr);
-                listByteNums << byteNum;
-                for(int j=0; j < msgFrame.listMessageData[msgRespNum].listCleanData.size(); j++)
-                {
-                    if(!(byteNum < msgFrame.listMessageData[msgRespNum].listCleanData[j].data.size()))
-                    {
-                        OBDREFDEBUG << "OBDREF: Error: Data for " << msgFrame.name
-                                    << " has insufficient bytes for parsing: "
-                                    << parseExpr << "\n";
-                        return false;
-                    }
-                }
-
-                // bit number
-                int posBitStart = listRegExpMatches.at(i).indexOf("[",posByteEnd) + 1;
-                if(posBitStart > 0)
-                {
-                    QString bitNumStr = listRegExpMatches.at(i).mid(posBitStart,1);
-                    listBitNums << stringToUInt(convOk,bitNumStr);
-                }
-                else
-                {   listBitNums << 8;   }   // any value above 7 to ignore
-            }
-
-            // map resp,byte,bit to vars and solve
-            for(int i=0; i < msgFrame.listMessageData.at(0).listCleanData.size(); i++)
-            {
-                // set up all vars for this address response
-                for(int j=0; j < listRegExpMatches.size(); j++)
-                {
-                    uint const &msgNum = listMsgRespNums.at(j);
-                    uint const &byteNum = listByteNums.at(j);
-                    uint const &bitNum = listBitNums.at(j);
-
-                    uint byteVal = uint(msgFrame.listMessageData.at(msgNum).listCleanData.at(i).data.at(byteNum));
-
-                    if(bitNum < 8)  // bit variable
-                    {
-                        uint bitMask = m_listDecValOfBitPos[bitNum];
-                        m_listExprVars[j] = double(byteVal & bitMask) / bitMask;
-                        m_parser.DefineVar(listRegExpMatches.at(j).toStdString(),
-                                           &m_listExprVars[j]);
-                    }
-                    else            // byte variable
-                    {
-                        m_listExprVars[j] = double(byteVal);
-                        m_parser.DefineVar(listRegExpMatches.at(j).toStdString(),
-                                           &m_listExprVars[j]);
-                    }
-                }
-
-                // evaluate
-                try
-                {
-                    m_parser.SetExpr(parseExpr.toStdString());
-                    myResults << m_parser.Eval();
-                }
-                catch(mu::Parser::exception_type &e)
-                {
-                    OBDREFDEBUG << "OBDREF: Error: Could not evaluate expression: \n";
-                    OBDREFDEBUG << "OBDREF: Error:    Message: " << QString::fromStdString(e.GetMsg()) << "\n";
-                    OBDREFDEBUG << "OBDREF: Error:    Formula: " << QString::fromStdString(e.GetExpr()) << "\n";
-                    OBDREFDEBUG << "OBDREF: Error:    Token: " << QString::fromStdString(e.GetToken()) << "\n";
-                    OBDREFDEBUG << "OBDREF: Error:    Position: " << e.GetPos() << "\n";
-                    OBDREFDEBUG << "OBDREF: Error:    ErrCode: " << e.GetCode() << "\n";
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        else
-        {
-            QRegExp rx; int pos=0; double fVal = 0;
-            rx.setPattern("(\\[[0-9]+\\](\\[[0-7]\\])?)+");
-
-            QStringList listRegExpMatches;
-            while ((pos = rx.indexIn(parseExpr, pos)) != -1)
-            {
-                listRegExpMatches << rx.cap(1);
-                pos += rx.matchedLength();
-            }
-
-            // get bit,byte num mappings
-            QList<uint> listByteNums;
-            QList<uint> listBitNums;
-
-            for(int i=0; i < listRegExpMatches.size(); i++)
-            {
-                // byte number
-                int posByteStart = listRegExpMatches.at(i).indexOf("[") + 1;
-                int posByteEnd = listRegExpMatches.at(i).indexOf("]",posByteStart) - 1;
-                int numByteDigits = (posByteEnd-posByteStart) + 1;
-                QString byteNumStr = listRegExpMatches.at(i).mid(posByteStart,numByteDigits);
-                uint byteNum = stringToUInt(convOk,byteNumStr);
-                listByteNums << byteNum;
-                for(int j=0; j < msgFrame.listMessageData[0].listCleanData.size(); j++)
-                {
-                    if(!(byteNum < msgFrame.listMessageData[0].listCleanData[j].data.size()))
-                    {
-                        OBDREFDEBUG << "OBDREF: Error: Data for " << msgFrame.name
-                                    << " has insufficient bytes for parsing: "
-                                    << parseExpr << "\n";
-                        return false;
-                    }
-                }
-
-                // bit number
-                int posBitStart = listRegExpMatches.at(i).indexOf("[",posByteEnd) + 1;
-                if(posBitStart > 0)
-                {
-                    QString bitNumStr = listRegExpMatches.at(i).mid(posBitStart,1);
-                    listBitNums << stringToUInt(convOk,bitNumStr);
-                }
-                else
-                {   listBitNums << 8;   }   // any value above 7 to ignore
-            }
-
-            // map resp,byte,bit to vars and solve
-            for(int i=0; i < msgFrame.listMessageData.at(0).listCleanData.size(); i++)
-            {
-                // set up all vars for this address response
-                for(int j=0; j < listRegExpMatches.size(); j++)
-                {
-                    uint const &byteNum = listByteNums.at(j);
-                    uint const &bitNum = listBitNums.at(j);
-
-                    uint byteVal = uint(msgFrame.listMessageData.at(0).listCleanData.at(i).data.at(byteNum));
-
-                    if(bitNum < 8)  // bit variable
-                    {
-                        uint bitMask = m_listDecValOfBitPos[bitNum];
-                        m_listExprVars[j] = double(byteVal & bitMask) / bitMask;
-                        m_parser.DefineVar(listRegExpMatches.at(j).toStdString(),
-                                           &m_listExprVars[j]);
-                    }
-                    else            // byte variable
-                    {
-                        m_listExprVars[j] = double(byteVal);
-                        m_parser.DefineVar(listRegExpMatches.at(j).toStdString(),
-                                           &m_listExprVars[j]);
-                    }
-                }
-
-                // evaluate
-                try
-                {
-                    m_parser.SetExpr(parseExpr.toStdString());
-                    myResults << m_parser.Eval();
-                }
-                catch(mu::Parser::exception_type &e)
-                {
-                    OBDREFDEBUG << "OBDREF: Error: Could not evaluate expression: \n";
-                    OBDREFDEBUG << "OBDREF: Error:    Message: " << QString::fromStdString(e.GetMsg()) << "\n";
-                    OBDREFDEBUG << "OBDREF: Error:    Formula: " << QString::fromStdString(e.GetExpr()) << "\n";
-                    OBDREFDEBUG << "OBDREF: Error:    Token: " << QString::fromStdString(e.GetToken()) << "\n";
-                    OBDREFDEBUG << "OBDREF: Error:    Position: " << e.GetPos() << "\n";
-                    OBDREFDEBUG << "OBDREF: Error:    ErrCode: " << e.GetCode() << "\n";
-                    return false;
-                }
-            }
-
-            return true;
         }
     }
+
+    bool Parser::parseMultiPartResponse(const MessageFrame &msgFrame,
+                                        QList<Data> &listDataResults)
+    {}
 
     // ========================================================================== //
     // ========================================================================== //
@@ -1274,47 +894,32 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    mu::value_type Parser::muLogicalNot(mu::value_type fVal)
+    bool Parser::convTextFileToQStr(const QString &filePath,
+                                    QString & fileDataAsStr)
     {
-        //std::cerr << "Called LogicalNot" << std::endl;
+        // TODO: use QFile and QTextStream instead of stdlib?
 
-        if(fVal == 0)
-        {   return 1;   }
+        std::ifstream file;
+        file.open(filePath.toLocal8Bit().data());
 
-        else if(fVal == 1)
-        {   return 0;   }
-
+        std::string contentAsString;
+        if(file.is_open())
+        {
+            std::string temp;
+            while(!file.eof())
+            {
+                std::getline(file,temp);
+                contentAsString.append(temp).append("\n");
+            }
+            file.close();
+        }
         else
-        {   throw mu::ParserError("LogicalNot: Argument is not 0 or 1");   }
+        {
+            OBDREFDEBUG << "OBDREF: Could not open file: " << filePath << "\n";
+            return false;
+        }
+
+        fileDataAsStr = QString::fromStdString(contentAsString);
+        return true;
     }
-
-    mu::value_type Parser::muBitwiseNot(mu::value_type fVal)
-    {
-        //std::cerr << "Called BitwiseNot" << std::endl;
-
-        ubyte iVal = (ubyte)fVal;
-        iVal = ~iVal;
-        return mu::value_type(fVal);
-    }
-
-    mu::value_type Parser::muBitwiseAnd(mu::value_type fVal1, mu::value_type fVal2)
-    {
-        //std::cerr << "Called BitwiseAnd" << std::endl;
-
-        ubyte iVal1 = (ubyte)fVal1;
-        ubyte iVal2 = (ubyte)fVal2;
-        return double(iVal1 & iVal2);
-    }
-
-    mu::value_type Parser::muBitwiseOr(mu::value_type fVal1, mu::value_type fVal2)
-    {
-        //std::cerr << "Called BitwiseOr" << std::endl;
-
-        ubyte iVal1 = (ubyte)fVal1;
-        ubyte iVal2 = (ubyte)fVal2;
-        return double(iVal1 | iVal2);
-    }
-
-    // ========================================================================== //
-    // ========================================================================== //
 }

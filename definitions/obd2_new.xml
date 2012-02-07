@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--  Document Description -->
+
+<!--  Document Sources:
+
+      A list of sources that most of the information in
+      this document has been compiled from (please add
+      to this list as more data is added).
+      
+      http://elmelectronics.com/DSheets/ELM327DS.pdf
+      http://obddiagnostics.com/obdinfo/msg_struct.html
+      http://en.wikipedia.org/wiki/On-board_diagnostics
+      http://en.wikipedia.org/wiki/OBD-II_PIDs
+      http://freediag.sourceforge.net
+      http://www.canobd2.com/Articles/ArticleDisplay.aspx?ArticleId=f3ea9f25589e4bf28f7e980ebefded20&nsl=Tech+Info%2cOBD+Knowledge&ReturnUrl=%2fArticles%2fArticleDisplay.aspx%3fArticleId%3d1efd0812b59d4b189e2420295b377631%26nsl%3dTech%2bInfo%252cOBD%2bKnowledge
+      http://www.peak-system.com/produktcd/Pdf/English/PCAN-GPRS_Link_UserMan_eng.pdf
+      http://www.drewtech.com/support/obd2/message.html
+      https://www.msu.edu/~guentche/guentchev/OBD-II/int-obdii.html
+      
+      -->
+
+<spec name="SAEJ1979" desc="OBDII Standard PIDs">
+   
+   <protocol name="SAE J1850 PWM">
+      <baudrate value="41600" />
+      <address name="Default">
+      <!--  Default J1850 PWM OBD message headers
+            for functional request/response from scan tool: -->
+            
+      <!--  Note: Scan tool might be in range 0xF0-0xFD if
+            default 0xF1 doesn't work -->
+            
+      <!--  Request Params:
+            prio:       0x61: Default OBD Request Priority
+            target:     0x6A: Functional Request 
+            source:     0xF1: External Scan Tool   -->
+         <request prio="0x61" target="0x6A" source="0xF1" />
+         
+      <!--  Response Params:
+            prio:       0x41: Default OBD Response Priority
+            target:     0x6B: Functional Response -->
+         <response prio="0x41" target="0x6B" />       
+      </address>
+   </protocol>
+   
+   <protocol name="SAE J1850 VPW">     
+      <baudrate value="10400" />
+      <address name="Default">
+      <!--  Default J1850 VPW OBD message headers
+            for functional request/response from scan tool: -->
+            
+      <!--  Note: Scan tool might be in range 0xF0-0xFD if
+            default 0xF1 doesn't work -->
+            
+      <!--  Request Params:
+            prio:       0x68: Default OBD Request Priority
+            target:     0x6A: Functional Request 
+            source:     0xF1: External Scan Tool   -->
+         <request prio="0x68" target="0x6A" source="0xF1" />
+         
+      <!--  Response Params:
+            prio:       0x48: Default OBD Response Priority
+            target:     0x6B: Functional Response -->
+         <response prio="0x48" target="0x6B" />
+      </address>
+   </protocol>
+   
+   <protocol name="ISO 9141-2">
+      <baudrate value="10400" />
+      <address name="Default">         
+      <!--  Default ISO 9141-2 OBD message headers
+            for functional request/response from scan tool: -->
+            
+      <!--  Note: Scan tool might be in range 0xF0-0xFD if
+            default 0xF1 doesn't work -->
+            
+      <!--  Request Params:
+            prio:       0x68: Default OBD Request Priority
+            target:     0x6A: Functional Request 
+            source:     0xF1: External Scan Tool   -->
+         <request prio="0x68" target="0x6A" source="0xF1" />
+         
+      <!--  Response Params:
+            prio:       0x48: Default OBD Response Priority
+            target:     0x6B: Functional Response -->
+         <response prio="0x48" target="0x6B" />
+      </address>
+   </protocol>
+   
+   <protocol name="ISO 14230-4">
+      <baudrate value="10400" />
+      <address name="Default">
+      <!--  Default ISO 14230-4 OBD message headers
+            for functional request/response from scan tool: -->
+            
+      <!--  Note: ISO 14230-4 supports longer data frames and
+            faster init communication with the ECU -->
+            
+      <!--  Note: Scan tool might be in range 0xF0-0xFD if
+            default 0xF1 doesn't work -->
+            
+      <!--  Note: LLLLLL is a 6 bit number representing the
+            length of the data byte section of the message  -->
+            
+      <!--  Request Params:
+            prio:       0b11LLLLLL: Mode (functional) and data length
+            target:     0x33: Functional Request 
+            source:     0xF1: External Scan Tool   -->
+         <request prio="0b11000000" target="0x33" source="0xF1" />
+         
+      <!--  Response Params:
+            prio:       0b10LLLLLL: Mode (physical) and data length -->
+         <response prio="0b10000000" target="0xF1" />
+      </address>
+   </protocol>
+   
+   <protocol name="ISO 15765-4 Extended">
+      <baudrate value="250000" />
+      <baudrate value="500000" />
+      <!--  Identifier Format: [prio] [format] [target] [source] -->
+      
+      <address name="Default">
+      <!--  Default ISO 15765 29-bit OBD message identifier
+            for functional request/response from scan tool: -->
+            
+      <!--  Request Params:
+            prio:       0x18: Default OBD Request Priority
+            format:     0xDB: Functional Message
+            target:     0x33: Functional Request
+            source:     0xF1: External Scan Tool   -->
+         <request prio="0x18" format="0xDB" target="0x33" source="0xF1" />
+
+      <!--  Response Params:
+            format:     0xDA: Physical Message  -->
+         <response prio="0x18" format="0xDA" target="0xF1" />
+      </address>
+   </protocol>
+   
+   <protocol name="ISO 15765-4 Standard">
+      <baudrate value="250000" />
+      <baudrate value="500000" />
+      <!--  Identifier Format: [11-bit identifier] -->
+      
+      <!--  Note: CAN 11-bit identifiers are not mapped to the
+            default "priority,target,source" style header found 
+            in typical OBD messages. Instead, they use a single
+            address for their identifier, which may represent a
+            physical node or functional group -->
+            
+      <address name="Default">
+      <!--  Default ISO 15765 11-bit OBD message identifier
+            for functional request from scan tool: -->
+      <!--  Request Params:
+            identifier: 0x7DF: id for functional request from scan tool -->
+         <request identifier="0x7DF" />
+      </address>
+      
+      <!--  Physical Request/Response Identifiers for ECUs
+            in the vehicle. 11-bit CAN allows for 8 ECUs in all. -->
+      <address name="ECU1">
+         <request identifier="0x7E0" />
+         <response identifier="0x7E8" />
+      </address>
+      
+      <address name="ECU2">
+         <request identifier="0x7E1" />
+         <response identifier="0x7E9" />
+      </address>
+      
+      <address name="ECU3">
+         <request identifier="0x7E2" />
+         <response identifier="0x7EA" />
+      </address>
+      
+      <address name="ECU4">
+         <request identifier="0x7E3" />
+         <response identifier="0x7EB" />
+      </address>
+      
+      <address name="ECU5">
+         <request identifier="0x7E4" />
+         <response identifier="0x7EC" />
+      </address>
+      
+      <address name="ECU6">
+         <request identifier="0x7E5" />
+         <response identifier="0x7ED" />
+      </address>
+      
+      <address name="ECU7">
+         <request identifier="0x7E6" />
+         <response identifier="0x7EE" />
+      </address>
+      
+      <address name="ECU8">
+         <request identifier="0x7E7" />
+         <response identifier="0x7EF" />
+      </address>
+   </protocol>
+   
+   <parameters address="Default">
+		  
+      <!-- START MODE $01 PIDs -->
+      
+      <parameter name="PIDs Supported 0x01-0x20" 
+         request="0x01 0x00" response.prefix="0x41 0x00" response.bytes="4">
+         <script>
+            <![CDATA[  
+            var k = 0x01;
+            for(var i=0; i < 4; i++)
+            {
+               for(var j=0; j < 8; j++)
+               {
+                  var pid = new LiteralDataObj();
+                  pid.property = "PID " + k.toString(16);
+                  pid.valueIfTrue = "Supported";
+                  pid.valueIfFalse = "Unsupported";
+                  pid.value = BIT(i,(7-j)) ? true : false;                                 
+                  saveLiteralData(pid);
+                  k++;
+               }
+            }
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="Monitor Status Since DTCs Cleared"
+         request="0x01 0x01" response.prefix="0x41 0x01" response.bytes="4">
+         <script>
+            <![CDATA[
+            // number of DTCs available
+            var availDTCs = new NumericalDataObj();
+            availDTCs.min = 0;
+            availDTCs.max = 127;
+            availDTCs.value = BYTE(0) & 127;
+            availDTCs.property = "Number of confirmed DTCs available";
+            saveNumericalData(availDTCs);
+            
+            // common monitoring and system test info
+            var litData = new LiteralDataObj();
+            litData.property = "Check Engine Light State";  
+            litData.valueIfTrue = "ON";          
+            litData.valueIfFalse = "OFF";            
+            litData.value = (BIT(0,7)) ? true : false;
+            saveLiteralData(litData);
+            
+            var commProperties = ["Misfire","Fuel System","Components"];
+            
+            for(var i=0; i < 3; i++)
+            {
+               litData = new LiteralDataObj();
+               litData.property = commProperties[i] + " Monitoring";
+               litData.valueIfTrue = "Test Available";
+               litData.valueIfFalse = "Test Unavailable";            
+               litData.value = (BIT(1,i)) ? true : false;
+               saveLiteralData(litData);
+            }                        
+            
+            for(var i=4; i < 7; i++)
+            {
+               litData = new LiteralDataObj();
+               litData.property = commProperties[i] + " Test Status";
+               litData.valueIfTrue = "Complete";      // TODO: verify this
+               litData.valueIfFalse = "Incomplete";   // TODO: verify this
+               litData.value = (BIT(1,i)) ? true : false;
+               saveLiteralData(litData);
+            }
+            
+            litData = new LiteralDataObj();
+            litData.property = "Vehicle Ignition Type";
+            litData.valueIfTrue = "Compression";
+            litData.valueIfFalse = "Spark";
+            litData.value = (BIT(1,3)) ? true : false;
+            saveLiteralData(litData);              
+            
+            // compression ignition monitor and test info
+            if(BIT(1,3))
+            {
+               var compProperties = ["NMHC Cat","NOx/SCR Monitor","Boost Pressure",
+                                    "Exhaust Gas Sensor","PM Filter Monitoring","EGR/VVT System"];
+                                    
+               for(var i=0; i < 8; i++)
+               {
+                  if(i == 2 || i == 4)
+                  {   continue;   }
+                  
+                  litData = new LiteralDataObj();
+                  litData.property = compProperties[i] + " Test";
+                  litData.valueIfTrue = "Test Available";
+                  litData.valueIfFalse = "Test Unavailable";
+                  litData.value = (BIT(2,i)) ? true : false;
+                  saveLiteralData(litData);  
+               }
+               
+               for(var i=0; i < 8; i++)
+               {
+                  if(i == 2 || i == 4)
+                     {   continue;   }
+                     
+                  litData = new LiteralDataObj();
+                  litData.property = compProperties[i] + " Test Status";
+                  litData.valueIfTrue = "Incomplete";
+                  litData.valueIfFalse = "Complete";
+                  litData.value = (BIT(3,i)) ? true : false;
+                  saveLiteralData(litData);  
+               }
+            }
+            // spark ignition monitor and test info
+            else
+            {
+               var sparkProperties = ["Catalyst","Heated Catalyst","Evaporative System", "Secondary Air System"
+                                      "A/C Refrigerant","Oxygen Sensor","Oxygen Sensor Heater", "EGR System"];
+                                      
+               for(var i=0; i < 8; i++)
+               {
+                  litData = new LiteralDataObj();
+                  litData.property = sparkProperties[i] + "Test";
+                  litData.valueIfTrue = "Test Available";
+                  litData.valueIfFalse = "Test Unavailable";
+                  litData.value = (BIT(2,i)) ? true : false;
+                  saveLiteralData(litData);  
+               }
+               
+               for(var i=0; i < 8; i++)
+               {
+                  litData = new LiteralDataObj();
+                  litData.property = compProperties[i] + " Test Status";
+                  litData.valueIfTrue = "Incomplete";
+                  litData.valueIfFalse = "Complete";
+                  litData.value = (BIT(3,i)) ? true : false;
+                  saveLiteralData(litData);  
+               }
+            }
+            ]]>
+         </script>
+      </parameter>                  
+      
+      <parameter name="Fuel System Status"
+         request="0x01 0x03" response.prefix="0x41 0x03" response.bytes="2">
+         <script>
+            <![CDATA[
+            var fsWhenTrue = ["Open Loop: Insufficient engine temperature",
+                              "Closed Loop: Using oxygen sensor feedback to determine fuel mix",
+                              "Open Loop: Due to engine load OR fuel cut due to acceleration",
+                              "Open Loop: Due to system failure",
+                              "Closed loop: Using at least one oxygen sensor but there is a fault in the feedback system"];
+            // fuel system 1
+            for(int i=0; i < 5; i++)
+            {
+               var fuelSysData = new LiteralDataObj();
+               fuelSysData.property = "Fuel System 1 Status";
+               fuelSysData.valueIfTrue = fsWhenTrue[i];
+               fuelSysData.value = BIT(0,i) ? true : false;
+               saveLiteralData(litData);  
+            }
+            
+            // fuel system 2
+            for(int i=0; i < 5; i++)
+            {
+               var fuelSysData = new LiteralDataObj();
+               fuelSysData.property = "Fuel System 2 Status";
+               fuelSysData.valueIfTrue = fsWhenTrue[i];
+               fuelSysData.value = BIT(1,i) ? true : false;
+               saveLiteralData(litData);  
+            }
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="Calculated Engine Load"
+         request="0x01 0x04" response.prefix="0x41 0x04" response.bytes="1">        
+         <script>
+            <![CDATA[
+            var engLoad = new NumericalDataObj();
+            engLoad.units = "%";
+            engLoad.min = 0;
+            engLoad.max = 100;
+            engLoad.value = BYTE(0)*100/255;
+            saveNumericalData(engLoad);
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="Engine Coolant Temperature"
+         request="0x01 0x05" response.prefix="0x41 0x05" response.bytes="1">
+         <script>
+            <![CDATA[
+            var coolantTemp = new NumericalDataObj();
+            coolantTemp.units = "C";
+            coolantTemp.min = -40;
+            coolantTemp.max = 215;
+            coolantTemp.value = BYTE(0)-40;
+            saveNumericalData(coolantTemp);
+            ]]>
+         </script>     
+      </parameter>
+      
+      <parameter name="SSM Engine Speed"
+         request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
+         request2="0xA8 0x00 0x00 0x00 0x0F" response2.prefix="0xE8" response2.bytes="1" 
+         request2.delay="100">
+         <script>
+            <![CDATA[
+            var engSpd = new NumericalDataObj();
+            engSpd.units = "rpm";
+            engSpd.min = 0;
+            engSpd.max = 16384";
+            engSpd.value = ((DATA(0).BYTE(0)*256) + DATA(1).BYTE(0))/4;
+            saveNumericalData(engSpd);
+            ]]>
+         </script>
+      </parameter>
+      
+   </parameters>
+</spec>

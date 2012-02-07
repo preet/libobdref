@@ -452,6 +452,32 @@
          <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
       </parameter>
       
+      <parameter name="Bank 2, Sensor 3: Oxygen Sensor Voltage, Short Term Fuel Trim"
+		request="0x01 0x1A" response.prefix="0x41 0x1A" response.bytes="2">
+		<parse>
+		var voltage = new NumericalDataObj();
+		voltage.units = "V";
+		voltage.min = 0;
+		voltage.max = 1.275;
+		voltage.value = BYTE(0) / 200;
+		saveNumericalData(numDataObj);
+		
+		var fuelTrim = new NumericalDataObject();
+		fuelTrim.units = "%";
+		fuelTrim.min = -100;
+		fuelTrim.max = 99.2;
+		fuelTrim.value = (BYTE(1)-128)*100/128;
+		saveNumericalData(fuelTrim);
+		
+		var milStatus = new LiteralDataObject();
+		litData.property = "MIL Status";
+		listData.valueIfTrue = "On";
+		listData.valueIfFalse = "Off";
+		listData.value = (BIT(0,1) && BIT(0,4));
+		saveLiteralData(milStatus);
+		</parse>		
+	  </parameter>
+      
       <parameter name="Bank 2, Sensor 4: Oxygen Sensor Voltage, Short Term Fuel Trim"
          request="0x01 0x1B" response.prefix="0x41 0x1B" response.bytes="2">
          <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->

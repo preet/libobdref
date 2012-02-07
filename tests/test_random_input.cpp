@@ -32,13 +32,13 @@ int main(int argc, char* argv[])
     QString filePath(argv[1]);
     if(filePath.isEmpty())
     {
-        filePath = "/home/preet/Dev/obdref/definitions/obd2.xml";
+        filePath = "/home/preet/Dev/obdref/definitions/obd2_new.xml";
     }
 
-    // read in xml definitions file
+    // read in xml definitions file and globals js
     obdref::Parser myParser(filePath,opOk);
     if(!opOk)
-    {   qDebug() << "Reading in XML Failed! Exiting...";
+    {   qDebug() << "Reading in XML and JS Failed! Exiting...";
 
         QStringList listErrors = myParser.GetLastKnownErrors();
         for(int i=0; i < listErrors.size(); i++)
@@ -46,144 +46,154 @@ int main(int argc, char* argv[])
 
         return -1;
     }
-    qDebug() << "OBDREF: Successfully read in XML Defs file";
+    qDebug() << "OBDREF: Successfully read in XML Defs and JS globals!";
 
-    // get a list of default parameters
-    QStringList myParamList;
-    myParamList = myParser.GetParameterNames("SAEJ1979",
-                                             "ISO 15765-4 Standard",
-                                             "Default");
-    for(int i=4; i < 6; i++)
-    {
-        // build a message frame for the current param
-        obdref::MessageFrame myMsg;
-        myMsg.spec = "SAEJ1979";
-        myMsg.protocol = "ISO 15765-4 Standard";
-        myMsg.address = "Default";
-        myMsg.name = myParamList.at(i);
+//    // test
+//    obdref::MessageFrame myMsg;
+//    myMsg.spec = "SAEJ1979";
+//    myMsg.protocol = "ISO 15765-4 Standard";
+//    myMsg.address = "Default";
+//    myMsg.name = "Engine Coolant Temperature";
+//    opOk = myParser.BuildMessageFrame(myMsg);
 
-        opOk = myParser.BuildMessageFrame(myMsg);
-        if(!opOk)
-        {
-            qDebug() << "BuildMessageFrame for" << myParamList.at(i)
-                     << "Failed! Exiting...";
+//    qDebug() << myMsg.parseScript;
 
-            QStringList listErrors = myParser.GetLastKnownErrors();
-            for(int i=0; i < listErrors.size(); i++)
-            {   qDebug() << listErrors.at(i);   }
+//    // get a list of default parameters
+//    QStringList myParamList;
+//    myParamList = myParser.GetParameterNames("SAEJ1979",
+//                                             "ISO 15765-4 Standard",
+//                                             "Default");
+//    for(int i=4; i < 6; i++)
+//    {
+//        // build a message frame for the current param
+//        obdref::MessageFrame myMsg;
+//        myMsg.spec = "SAEJ1979";
+//        myMsg.protocol = "ISO 15765-4 Standard";
+//        myMsg.address = "Default";
+//        myMsg.name = myParamList.at(i);
 
-            return -1;
-        }
+//        opOk = myParser.BuildMessageFrame(myMsg);
+//        if(!opOk)
+//        {
+//            qDebug() << "BuildMessageFrame for" << myParamList.at(i)
+//                     << "Failed! Exiting...";
 
-        // generate some random data to pretend we
-        // have an actual device response
-        for(int j=0; j < myMsg.listMessageData.size(); j++)
-        {
-            obdref::ByteList randomData;
-            srand(j+153);
+//            QStringList listErrors = myParser.GetLastKnownErrors();
+//            for(int i=0; i < listErrors.size(); i++)
+//            {   qDebug() << listErrors.at(i);   }
 
-            // response 1
-            randomData.data << 0x07 << 0xE9 << 0x24;
-            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-            int prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
-            for(int k=0; k < 7-prefixSize; k++)
-            {
-                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
-                randomData.data << myDataByte;
-            }
-            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
-            randomData.data.clear();
+//            return -1;
+//        }
 
-            // response 2
-            srand(j+32);
-            randomData.data << 0x07 << 0xEB << 0x26;
-            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
-            for(int k=0; k < 7-prefixSize; k++)
-            {
-                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
-                randomData.data << myDataByte;
-            }
-            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
-            randomData.data.clear();
+//        // generate some random data to pretend we
+//        // have an actual device response
+//        for(int j=0; j < myMsg.listMessageData.size(); j++)
+//        {
+//            obdref::ByteList randomData;
+//            srand(j+153);
 
-            // response 3
-            srand(j+32);
-            randomData.data << 0x07 << 0xA9 << 0x23 << 0x06;
-            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
-            for(int k=0; k < 7-prefixSize; k++)
-            {
-                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
-                randomData.data << myDataByte;
-            }
-            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
-            randomData.data.clear();
+//            // response 1
+//            randomData.data << 0x07 << 0xE9 << 0x24;
+//            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
+//            int prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
+//            for(int k=0; k < 7-prefixSize; k++)
+//            {
+//                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
+//                randomData.data << myDataByte;
+//            }
+//            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
+//            randomData.data.clear();
 
-            // response 4
-            srand(j+32);
-            randomData.data << 0x07 << 0xA9 << 0x16;
-            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
-            for(int k=0; k < 7-prefixSize; k++)
-            {
-                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
-                randomData.data << myDataByte;
-            }
-            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
-            randomData.data.clear();
-        }
+//            // response 2
+//            srand(j+32);
+//            randomData.data << 0x07 << 0xEB << 0x26;
+//            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
+//            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
+//            for(int k=0; k < 7-prefixSize; k++)
+//            {
+//                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
+//                randomData.data << myDataByte;
+//            }
+//            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
+//            randomData.data.clear();
 
-        // parse message frame
-        QList<obdref::Data> listData;
-        opOk = myParser.ParseMessageFrame(myMsg, listData);
+//            // response 3
+//            srand(j+32);
+//            randomData.data << 0x07 << 0xA9 << 0x23 << 0x06;
+//            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
+//            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
+//            for(int k=0; k < 7-prefixSize; k++)
+//            {
+//                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
+//                randomData.data << myDataByte;
+//            }
+//            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
+//            randomData.data.clear();
 
-        if(!opOk || listData.size() == 0)
-        {
-            qDebug() << "ParseMessageFrame for" << myParamList.at(i)
-                     << "Failed! Exiting...";
+//            // response 4
+//            srand(j+32);
+//            randomData.data << 0x07 << 0xA9 << 0x16;
+//            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
+//            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
+//            for(int k=0; k < 7-prefixSize; k++)
+//            {
+//                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
+//                randomData.data << myDataByte;
+//            }
+//            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
+//            randomData.data.clear();
+//        }
 
-            QStringList listErrors = myParser.GetLastKnownErrors();
-            for(int i=0; i < listErrors.size(); i++)
-            {   qDebug() << listErrors.at(i);   }
+//        // parse message frame
+//        QList<obdref::Data> listData;
+//        opOk = myParser.ParseMessageFrame(myMsg, listData);
 
-            return -1;
-        }
+//        if(!opOk || listData.size() == 0)
+//        {
+//            qDebug() << "ParseMessageFrame for" << myParamList.at(i)
+//                     << "Failed! Exiting...";
 
-        // print out data
-        qDebug() << "================================================";
-        qDebug() << myParamList.at(i) << "| Found" << listData.size() << "results";
+//            QStringList listErrors = myParser.GetLastKnownErrors();
+//            for(int i=0; i < listErrors.size(); i++)
+//            {   qDebug() << listErrors.at(i);   }
 
-        for(int i=0; i < listData.size(); i++)
-        {
-            if(listData.at(i).listLiteralData.size() > 0)
-            {   qDebug() << "[Literal Data]";   }
+//            return -1;
+//        }
 
-            for(int j=0; j < listData.at(i).listLiteralData.size(); j++)
-            {
-                if(listData.at(i).listLiteralData.at(j).value)
-                {
-                    qDebug() << listData.at(i).listLiteralData.at(j).property;
-                    qDebug() << listData.at(i).listLiteralData.at(j).valueIfTrue;
-                }
-                else
-                {
-                    qDebug() << listData.at(i).listLiteralData.at(j).property;
-                    qDebug() << listData.at(i).listLiteralData.at(j).valueIfFalse;
-                }
-            }
+//        // print out data
+//        qDebug() << "================================================";
+//        qDebug() << myParamList.at(i) << "| Found" << listData.size() << "results";
 
-            if(listData.at(i).listNumericalData.size() > 0)
-            {   qDebug() << "[Numerical Data]";   }
+//        for(int i=0; i < listData.size(); i++)
+//        {
+//            if(listData.at(i).listLiteralData.size() > 0)
+//            {   qDebug() << "[Literal Data]";   }
 
-            for(int j=0; j < listData.at(i).listNumericalData.size(); j++)
-            {
-                qDebug() << listData.at(i).listNumericalData.at(j).value
-                         << listData.at(i).listNumericalData.at(j).units;
-            }
-        }
-        qDebug() << "================================================";
-    }
+//            for(int j=0; j < listData.at(i).listLiteralData.size(); j++)
+//            {
+//                if(listData.at(i).listLiteralData.at(j).value)
+//                {
+//                    qDebug() << listData.at(i).listLiteralData.at(j).property;
+//                    qDebug() << listData.at(i).listLiteralData.at(j).valueIfTrue;
+//                }
+//                else
+//                {
+//                    qDebug() << listData.at(i).listLiteralData.at(j).property;
+//                    qDebug() << listData.at(i).listLiteralData.at(j).valueIfFalse;
+//                }
+//            }
+
+//            if(listData.at(i).listNumericalData.size() > 0)
+//            {   qDebug() << "[Numerical Data]";   }
+
+//            for(int j=0; j < listData.at(i).listNumericalData.size(); j++)
+//            {
+//                qDebug() << listData.at(i).listNumericalData.at(j).value
+//                         << listData.at(i).listNumericalData.at(j).units;
+//            }
+//        }
+//        qDebug() << "================================================";
+//    }
 
     return 0;
 }
