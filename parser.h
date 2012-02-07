@@ -85,7 +85,9 @@ private:
 
     // v8 vars
     v8::Persistent<v8::Context> m_v8_context;
-    v8::Persistent<v8::Object> m_v8_list_dataBytes;
+    v8::Persistent<v8::Object> m_v8_listDataBytes;
+    v8::Persistent<v8::Object> m_v8_listLitData;
+    v8::Persistent<v8::Object> m_v8_listNumData;
 
     // pugixml vars
     QString m_xmlFilePath;

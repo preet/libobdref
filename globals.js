@@ -69,19 +69,20 @@ function ListDataBytesObj()
 {
    this.listDataBytes = [];
    
-   this.appendDataBytesContainer = function()
+   this.appendDataBytes = function(dataBytes)
       {
-         var dataBytesContainer = new DataBytesObj();
-         this.listDataBytes.push(dataBytesContainer);
+         var dataBytesObj = new DataBytesObj();
+         dataBytesObj.bytes = dataBytes;
+         this.listDataBytes.push(dataBytesObj);
       }
+      
+   this.clearDataBytes = function()
+      {   this.listDataBytes.length = 0;   }
 }
 
 // global list of databytes for when a parameter
 // needs to be reconstructed from multiple messages
 var global_list_databytes = new ListDataBytesObj();
-
-for(var i=0; i < 10; i++)
-{   global_list_databytes.appendDataBytesContainer();   }
 
 function DATA(respNum)
 {
@@ -96,5 +97,4 @@ function BYTE(bytePos)
 
 function BIT(bytePos,bitPos)
 {   return DATA(0).BIT(bytePos,bitPos);   }
-
 

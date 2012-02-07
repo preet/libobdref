@@ -86,6 +86,19 @@ namespace obdref
         v8::Local<v8::String> scriptStr = v8::String::New(scriptTxt.toLocal8Bit().data());
         v8::Local<v8::Script> scriptSrc = v8::Script::Compile(scriptStr);
         scriptSrc->Run();
+
+        // get refs to global vars
+        v8::Local<v8::Value> val_listDataBytes;
+        val_listDataBytes = m_v8_context->Global()->Get(v8::String::New("global_list_databytes"));
+        m_v8_listDataBytes = v8::Persistent<v8::Object>::New(val_listDataBytes->ToObject());
+
+        v8::Local<v8::Value> val_listLitData;
+        val_listLitData = m_v8_context->Global()->Get(v8::String::New("global_list_lit_data"));
+        m_v8_listLitData = v8::Persistent<v8::Object>::New(val_listLitData->ToObject());
+
+        v8::Local<v8::Value> val_listNumData;
+        val_listNumData = m_v8_context->Global()->Get(v8::String::New("global_list_num_data"));
+        m_v8_listNumData = v8::Persistent<v8::Object>::New(val_listNumData->ToObject());
     }
 
     Parser::~Parser()
@@ -449,6 +462,8 @@ namespace obdref
             return false;
         }
 
+        qDebug() << "Got here";
+
         // clean up response data based on protocol type
         bool formatOk = false;
         if(msgFrame.protocol == "ISO 15765-4 Standard")
@@ -459,10 +474,16 @@ namespace obdref
 
         else
         {   // TODO
-        }
+        }     
 
         if(!formatOk)
-        {   return false;   }
+        {
+            OBDREFDEBUG << "OBDREF: Error: Could not clean "
+                        << "raw data using spec'd format\n";
+            return false;
+        }
+
+        qDebug() << "And here";
 
         // determine if we have a single or multi-part response
         if(msgFrame.listMessageData.size() > 1)
@@ -472,7 +493,10 @@ namespace obdref
         else
         {
             parseSinglePartResponse(msgFrame,listData);
+            qDebug() << "And he!re";
         }
+
+
 
         return true;
     }
@@ -794,12 +818,87 @@ namespace obdref
     bool Parser::parseSinglePartResponse(const MessageFrame &msgFrame,
                                          QList<Data> &listDataResults)
     {
+        // a single part response may have responses from different addresses
+        // but is interpreted as one response messsage per parameter per address
         for(int i=0; i < msgFrame.listMessageData.at(0).listCleanData.size(); i++)
         {
             ByteList const & headerBytes = msgFrame.listMessageData.at(0).listHeaders.at(i);
             ByteList const & dataBytes = msgFrame.listMessageData.at(0).listCleanData.at(i);
 
+            qDebug() << "HEADER: " << headerBytes.data;
+            qDebug() << "DATA: " << dataBytes.data;
 
+            v8::HandleScope handleScope;
+
+            // clear existing databytes in js context
+            v8::Local<v8::Value> val_clearDataBytes;
+            val_clearDataBytes = m_v8_listDataBytes->Get(v8::String::New("clearDataBytes"));
+
+            v8::Local<v8::Function> method_clearDataBytes;
+            method_clearDataBytes = v8::Local<v8::Function>::Cast(val_clearDataBytes);
+            method_clearDataBytes->Call(m_v8_listDataBytes,0,NULL);
+
+            // clear existing lit and num data lists
+            v8::Local<v8::Value> val_clearLitData;
+            val_clearLitData = m_v8_listLitData->Get(v8::String::New("clearData"));
+
+            v8::Local<v8::Function> method_clearLitData;
+            method_clearLitData = v8::Local<v8::Function>::Cast(val_clearLitData);
+            method_clearLitData->Call(m_v8_listLitData,0,NULL);
+
+            v8::Local<v8::Value> val_clearNumData;
+            val_clearNumData = m_v8_listNumData->Get(v8::String::New("clearData"));
+
+            v8::Local<v8::Function> method_clearNumData;
+            method_clearNumData = v8::Local<v8::Function>::Cast(val_clearNumData);
+            method_clearNumData->Call(m_v8_listNumData,0,NULL);
+
+            // copy over databytes to js context
+            v8::Local<v8::Array> dataByteArray = v8::Array::New(dataBytes.data.size());
+            for(int j=0; j < dataBytes.data.size(); j++)
+            {   dataByteArray->Set(j,v8::Integer::New(int(dataBytes.data.at(j))));   }
+
+            v8::Local<v8::Value> val_appendDataBytes;
+            val_appendDataBytes = m_v8_listDataBytes->Get(v8::String::New("appendDataBytes"));
+
+            v8::Local<v8::Value> args_appendDataBytes[] = { dataByteArray };
+            v8::Local<v8::Function> method_appendDataBytes;
+            method_appendDataBytes = v8::Local<v8::Function>::Cast(val_appendDataBytes);
+            method_appendDataBytes->Call(m_v8_listDataBytes,1,args_appendDataBytes);
+
+            // evaluate the data
+            v8::Local<v8::String> scriptString;
+            v8::Local<v8::Script> scriptSource;
+            scriptString = v8::String::New(msgFrame.parseScript.toLocal8Bit().data());
+            scriptSource = v8::Script::Compile(scriptString);
+            scriptSource->Run();
+
+            // retrieve results
+            obdref::Data myData;
+            myData.paramName = msgFrame.name;
+            myData.srcAddress = headerBytes;
+
+            v8::Local<v8::Value> val_listNumData = m_v8_listNumData->Get(v8::String::New("listData"));
+            v8::Local<v8::Array> array_numData = v8::Local<v8::Array>::Cast(val_listNumData);
+            for(int j=0; j < array_numData->Length(); j++)
+            {
+                v8::Local<v8::Value> val_numData = array_numData->Get(j);
+                v8::Local<v8::Object> obj_numData = val_numData->ToObject();
+
+                // get numerical value, min, max, units, desc
+                obdref::NumericalData myNumData;
+                myNumData.value = obj_numData->Get(v8::String::New("value"))->NumberValue();
+                myNumData.min = obj_numData->Get(v8::String::New("min"))->NumberValue();
+                myNumData.max = obj_numData->Get(v8::String::New("max"))->NumberValue();
+
+                v8::String::Utf8Value numUnitsStr(obj_numData->Get(v8::String::New("units"))->ToString());
+                myNumData.units = QString(numUnitsStr);
+
+                v8::String::Utf8Value numDescStr(obj_numData->Get(v8::String::New("desc"))->ToString());
+                myNumData.desc = QString(numDescStr);
+            }
+
+            v8::Local<v8::Value> val_listLitData = m_v8_listLitData->Get(v8::String::New("listData"));
         }
     }
 

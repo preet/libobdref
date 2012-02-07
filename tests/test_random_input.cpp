@@ -48,49 +48,41 @@ int main(int argc, char* argv[])
     }
     qDebug() << "OBDREF: Successfully read in XML Defs and JS globals!";
 
-//    // test
-//    obdref::MessageFrame myMsg;
-//    myMsg.spec = "SAEJ1979";
-//    myMsg.protocol = "ISO 15765-4 Standard";
-//    myMsg.address = "Default";
-//    myMsg.name = "Engine Coolant Temperature";
-//    opOk = myParser.BuildMessageFrame(myMsg);
 
-//    qDebug() << myMsg.parseScript;
+    // get a list of default parameters
+    QStringList myParamList;
+    myParamList = myParser.GetParameterNames("SAEJ1979",
+                                             "ISO 15765-4 Standard",
+                                             "Default");
 
-//    // get a list of default parameters
-//    QStringList myParamList;
-//    myParamList = myParser.GetParameterNames("SAEJ1979",
-//                                             "ISO 15765-4 Standard",
-//                                             "Default");
-//    for(int i=4; i < 6; i++)
-//    {
-//        // build a message frame for the current param
-//        obdref::MessageFrame myMsg;
-//        myMsg.spec = "SAEJ1979";
-//        myMsg.protocol = "ISO 15765-4 Standard";
-//        myMsg.address = "Default";
-//        myMsg.name = myParamList.at(i);
+    for(int i=4; i < 5; i++)
+    {
+        // build a message frame for the current param
+        obdref::MessageFrame myMsg;
+        myMsg.spec = "SAEJ1979";
+        myMsg.protocol = "ISO 15765-4 Standard";
+        myMsg.address = "Default";
+        myMsg.name = myParamList.at(i);
 
-//        opOk = myParser.BuildMessageFrame(myMsg);
-//        if(!opOk)
-//        {
-//            qDebug() << "BuildMessageFrame for" << myParamList.at(i)
-//                     << "Failed! Exiting...";
+        opOk = myParser.BuildMessageFrame(myMsg);
+        if(!opOk)
+        {
+            qDebug() << "BuildMessageFrame for" << myParamList.at(i)
+                     << "Failed! Exiting...";
 
-//            QStringList listErrors = myParser.GetLastKnownErrors();
-//            for(int i=0; i < listErrors.size(); i++)
-//            {   qDebug() << listErrors.at(i);   }
+            QStringList listErrors = myParser.GetLastKnownErrors();
+            for(int i=0; i < listErrors.size(); i++)
+            {   qDebug() << listErrors.at(i);   }
 
-//            return -1;
-//        }
+            return -1;
+        }
 
-//        // generate some random data to pretend we
-//        // have an actual device response
-//        for(int j=0; j < myMsg.listMessageData.size(); j++)
-//        {
-//            obdref::ByteList randomData;
-//            srand(j+153);
+        // generate some random data to pretend we
+        // have an actual device response
+        for(int j=0; j < myMsg.listMessageData.size(); j++)
+        {
+            obdref::ByteList randomData;
+            srand(j+153);
 
 //            // response 1
 //            randomData.data << 0x07 << 0xE9 << 0x24;
@@ -130,37 +122,37 @@ int main(int argc, char* argv[])
 //            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
 //            randomData.data.clear();
 
-//            // response 4
-//            srand(j+32);
-//            randomData.data << 0x07 << 0xA9 << 0x16;
-//            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-//            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
-//            for(int k=0; k < 7-prefixSize; k++)
-//            {
-//                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
-//                randomData.data << myDataByte;
-//            }
-//            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
-//            randomData.data.clear();
-//        }
+            // response 4
+            srand(j+32);
+            randomData.data << 0x07 << 0xA9 << 0x07;
+            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
+            int prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
+            for(int k=0; k < 7-prefixSize; k++)
+            {
+                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
+                randomData.data << myDataByte;
+            }
+            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
+            randomData.data.clear();
+        }
 
-//        // parse message frame
-//        QList<obdref::Data> listData;
-//        opOk = myParser.ParseMessageFrame(myMsg, listData);
+        // parse message frame
+        QList<obdref::Data> listData;
+        opOk = myParser.ParseMessageFrame(myMsg, listData);
 
-//        if(!opOk || listData.size() == 0)
-//        {
-//            qDebug() << "ParseMessageFrame for" << myParamList.at(i)
-//                     << "Failed! Exiting...";
+        if(!opOk || listData.size() == 0)
+        {
+            qDebug() << "ParseMessageFrame for" << myParamList.at(i)
+                     << "Failed! Exiting...";
 
-//            QStringList listErrors = myParser.GetLastKnownErrors();
-//            for(int i=0; i < listErrors.size(); i++)
-//            {   qDebug() << listErrors.at(i);   }
+            QStringList listErrors = myParser.GetLastKnownErrors();
+            for(int i=0; i < listErrors.size(); i++)
+            {   qDebug() << listErrors.at(i);   }
 
-//            return -1;
-//        }
+            return -1;
+        }
 
-//        // print out data
+        // print out data
 //        qDebug() << "================================================";
 //        qDebug() << myParamList.at(i) << "| Found" << listData.size() << "results";
 
@@ -193,7 +185,7 @@ int main(int argc, char* argv[])
 //            }
 //        }
 //        qDebug() << "================================================";
-//    }
+    }
 
     return 0;
 }
