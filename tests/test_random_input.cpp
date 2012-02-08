@@ -82,11 +82,11 @@ int main(int argc, char* argv[])
         for(int j=0; j < myMsg.listMessageData.size(); j++)
         {
             obdref::ByteList randomData;
-            srand(j+1);
+            srand(j+52);
             int prefixSize;
 
 //            // response 1
-            randomData.data << 0x07 << 0xE9 << 0x24;
+            randomData.data << 0x07 << 0xE9 << 0x05;
             randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
             prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
             for(int k=0; k < 7-prefixSize; k++)
@@ -95,7 +95,9 @@ int main(int argc, char* argv[])
                 randomData.data << myDataByte;
             }
             myMsg.listMessageData[j].listRawDataFrames.append(randomData);
+            qDebug() << randomData.data;
             randomData.data.clear();
+
 
 //            // response 2
 //            srand(j+32);

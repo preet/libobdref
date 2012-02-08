@@ -205,769 +205,1834 @@
       
       <parameter name="PIDs Supported 0x01-0x20" 
          request="0x01 0x00" response.prefix="0x41 0x00" response.bytes="4">
-         <parse expr="[0][7]" property="PID 0x01" true="Supported" false="Unsupported" />
-         <parse expr="[0][6]" property="PID 0x02" true="Supported" false="Unsupported" />
-         <parse expr="[0][5]" property="PID 0x03" true="Supported" false="Unsupported" />
-         <parse expr="[0][4]" property="PID 0x04" true="Supported" false="Unsupported" />
-         <parse expr="[0][3]" property="PID 0x05" true="Supported" false="Unsupported" />
-         <parse expr="[0][2]" property="PID 0x06" true="Supported" false="Unsupported" />
-         <parse expr="[0][1]" property="PID 0x07" true="Supported" false="Unsupported" />
-         <parse expr="[0][0]" property="PID 0x08" true="Supported" false="Unsupported" />
-         
-         <parse expr="[1][7]" property="PID 0x09" true="Supported" false="Unsupported" />
-         <parse expr="[1][6]" property="PID 0x0A" true="Supported" false="Unsupported" />
-         <parse expr="[1][5]" property="PID 0x0B" true="Supported" false="Unsupported" />
-         <parse expr="[1][4]" property="PID 0x0C" true="Supported" false="Unsupported" />
-         <parse expr="[1][3]" property="PID 0x0D" true="Supported" false="Unsupported" />
-         <parse expr="[1][2]" property="PID 0x0E" true="Supported" false="Unsupported" />
-         <parse expr="[1][1]" property="PID 0x0F" true="Supported" false="Unsupported" />
-         <parse expr="[1][0]" property="PID 0x20" true="Supported" false="Unsupported" />
-         
-         <parse expr="[2][7]" property="PID 0x11" true="Supported" false="Unsupported" />
-         <parse expr="[2][6]" property="PID 0x12" true="Supported" false="Unsupported" />
-         <parse expr="[2][5]" property="PID 0x13" true="Supported" false="Unsupported" />
-         <parse expr="[2][4]" property="PID 0x14" true="Supported" false="Unsupported" />
-         <parse expr="[2][3]" property="PID 0x15" true="Supported" false="Unsupported" />
-         <parse expr="[2][2]" property="PID 0x16" true="Supported" false="Unsupported" />
-         <parse expr="[2][1]" property="PID 0x17" true="Supported" false="Unsupported" />
-         <parse expr="[2][0]" property="PID 0x18" true="Supported" false="Unsupported" />
-         
-         <parse expr="[3][7]" property="PID 0x19" true="Supported" false="Unsupported" />
-         <parse expr="[3][6]" property="PID 0x1A" true="Supported" false="Unsupported" />
-         <parse expr="[3][5]" property="PID 0x1B" true="Supported" false="Unsupported" />
-         <parse expr="[3][4]" property="PID 0x1C" true="Supported" false="Unsupported" />
-         <parse expr="[3][3]" property="PID 0x1D" true="Supported" false="Unsupported" />
-         <parse expr="[3][2]" property="PID 0x1E" true="Supported" false="Unsupported" />
-         <parse expr="[3][1]" property="PID 0x1F" true="Supported" false="Unsupported" />
-         <parse expr="[3][0]" property="PID 0x20" true="Supported" false="Unsupported" />
+         <script>
+            <![CDATA[  
+            var k = 0x01;
+            for(var i=0; i < 4; i++)
+            {
+               for(var j=0; j < 8; j++)
+               {
+                  var pid = new LiteralDataObj();
+                  pid.property = "PID " + k.toString(16);
+                  pid.valueIfTrue = "Supported";
+                  pid.valueIfFalse = "Unsupported";
+                  pid.value = BIT(i,(7-j)) ? true : false;                                 
+                  saveLiteralData(pid);
+                  k++;
+               }
+            }
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Monitor Status Since DTCs Cleared"
          request="0x01 0x01" response.prefix="0x41 0x01" response.bytes="4">
-                      
-         <parse expr="([0] & 0b01111111)" min="0" max="127"
-            desc="Number of confirmed emissions-related DTCs available for display" />
-
-         <parse expr="[0][7]"       property="Check Engine Light State" true="ON" false="OFF" />
+         <script>
+            <![CDATA[
+            // number of DTCs available
             
-         <parse expr="[1][3]"       property="Vehicle Ignition Type"    true="Compression"      false="Spark" />
-         
-         <parse expr="[1][0]"       property="Misfire Monitoring"       true="Test Available"   false="Test Unavailable" />
-         <parse expr="[1][1]"       property="Fuel System Monitoring"   true="Test Available"   false="Test Unavailable" />
-         <parse expr="[1][2]"       property="Components Monitoring"    true="Test Available"   false="Test Unavailable" />     
-    
-         <parse expr="[1][4]"       property="Misfire Test Status"      true="Complete"         false="Incomplete" />
-         <parse expr="[1][5]"       property="Fuel System Test Status"  true="Complete"         false="Incomplete" />
-         <parse expr="[1][6]"       property="Components Test Status"   true="Complete"         false="Incomplete" />
-
-         <condition expr="[1][3]">
-            <parse expr="[2][0]"    property="NMHC Cat Test"               true="Test Available"   false="Test Unavailable" />
-            <parse expr="[2][1]"    property="NOx/SCR Monitor Test"        true="Test Available"   false="Test Unavailable" />
-            <parse expr="[2][3]"    property="Boost Pressure Test"         true="Test Available"   false="Test Unavailable" />
-            <parse expr="[2][5]"    property="Exhaust Gas Sensor Test"     true="Test Available"   false="Test Unavailable" />
-            <parse expr="[2][6]"    property="PM Filter Monitoring Test"   true="Test Available"   false="Test Unavailable" />
-            <parse expr="[2][7]"    property="EGR/VVT System Test"         true="Test Available"   false="Test Unavailable" />
-
-            <parse expr="[3][0]"    property="NMHC Cat Test Status"               true="Incomplete"  false="Complete" />
-            <parse expr="[3][1]"    property="NOx/SCR Monitor Test Status"        true="Incomplete"  false="Complete" />
-            <parse expr="[3][3]"    property="Boost Pressure Test Status"         true="Incomplete"  false="Complete" />
-            <parse expr="[3][5]"    property="Exhaust Gas Sensor Test Status"     true="Incomplete"  false="Complete" />
-            <parse expr="[3][6]"    property="PM Filter Monitoring Test Status"   true="Incomplete"  false="Complete" />
-            <parse expr="[3][7]"    property="EGR/VVT System Test Status"         true="Incomplete"  false="Complete" />
-         </condition>
-         
-         <condition expr="![1][3]">
-            <parse expr="[2][0]"    property="Catalyst Test"               true="Test Available"   false="Test Unavailable" />
-            <parse expr="[2][1]"    property="Heated Catalyst Test"        true="Test Available"   false="Test Unavailable" />
-            <parse expr="[2][2]"    property="Evaporative System Test"     true="Test Available"   false="Test Unavailable" />
-            <parse expr="[2][3]"    property="Secondary Air System Test"   true="Test Available"   false="Test Unavailable" />
-            <parse expr="[2][3]"    property="A/C Refrigerant Test"        true="Test Available"   false="Test Unavailable" />
-            <parse expr="[2][4]"    property="Oxygen Sensor Test"          true="Test Available"   false="Test Unavailable" />
-            <parse expr="[2][5]"    property="Oxygen Sensor Heater Test"   true="Test Available"   false="Test Unavailable" />
-            <parse expr="[2][6]"    property="EGR System Test"             true="Test Available"   false="Test Unavailable" />
-
-            <parse expr="[3][0]"    property="Catalyst Test Status"                true="Incomplete"  false="Complete" />
-            <parse expr="[3][1]"    property="Heated Catalyst Test Status"         true="Incomplete"  false="Complete" />
-            <parse expr="[3][2]"    property="Evaporative System Test Status"      true="Incomplete"  false="Complete" />
-            <parse expr="[3][3]"    property="Secondary Air System Test Status"    true="Incomplete"  false="Complete" />
-            <parse expr="[3][3]"    property="A/C Refrigerant Test Status"         true="Incomplete"  false="Complete" />
-            <parse expr="[3][4]"    property="Oxygen Sensor Test Status"           true="Incomplete"  false="Complete" />
-            <parse expr="[3][5]"    property="Oxygen Sensor Heater Test Status"    true="Incomplete"  false="Complete" />
-            <parse expr="[3][6]"    property="EGR System Test Status"              true="Incomplete"  false="Complete" />
-         </condition>
-      </parameter>
+            var availDTCs = new NumericalDataObj();
+            availDTCs.min = 0;
+            availDTCs.max = 127;
+            availDTCs.value = BYTE(0) & 127;
+            availDTCs.property = "Number of confirmed DTCs available";
+            saveNumericalData(availDTCs);
+            
+            // common monitoring and system test info
+            var litData = new LiteralDataObj();
+            litData.property = "Check Engine Light State";  
+            litData.valueIfTrue = "ON";          
+            litData.valueIfFalse = "OFF";            
+            litData.value = (BIT(0,7)) ? true : false;
+            saveLiteralData(litData);
+            
+            var commProperties = ["Misfire","Fuel System","Components"];
+            
+            for(var i=0; i < 3; i++)
+            {
+               litData = new LiteralDataObj();
+               litData.property = commProperties[i] + " Monitoring";
+               litData.valueIfTrue = "Test Available";
+               litData.valueIfFalse = "Test Unavailable";            
+               litData.value = (BIT(1,i)) ? true : false;
+               saveLiteralData(litData);
+            }                        
+            
+            for(var i=4; i < 7; i++)
+            {
+               litData = new LiteralDataObj();
+               litData.property = commProperties[i-4] + " Test Status";
+               litData.valueIfTrue = "Complete";      // TODO: verify this
+               litData.valueIfFalse = "Incomplete";   // TODO: verify this
+               litData.value = (BIT(1,i)) ? true : false;
+               saveLiteralData(litData);
+            }
+            
+            litData = new LiteralDataObj();
+            litData.property = "Vehicle Ignition Type";
+            litData.valueIfTrue = "Compression";
+            litData.valueIfFalse = "Spark";
+            litData.value = (BIT(1,3)) ? true : false;
+            saveLiteralData(litData);  
+            
+            // compression ignition monitor and test info
+            if(BIT(1,3))
+            {
+               var compProperties = ["NMHC Cat","NOx/SCR Monitor","","Boost Pressure","",
+                                    "Exhaust Gas Sensor","PM Filter Monitoring","EGR/VVT System"];
+                                    
+               for(var i=0; i < 8; i++)
+               {
+                  if(i == 2 || i == 4)
+                  {   continue;   }
+                  
+                  litData = new LiteralDataObj();
+                  litData.property = compProperties[i] + " Test";
+                  litData.valueIfTrue = "Test Available";
+                  litData.valueIfFalse = "Test Unavailable";
+                  litData.value = (BIT(2,i)) ? true : false;
+                  saveLiteralData(litData);  
+               }
+               
+               for(var i=0; i < 8; i++)
+               {
+                  if(i == 2 || i == 4)
+                     {   continue;   }
+                     
+                  litData = new LiteralDataObj();
+                  litData.property = compProperties[i] + " Test Status";
+                  litData.valueIfTrue = "Incomplete";
+                  litData.valueIfFalse = "Complete";
+                  litData.value = (BIT(3,i)) ? true : false;
+                  saveLiteralData(litData);  
+               }
+            }
+            // spark ignition monitor and test info
+            else
+            {
+               var sparkProperties = ["Catalyst","Heated Catalyst","Evaporative System", "Secondary Air System",
+                                      "A/C Refrigerant","Oxygen Sensor","Oxygen Sensor Heater", "EGR System"];
+                                      
+               for(var i=0; i < 8; i++)
+               {
+                  litData = new LiteralDataObj();
+                  litData.property = sparkProperties[i] + "Test";
+                  litData.valueIfTrue = "Test Available";
+                  litData.valueIfFalse = "Test Unavailable";
+                  litData.value = (BIT(2,i)) ? true : false;
+                  saveLiteralData(litData);  
+               }
+               
+               for(var i=0; i < 8; i++)
+               {
+                  litData = new LiteralDataObj();
+                  litData.property = sparkProperties[i] + " Test Status";
+                  litData.valueIfTrue = "Incomplete";
+                  litData.valueIfFalse = "Complete";
+                  litData.value = (BIT(3,i)) ? true : false;
+                  saveLiteralData(litData);  
+               }
+            }     
+            ]]>
+         </script>
+      </parameter>                  
       
       <parameter name="Fuel System Status"
          request="0x01 0x03" response.prefix="0x41 0x03" response.bytes="2">
-         <parse expr="[0][0]" property="Fuel System 1 Status" true="Open Loop: Insufficient engine temperature" />
-         <parse expr="[0][1]" property="Fuel System 1 Status" true="Closed Loop: Using oxygen sensor feedback to determine fuel mix" />
-         <parse expr="[0][2]" property="Fuel System 1 Status" true="Open Loop: Due to engine load OR fuel cut due to acceleration" />
-         <parse expr="[0][3]" property="Fuel System 1 Status" true="Open Loop: Due to system failure" />
-         <parse expr="[0][4]" property="Fuel System 1 Status" true="Closed loop: Using at least one oxygen sensor, 
-                                       but there is a fault in the feedback system" />
-         
-         <parse expr="[1][0]" property="Fuel System 2 Status" true="Open Loop: Insufficient engine temperature" />
-         <parse expr="[1][1]" property="Fuel System 2 Status" true="Closed Loop: Using oxygen sensor feedback to determine fuel mix" />
-         <parse expr="[1][2]" property="Fuel System 2 Status" true="Open Loop: Due to engine load OR fuel cut due to acceleration" />
-         <parse expr="[1][3]" property="Fuel System 2 Status" true="Open Loop: Due to system failure" />
-         <parse expr="[1][4]" property="Fuel System 2 Status" true="Closed loop: Using at least one oxygen sensor, 
-                                       but there is a fault in the feedback system" />
+         <script>
+            <![CDATA[
+            var fsWhenTrue = ["Open Loop: Insufficient engine temperature",
+                              "Closed Loop: Using oxygen sensor feedback to determine fuel mix",
+                              "Open Loop: Due to engine load OR fuel cut due to acceleration",
+                              "Open Loop: Due to system failure",
+                              "Closed loop: Using at least one oxygen sensor but there is a fault in the feedback system"];
+                              
+            // fuel system 1
+            for(var i=0; i < 5; i++)
+            {
+               if(BIT(0,i))
+               {
+                  var fuelSysData = new LiteralDataObj();
+                  fuelSysData.property = "Fuel System 1 Status";
+                  fuelSysData.valueIfTrue = fsWhenTrue[i];
+                  fuelSysData.value = true;
+                  saveLiteralData(fuelSysData);  
+               }
+            }
+            
+            // fuel system 2
+            for(var i=0; i < 5; i++)
+            {
+               if(BIT(1,i))
+               {
+                  var fuelSysData = new LiteralDataObj();
+                  fuelSysData.property = "Fuel System 2 Status";
+                  fuelSysData.valueIfTrue = fsWhenTrue[i];
+                  fuelSysData.value = true;
+                  saveLiteralData(fuelSysData); 
+               }
+            }            
+            ]]>
+         </script>
       </parameter>
-
+      
       <parameter name="Calculated Engine Load"
          request="0x01 0x04" response.prefix="0x41 0x04" response.bytes="1">        
-         <parse expr="[0]*100/255" units="%" min="0" max="100"/>
+         <script>
+            <![CDATA[
+            var engLoad = new NumericalDataObj();
+            engLoad.units = "%";
+            engLoad.min = 0;
+            engLoad.max = 100;
+            engLoad.value = BYTE(0)*100/255;
+            saveNumericalData(engLoad);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Engine Coolant Temperature"
-         request="0x01 0x05" response.prefix="0x41 0x05" response.bytes="1">        
-         <parse expr="[0]-40" units="C" min="-40" max="215" />
+         request="0x01 0x05" response.prefix="0x41 0x05" response.bytes="1">
+         <script>
+            <![CDATA[
+            var coolantTemp = new NumericalDataObj();
+            coolantTemp.units = "C";
+            coolantTemp.min = -40;
+            coolantTemp.max = 215;
+            coolantTemp.value = BYTE(0)-40;
+            saveNumericalData(coolantTemp);
+            ]]>
+         </script>     
       </parameter>
       
       <parameter name="Short Term Fuel % Trim - Bank 1"
-         request="0x01 0x06" response.prefix="0x41 0x06" response.bytes="1">        
-         <parse expr="([0]-128)*(100/128)" units="%" min="-100" max="100" />
+         request="0x01 0x06" response.prefix="0x41 0x06" response.bytes="1">
+         <script>
+            <![CDATA[
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 100;
+            fuelTrim.value = (BYTE(0)-128)*(100/128);
+            saveNumericalData(fuelTrim);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Long Term Fuel % Trim - Bank 1"
          request="0x01 0x07" response.prefix="0x41 0x07" response.bytes="1">        
-         <parse expr="([0]-128)*(100/128)" units="%" min="-100" max="100" />
+         <script>
+            <![CDATA[
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 100;
+            fuelTrim.value = (BYTE(0)-128)*(100/128);
+            saveNumericalData(fuelTrim);
+            ]]>
+         </script>
       </parameter>
-      
+
       <parameter name="Long Term Fuel % Trim - Bank 2"
          request="0x01 0x08" response.prefix="0x41 0x08" response.bytes="1">        
-         <parse expr="([0]-128)*(100/128)" units="%" min="-100" max="100" />
+         <script>
+            <![CDATA[
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 100;
+            fuelTrim.value = (BYTE(0)-128)*(100/128);
+            saveNumericalData(fuelTrim);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Long Term Fuel % Trim - Bank 2"
          request="0x01 0x09" response.prefix="0x41 0x09" response.bytes="1">        
-         <parse expr="([0]-128)*(100/128)" units="%" min="-100" max="100" />
+         <script>
+            <![CDATA[
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 100;
+            fuelTrim.value = (BYTE(0)-128)*(100/128);
+            saveNumericalData(fuelTrim);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Fuel Pressure"
          request="0x01 0x0A" response.prefix="0x41 0x0A" response.bytes="1">        
          <parse expr="[0]*3" units="kPa (gauge)" min="0" max="765" />
+         <script>
+            <![CDATA[
+            var fuelPr = new NumericalDataObj();
+            fuelPr.units = "kPa (gauge)";
+            fuelPr.min = 0;
+            fuelPr.max = 765;
+            fuelPr.value = BYTE(0)*3;
+            saveNumericalData(fuelPr);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Intake Manifold Absolute Pressure"
          request="0x01 0x0B" response.prefix="0x41 0x0B" response.bytes="1">        
-         <parse expr="[0]" units="kPa (absolute)" min="0" max="255"/>
+         <script>
+            <![CDATA[
+            var imap = new NumericalDataObj();
+            imap.units = "kPa (absolute)";
+            imap.min = 0;
+            imap.max = 255;
+            imap.value = BYTE(0);
+            saveNumericalData(imap);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Engine RPM"
          request="0x01 0x0C" response.prefix="0x41 0x0C" response.bytes="2">
-         <parse expr="(([0]*256)+[1])/4" units="rpm" min="0" max="16383.75" />
+         <script>
+            <![CDATA[
+            var engSpd = new NumericalDataObj();
+            engSpd.units = "rpm";
+            engSpd.min = 0;
+            engSpd.max = 16383.75;
+            engSpd.value = (BYTE(0)*256 + BYTE(1))/4;
+            saveNumericalData(engSpd);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Vehicle Speed"
          request="0x01 0x0D" response.prefix="0x41 0x0D" response.bytes="1">
-         <parse expr="[0]" units="km/h" min="0" max="255" />
+         <script>
+            <![CDATA[
+            var vSpd = new NumericalDataObj();
+            vSpd.units = "km/h";
+            vSpd.min = 0;
+            vSpd.max = 255;
+            vSpd.value = BYTE(0);
+            saveNumericalData(vSpd);
+            ]]>
+         </script>         
       </parameter>
       
       <parameter name="Timing Advance"
          request="0x01 0x0E" response.prefix="0x41 0x0E" response.bytes="1">
-         <parse expr="([0]/2)-64" units="deg" min="-64" max="63.5" />
+         <script>
+            <![CDATA[
+            var vSpd = new NumericalDataObj();
+            vSpd.units = "deg";
+            vSpd.min = -64;
+            vSpd.max = 63.5;
+            vSpd.value = (BYTE(0)/2)-64;
+            saveNumericalData(vSpd);
+            ]]>
+         </script>          
       </parameter>
-
+      
       <parameter name="Intake Air Temperature"
          request="0x01 0x0F" response.prefix="0x41 0x0F" response.bytes="1">
-         <parse expr="[0]-40" units="C" max="-40" max="215" />
+         <script>
+            <![CDATA[
+            var iat = new NumericalDataObj();
+            iat.units = "C";
+            iat.min = -40;
+            iat.max = 215;
+            iat.value = BYTE(0)-40;
+            saveNumericalData(iat);
+            ]]>
+         </script>  
       </parameter>
-
+      
       <parameter name="MAF Air Flow Rate"
          request="0x01 0x10" response.prefix="0x41 0x10" response.bytes="2">
-         <parse expr="(([0]*256)+[1])/100" units="g/s" min="0" max="655.35" />
+         <script>
+            <![CDATA[
+            var mafRate = new NumericalDataObj();
+            mafRate.units = "g/s";
+            mafRate.min = 0;
+            mafRate.max = 655.35;
+            mafRate.value = (BYTE(0)*256+BYTE(1))/100;
+            saveNumericalData(mafRate);
+            ]]>
+         </script>  
       </parameter>
 
       <parameter name="Throttle Position"
          request="0x01 0x11" response.prefix="0x41 0x11" response.bytes="1">
-         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+            var throttle = new NumericalDataObj();
+            throttle.units = "%";
+            throttle.min = 0;
+            throttle.max = 100;
+            throttle.value = BYTE(0)*100/255;
+            saveNumericalData(throttle);
+            ]]>
+         </script>  
       </parameter>
       
       <parameter name="Commanded Secondary Air Status"
          request="0x01 0x12" response.prefix="0x41 0x12" response.bytes="1">
-         <parse expr="[0][0]" property="Secondary air exhaust input location" true="Upstream of Catalytic Converter" />
-         <parse expr="[0][1]" property="Secondary air exhaust input location" true="Downstream of Catalytic Converter" />
-         <parse expr="[0][2]" property="Secondary air exhaust input location" true="From Atmosphere or OFF" />
+         <script>
+            <![CDATA[
+            var statusIfTrue = ["Upstream of Catalytic Converter",
+                                "Downstream of Catalytic Converter", 
+                                "From Atmosphere or OFF"];
+            for(var i=0; i < 3; i++)
+            {
+               var airStatus = new LiteralDataObj();
+               airStatus.value = BIT(0,i);
+               if(airStatus.value)
+               {
+                  airStatus.property = "Secondary air exhaust input location";
+                  airStatus.valueIfTrue = statusIfTrue[i];
+                  saveLiteralData(airStatus);
+               }
+            }
+            ]]>
+         </script>  
       </parameter>
       
       <parameter name="Oxygen Sensors Present (Banks 1-2)"
          request="0x01 0x13" response.prefix="0x41 0x13" response.bytes="1">
-         <parse expr="[0][0]" property="Bank 1, Sensor 1" true="Present" false="N/A" />
-         <parse expr="[0][1]" property="Bank 1, Sensor 2" true="Present" false="N/A" />
-         <parse expr="[0][2]" property="Bank 1, Sensor 3" true="Present" false="N/A" />
-         <parse expr="[0][3]" property="Bank 1, Sensor 4" true="Present" false="N/A" />
-         <parse expr="[0][4]" property="Bank 2, Sensor 1" true="Present" false="N/A" />
-         <parse expr="[0][5]" property="Bank 2, Sensor 2" true="Present" false="N/A" />
-         <parse expr="[0][6]" property="Bank 2, Sensor 3" true="Present" false="N/A" />
-         <parse expr="[0][7]" property="Bank 2, Sensor 4" true="Present" false="N/A" />
+         <script>
+            <![CDATA[
+            
+            for(var i=0; i < 4; i++)
+            {
+               var oxygenSensor = new LiteralDataObj();
+               oxygenSensor.property = "Bank 1, Sensor " + (i+1);
+               oxygenSensor.valueIfFalse = "N/A";
+               oxygenSensor.valueIfTrue = "Present";
+               oxygenSensor.value = BIT(0,i);
+               saveLiteralData(oxygenSensor);
+            }
+            
+            for(var i=4; i < 8; i++)
+            {
+               var oxygenSensor = new LiteralDataObj();
+               oxygenSensor.property = "Bank 2, Sensor " + (i-3);
+               oxygenSensor.valueIfFalse = "N/A";
+               oxygenSensor.valueIfTrue = "Present";
+               oxygenSensor.value = BIT(0,i);
+               saveLiteralData(oxygenSensor);
+            }
+            
+            ]]>
+         </script>  
       </parameter>
       
       <parameter name="Bank 1, Sensor 1: Oxygen Sensor Voltage, Short Term Fuel Trim"
          request="0x01 0x14" response.prefix="0x41 0x14" response.bytes="2">
-         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-         <parse expr="[0]/200" units="V" min="0" max="1.275" />
-         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+         <!-- Note: if BYTE(1) == 0xFF, sensor is not used in fuel trim calculation -->
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script> 
       </parameter>
 
       <parameter name="Bank 1, Sensor 2: Oxygen Sensor Voltage, Short Term Fuel Trim"
          request="0x01 0x15" response.prefix="0x41 0x15" response.bytes="2">
          <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-         <parse expr="[0]/200" units="V" min="0" max="1.275" />
-         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script> 
       </parameter>
       
       <parameter name="Bank 1, Sensor 3: Oxygen Sensor Voltage, Short Term Fuel Trim"
          request="0x01 0x16" response.prefix="0x41 0x16" response.bytes="2">
          <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-         <parse expr="[0]/200" units="V" min="0" max="1.275" />
-         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script> 
       </parameter>
       
       <parameter name="Bank 1, Sensor 4: Oxygen Sensor Voltage, Short Term Fuel Trim"
          request="0x01 0x17" response.prefix="0x41 0x17" response.bytes="2">
          <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-         <parse expr="[0]/200" units="V" min="0" max="1.275" />
-         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script> 
       </parameter>
       
       <parameter name="Bank 2, Sensor 1: Oxygen Sensor Voltage, Short Term Fuel Trim"
          request="0x01 0x18" response.prefix="0x41 0x18" response.bytes="2">
          <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-         <parse expr="[0]/200" units="V" min="0" max="1.275" />
-         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script> 
       </parameter>
       
       <parameter name="Bank 2, Sensor 2: Oxygen Sensor Voltage, Short Term Fuel Trim"
          request="0x01 0x19" response.prefix="0x41 0x19" response.bytes="2">
          <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-         <parse expr="[0]/200" units="V" min="0" max="1.275" />
-         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script> 
       </parameter>
       
       <parameter name="Bank 2, Sensor 3: Oxygen Sensor Voltage, Short Term Fuel Trim"
          request="0x01 0x1A" response.prefix="0x41 0x1A" response.bytes="2">
          <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-         <parse expr="[0]/200" units="V" min="0" max="1.275" />
-         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Bank 2, Sensor 4: Oxygen Sensor Voltage, Short Term Fuel Trim"
          request="0x01 0x1B" response.prefix="0x41 0x1B" response.bytes="2">
          <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
-         <parse expr="[0]/200" units="V" min="0" max="1.275" />
-         <parse expr="([1]-128)*100/128" units="%" min="-100" max="99.2" /> 
-      </parameter>
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script>
+      </parameter>      
       
       <parameter name="OBD Standards This Vehicle Conforms To"
          request="0x01 0x1C" response.prefix="0x41 0x18" response.bytes="1">
-         <parse expr="[0] == 0x01" true="OBDII as defined by the CARB"/>
-         <parse expr="[0] == 0x02" true="OBD as defined by the EPA"/>
-         <parse expr="[0] == 0x03" true="OBD and OBDII"/>
-         <parse expr="[0] == 0x04" true="OBDI"/>
-         <parse expr="[0] == 0x05" true="Does not comply with any OBD Standard"/>
-         <parse expr="[0] == 0x06" true="EOBD (Europe)"/>
-         <parse expr="[0] == 0x07" true="EOBD and OBDII"/>
-         <parse expr="[0] == 0x08" true="EOBD and OBD"/>
-         <parse expr="[0] == 0x09" true="EOBD, OBD and OBDII"/>
-         <parse expr="[0] == 0x0A" true="JOBD (Japan)"/>
-         <parse expr="[0] == 0x0B" true="JOBD and OBDII"/>
-         <parse expr="[0] == 0x0C" true="JOBD and EOBD"/>
-         <parse expr="[0] == 0x0D" true="JOBD, EOBD and OBDII"/>
+         <script>
+            <![CDATA[
+            var obdStd = new LiteralDataObj();
+            obdStd.value = true;
+            switch(BYTE(0))
+            {
+               case 0x01:
+                  obdStd.valueIfTrue = "OBDII as defined by the CARB";
+                  break;
+               case 0x02:
+                  obdStd.valueIfTrue = "OBD as defined by the EPA";
+                  break;
+               case 0x03:
+                  obdStd.valueIfTrue = "OBD and OBDII";
+                  break;
+               case 0x04:
+                  obdStd.valueIfTrue = "OBDI";
+                  break;
+               case 0x05:
+                  obdStd.valueIfTrue = "Does not comply with any OBD Standard";
+                  break;
+               case 0x06:
+                  obdStd.valueIfTrue = "EOBD (Europe)";
+                  break;
+               case 0x07:
+                  obdStd.valueIfTrue = "EOBD and OBDII";
+                  break;
+               case 0x08:
+                  obdStd.valueIfTrue = "EOBD and OBD";
+                  break;
+               case 0x09:
+                  obdStd.valueIfTrue = "EOBD, OBD and OBDII";
+                  break;
+               case 0x0A:
+                  obdStd.valueIfTrue = "JOBD (Japan)";
+                  break;
+               case 0x0B:
+                  obdStd.valueIfTrue = "JOBD and OBDII";
+                  break;
+               case 0x0C:
+                  obdStd.valueIfTrue = "JOBD and EOBD";
+                  break;
+               case 0x0D:
+                  obdStd.valueIfTrue = "JOBD, EOBD, and OBDII";
+                  break;
+               default:
+                  obdStd.value = false;
+            }
+            saveLiteralData(obdStd);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Oxygen Sensors Present (Banks 1-4)"
          request="0x01 0x1D" response.prefix="0x41 0x1D" response.bytes="1">
-         <parse expr="[0][0]" property="Bank 1, Sensor 1" true="Present" false="N/A"/>
-         <parse expr="[0][1]" property="Bank 1, Sensor 2" true="Present" false="N/A"/>
-         <parse expr="[0][2]" property="Bank 2, Sensor 1" true="Present" false="N/A"/>
-         <parse expr="[0][3]" property="Bank 2, Sensor 2" true="Present" false="N/A"/>
-         <parse expr="[0][4]" property="Bank 3, Sensor 1" true="Present" false="N/A"/>
-         <parse expr="[0][5]" property="Bank 3, Sensor 2" true="Present" false="N/A"/>
-         <parse expr="[0][6]" property="Bank 4, Sensor 1" true="Present" false="N/A"/>
-         <parse expr="[0][7]" property="Bank 4, Sensor 2" true="Present" false="N/A"/>
+         <script>
+            <![CDATA[
+            for(var i=0; i < 8; i++)
+            {
+               var oxygenSensor = new LiteralDataObj();
+               oxygenSensor.valueIfFalse = "N/A";
+               oxygenSensor.valueIfTrue = "Present";
+               oxygenSensor.value = BIT(0,i);
+            
+               if(i < 2)
+               {   oxygenSensor.property = "Bank 1, Sensor " + (i+1);   }
+               
+               else if(i > 1 && i < 4)
+               {   oxygenSensor.property = "Bank 2, Sensor " + (i+1-2);   }
+               
+               else if(i > 3 && i < 6)
+               {   oxygenSensor.property = "Bank 3, Sensor " + (i+1-4);   }
+               
+               else if(i > 5 && i < 8)
+               {   oxygenSensor.property = "Bank 4, Sensor " + (i+1-6);   }
+                              
+               saveLiteralData(oxygenSensor);
+            }            
+            ]]>
+         </script> 
       </parameter>
       
       <parameter name="Auxiliary Input Status"
          request="0x01 0x1E" response.prefix="0x41 0x1E" response.bytes="1">
          <parse expr="[0][0]" true="Power Take Off Active" />
+         <script>
+            <![CDATA[
+            if(BIT(0,0))
+            {
+               var auxIn = new LiteralDataObj();
+               auxIn.value = true;
+               auxIn.valueIfTrue = "Power Take Off Active";
+               saveLiteralData(auxIn);
+            }
+            ]]>
+         </script>          
       </parameter>
       
       <parameter name="Runtime Since Engine Start"
          request="0x01 0x1F" response.prefix="0x41 0x1F" response.bytes="2">
-         <parse expr="([0]*256)+[1]" units="seconds" min="0" max="65535" />
+         <script>
+            <![CDATA[
+            var runTime = new NumericalDataObj();
+            runTime.units = "seconds";
+            runTime.min = 0;
+            runTime.max = 65535;
+            runTime.value = (BYTE(0)*256) + BYTE(1);
+            saveNumericalData(runTime);
+            ]]>
+         </script>   
       </parameter>
-
+      
       <parameter name="PIDs Supported 0x21-0x40"
          request="0x01 0x20" response.prefix="0x41 0x20" response.bytes="4">
-         <parse expr="[0][7]" property="PID 0x21" true="Supported" false="Unsupported" />
-         <parse expr="[0][6]" property="PID 0x22" true="Supported" false="Unsupported" />
-         <parse expr="[0][5]" property="PID 0x23" true="Supported" false="Unsupported" />
-         <parse expr="[0][4]" property="PID 0x24" true="Supported" false="Unsupported" />
-         <parse expr="[0][3]" property="PID 0x25" true="Supported" false="Unsupported" />
-         <parse expr="[0][2]" property="PID 0x26" true="Supported" false="Unsupported" />
-         <parse expr="[0][1]" property="PID 0x27" true="Supported" false="Unsupported" />
-         <parse expr="[0][0]" property="PID 0x28" true="Supported" false="Unsupported" />
-         
-         <parse expr="[1][7]" property="PID 0x29" true="Supported" false="Unsupported" />
-         <parse expr="[1][6]" property="PID 0x2A" true="Supported" false="Unsupported" />
-         <parse expr="[1][5]" property="PID 0x2B" true="Supported" false="Unsupported" />
-         <parse expr="[1][4]" property="PID 0x2C" true="Supported" false="Unsupported" />
-         <parse expr="[1][3]" property="PID 0x2D" true="Supported" false="Unsupported" />
-         <parse expr="[1][2]" property="PID 0x2E" true="Supported" false="Unsupported" />
-         <parse expr="[1][1]" property="PID 0x2F" true="Supported" false="Unsupported" />
-         <parse expr="[1][0]" property="PID 0x30" true="Supported" false="Unsupported" />
-         
-         <parse expr="[2][7]" property="PID 0x31" true="Supported" false="Unsupported" />
-         <parse expr="[2][6]" property="PID 0x32" true="Supported" false="Unsupported" />
-         <parse expr="[2][5]" property="PID 0x33" true="Supported" false="Unsupported" />
-         <parse expr="[2][4]" property="PID 0x34" true="Supported" false="Unsupported" />
-         <parse expr="[2][3]" property="PID 0x35" true="Supported" false="Unsupported" />
-         <parse expr="[2][2]" property="PID 0x36" true="Supported" false="Unsupported" />
-         <parse expr="[2][1]" property="PID 0x37" true="Supported" false="Unsupported" />
-         <parse expr="[2][0]" property="PID 0x38" true="Supported" false="Unsupported" />
-         
-         <parse expr="[3][7]" property="PID 0x39" true="Supported" false="Unsupported" />
-         <parse expr="[3][6]" property="PID 0x3A" true="Supported" false="Unsupported" />
-         <parse expr="[3][5]" property="PID 0x3B" true="Supported" false="Unsupported" />
-         <parse expr="[3][4]" property="PID 0x3C" true="Supported" false="Unsupported" />
-         <parse expr="[3][3]" property="PID 0x3D" true="Supported" false="Unsupported" />
-         <parse expr="[3][2]" property="PID 0x3E" true="Supported" false="Unsupported" />
-         <parse expr="[3][1]" property="PID 0x3F" true="Supported" false="Unsupported" />
-         <parse expr="[3][0]" property="PID 0x40" true="Supported" false="Unsupported" />
+         <script>
+            <![CDATA[  
+            var k = 0x21;
+            for(var i=0; i < 4; i++)
+            {
+               for(var j=0; j < 8; j++)
+               {
+                  var pid = new LiteralDataObj();
+                  pid.property = "PID " + k.toString(16);
+                  pid.valueIfTrue = "Supported";
+                  pid.valueIfFalse = "Unsupported";
+                  pid.value = BIT(i,(7-j)) ? true : false;                                 
+                  saveLiteralData(pid);
+                  k++;
+               }
+            }
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Distance Travelled with MIL On"
          request="0x01 0x21" response.prefix="0x41 0x21" response.bytes="2">
-         <parse expr="([0]*256)+[1]" units="km" min="0" max="65535" />
+         <script>
+            <![CDATA[
+            var dist = new NumericalDataObj();
+            dist.units = "km";
+            dist.min = 0;
+            dist.max = 65535;
+            dist.value = (BYTE(0)*256) + BYTE(1);
+            saveNumericalData(dist);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Fuel Rail Pressure"
          request="0x01 0x22" response.prefix="0x41 0x22" response.bytes="2">
-         <parse expr="((([0]*256)+[1]) * 10) / 128" units="kPa" min="0" max="5177.265" />
+         <script>
+            <![CDATA[
+            var fuelRail = new NumericalDataObj();
+            fuelRail.units="kPa";
+            fuelRail.min = 0;
+            fuelRail.max = 5177.265;
+            fuelRail.value = ((BYTE(0)*256)+BYTE(1))*10/128;
+            saveNumericalData(fuelRail);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Fuel Rail Pressure (Diesel or Gasoline Direct Injection)"
          request="0x01 0x23" response.prefix="0x41 0x23" response.bytes="2">
-         <parse expr="(([0]*256)+[1]) * 10" units="kPa (gauge)" min="0" max="655350" />
+         <script>
+            <![CDATA[
+            var fuelRail = new NumericalDataObj();
+            fuelRail.units="kPa";
+            fuelRail.min = 0;
+            fuelRail.max = 5177.265;
+            fuelRail.value = ((BYTE(0)*256)+BYTE(1))*10;
+            saveNumericalData(fuelRail);            
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="O2S1_WR_lambda(1): Equivalence Ratio, Voltage"
          request="0x01 0x24" response.prefix="0x41 0x23" response.bytes="4">
-         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio"
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))*2/65535;
+            saveNumericalData(ratio);
+            
+            var voltage = new NumericalDataObj();
+            voltage.units = "V"
+            voltage.min = 0;
+            voltage.max = 8;
+            voltage.value = ((BYTE(2)*256)+BYTE(3))*8/65535;
+            saveNumericalData(voltage);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="O2S2_WR_lambda(1): Equivalence Ratio, Voltage"
          request="0x01 0x25" response.prefix="0x41 0x25" response.bytes="4">
-         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio"
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))*2/65535;
+            saveNumericalData(ratio);
+            
+            var voltage = new NumericalDataObj();
+            voltage.units = "V"
+            voltage.min = 0;
+            voltage.max = 8;
+            voltage.value = ((BYTE(2)*256)+BYTE(3))*8/65535;
+            saveNumericalData(voltage);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="O2S3_WR_lambda(1): Equivalence Ratio, Voltage"
          request="0x01 0x26" response.prefix="0x41 0x26" response.bytes="4">
-         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio"
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))*2/65535;
+            saveNumericalData(ratio);
+            
+            var voltage = new NumericalDataObj();
+            voltage.units = "V"
+            voltage.min = 0;
+            voltage.max = 8;
+            voltage.value = ((BYTE(2)*256)+BYTE(3))*8/65535;
+            saveNumericalData(voltage);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="O2S4_WR_lambda(1): Equivalence Ratio, Voltage"
          request="0x01 0x27" response.prefix="0x41 0x27" response.bytes="4">
-         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio"
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))*2/65535;
+            saveNumericalData(ratio);
+            
+            var voltage = new NumericalDataObj();
+            voltage.units = "V"
+            voltage.min = 0;
+            voltage.max = 8;
+            voltage.value = ((BYTE(2)*256)+BYTE(3))*8/65535;
+            saveNumericalData(voltage);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="O2S5_WR_lambda(1): Equivalence Ratio, Voltage"
          request="0x01 0x28" response.prefix="0x41 0x28" response.bytes="4">
-         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio"
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))*2/65535;
+            saveNumericalData(ratio);
+            
+            var voltage = new NumericalDataObj();
+            voltage.units = "V"
+            voltage.min = 0;
+            voltage.max = 8;
+            voltage.value = ((BYTE(2)*256)+BYTE(3))*8/65535;
+            saveNumericalData(voltage);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="O2S6_WR_lambda(1): Equivalence Ratio, Voltage"
          request="0x01 0x29" response.prefix="0x41 0x29" response.bytes="4">
-         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio"
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))*2/65535;
+            saveNumericalData(ratio);
+            
+            var voltage = new NumericalDataObj();
+            voltage.units = "V"
+            voltage.min = 0;
+            voltage.max = 8;
+            voltage.value = ((BYTE(2)*256)+BYTE(3))*8/65535;
+            saveNumericalData(voltage);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="O2S7_WR_lambda(1): Equivalence Ratio, Voltage"
          request="0x01 0x2A" response.prefix="0x41 0x2A" response.bytes="4">
-         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio"
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))*2/65535;
+            saveNumericalData(ratio);
+            
+            var voltage = new NumericalDataObj();
+            voltage.units = "V"
+            voltage.min = 0;
+            voltage.max = 8;
+            voltage.value = ((BYTE(2)*256)+BYTE(3))*8/65535;
+            saveNumericalData(voltage);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="O2S8_WR_lambda(1): Equivalence Ratio, Voltage"
          request="0x01 0x2B" response.prefix="0x41 0x2B" response.bytes="4">
-         <parse expr="(([0]*256)+[1])*2/65535" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])*8/65535" units="V" min="0" max="8" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio"
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))*2/65535;
+            saveNumericalData(ratio);
+            
+            var voltage = new NumericalDataObj();
+            voltage.units = "V"
+            voltage.min = 0;
+            voltage.max = 8;
+            voltage.value = ((BYTE(2)*256)+BYTE(3))*8/65535;
+            saveNumericalData(voltage);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Commanded EGR"
          request="0x01 0x2C" response.prefix="0x41 0x2C" response.bytes="1">
-         <parse expr="100*[0]/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+            var egrCmd = new NumericalDataObj();
+            egrCmd.units = "%";
+            egrCmd.min = 0;
+            egrCmd.max = 100;
+            egrCmd.value = BYTE(0)*100/255;
+            saveNumericalData(egrCmd);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="EGR Error"
          request="0x01 0x2D" response.prefix="0x41 0x2D" response.bytes="1">
-         <parse expr="([0]-128)*100/128" units="%" min="-100" max="99.2" />
+         <script>
+            <![CDATA[
+            var egrError = new NumericalDataObj();
+            egrError.units = "%";
+            egrError.min = -100;
+            egrError.max = 99.2;
+            egrError.value = (BYTE(0)-128)*100/128;
+            saveNumericalData(egrError);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Commanded Evaporative Purge"
          request="0x01 0x2E" response.prefix="0x41 0x2E" response.bytes="1">
-         <parse expr="100*[0]/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+            var evap = new NumericalDataObj();
+            evap.units = "%";
+            evap.min = 0;
+            evap.max = 100;
+            evap.value = BYTE(0)*100/255;
+            saveNumericalData(evap);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Fuel Level Input"
          request="0x01 0x2F" response.prefix="0x41 0x2F" response.bytes="1">
-         <parse expr="100*[0]/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+            var fuelLevel = new NumericalDataObj();
+            fuelLevel.units = "%";
+            fuelLevel.min = 0;
+            fuelLevel.max = 100;
+            fuelLevel.value = BYTE(0)*100/255;
+            saveNumericalData(fuelLevel);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Number of Warm Ups Since Codes Cleared"
          request="0x01 0x30" response.prefix="0x41 0x30" response.bytes="1">
-         <parse expr="[0]" units="number" min="0" max="255" />
+         <script>
+            <![CDATA[
+            var numData = new NumericalDataObj();
+            numData.units = "number";
+            numData.min = 0;
+            numData.max = 255;
+            numData.value = BYTE(0);
+            saveNumericalData(numData);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Distance Traveled Since Codes Cleared"
          request="0x01 0x31" response.prefix="0x41 0x31" response.bytes="2">
-         <parse expr="([0]*256)+[1]" units="km" min="0" max="65535" />
+         <script>
+            <![CDATA[
+            var numData = new NumericalDataObj();
+            numData.units = "km";
+            numData.min = 0;
+            numData.max = 65535;
+            numData.value = (BYTE(0)*256)+BYTE(1);
+            saveNumericalData(numData);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Evaporative System Vapour Pressure (1)"
          request="0x01 0x32" response.prefix="0x41 0x32" response.bytes="2">
-         <!--  A is signed (+ve) with (I THINK) 2's complement -- needs to be VERIFIED
+         <!--  BYTE(0) is signed with (I THINK) 2's complement -- needs to be VERIFIED
                min, max are different than values listed on Wikipedia since they don't
                make sense to me if the value is signed with 2's complement  -->
-         <condition expr="([0] & 0b10000000) == 0"> 
-            <parse expr="(([0]*256)+[1])/4" units="Pa" min="-8192" max="8192" />
-         </condition>
-         <!--  A is signed (-ve) with (I THINK) 2's complement -- needs to be VERIFIED
-               min, max are different than values listed on Wikipedia since they don't
-               make sense to me if the value is signed with 2's complement  -->
-         <condition expr="([0] & 0b10000000) == 1">
-            <parse expr="(((~([0]-1))*256)+[1])/4" units="Pa" min="-8192" max="8192" />
-         </condition>
+         <script>
+            <![CDATA[
+            var numData = new NumericalDataObj();
+            numData.units = "Pa";
+            numData.min = -8192;
+            numData.max = 8192;
+            if(BIT(0,7))      // negative?
+            {   numData.value = (((~(BYTE(0)-1))*256)+BYTE(1))/4;   }
+            else              // positive?
+            {   numData.value = ((BYTE(0)*256)+BYTE(1))/4;   }
+            saveNumericalData(numData);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Barometric Pressure"
          request="0x01 0x33" response.prefix="0x41 0x33" response.bytes="1">
-         <parse units="kPa" expr="[0]" min="0" max="255" />
+         <script>
+            <![CDATA[
+            var numData = new NumericalDataObj();
+            numData.units = "kPa";
+            numData.min = 0;
+            numData.max = 255;
+            numData.value = BYTE(0);
+            saveNumericalData(numData);
+            ]]>
+         </script>
       </parameter>
-
+            
       <parameter name="O2S1_WR_lambda(1): Equivalence Ratio, Current"
          request="0x01 0x34" response.prefix="0x41 0x34" response.bytes="4">
          <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
          <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio";
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))/32768;
+            saveNumericalData(ratio);
+            
+            var current = new NumericalDataObj();
+            current.units = "mA";
+            current.min = -128;
+            current.max = 128;
+            current.value = ((BYTE(2)*256)+BYTE(3))/256-128;
+            saveNumericalData(current);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="O2S2_WR_lambda(1): Equivalence Ratio, Current"
          request="0x01 0x35" response.prefix="0x41 0x35" response.bytes="4">
-         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio";
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))/32768;
+            saveNumericalData(ratio);
+            
+            var current = new NumericalDataObj();
+            current.units = "mA";
+            current.min = -128;
+            current.max = 128;
+            current.value = ((BYTE(2)*256)+BYTE(3))/256-128;
+            saveNumericalData(current);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="O2S3_WR_lambda(1): Equivalence Ratio, Current"
          request="0x01 0x36" response.prefix="0x41 0x36" response.bytes="4">
-         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio";
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))/32768;
+            saveNumericalData(ratio);
+            
+            var current = new NumericalDataObj();
+            current.units = "mA";
+            current.min = -128;
+            current.max = 128;
+            current.value = ((BYTE(2)*256)+BYTE(3))/256-128;
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="O2S4_WR_lambda(1): Equivalence Ratio, Current"
          request="0x01 0x37" response.prefix="0x41 0x37" response.bytes="4">
-         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio";
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))/32768;
+            saveNumericalData(ratio);
+            
+            var current = new NumericalDataObj();
+            current.units = "mA";
+            current.min = -128;
+            current.max = 128;
+            current.value = ((BYTE(2)*256)+BYTE(3))/256-128;
+            saveNumericalData(current);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="O2S5_WR_lambda(1): Equivalence Ratio, Current"
          request="0x01 0x38" response.prefix="0x41 0x38" response.bytes="4">
-         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio";
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))/32768;
+            saveNumericalData(ratio);
+            
+            var current = new NumericalDataObj();
+            current.units = "mA";
+            current.min = -128;
+            current.max = 128;
+            current.value = ((BYTE(2)*256)+BYTE(3))/256-128;
+            saveNumericalData(current);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="O2S6_WR_lambda(1): Equivalence Ratio, Current"
          request="0x01 0x39" response.prefix="0x41 0x39" response.bytes="4">
-         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio";
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))/32768;
+            saveNumericalData(ratio);
+            
+            var current = new NumericalDataObj();
+            current.units = "mA";
+            current.min = -128;
+            current.max = 128;
+            current.value = ((BYTE(2)*256)+BYTE(3))/256-128;
+            saveNumericalData(current);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="O2S7_WR_lambda(1): Equivalence Ratio, Current"
          request="0x01 0x3A" response.prefix="0x41 0x3A" response.bytes="4">
-         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio";
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))/32768;
+            saveNumericalData(ratio);
+            
+            var current = new NumericalDataObj();
+            current.units = "mA";
+            current.min = -128;
+            current.max = 128;
+            current.value = ((BYTE(2)*256)+BYTE(3))/256-128;
+            saveNumericalData(current);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="O2S8_WR_lambda(1): Equivalence Ratio, Current"
          request="0x01 0x3B" response.prefix="0x41 0x3B" response.bytes="4">
-         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
+         <script>
+            <![CDATA[
+            var ratio = new NumericalDataObj();
+            ratio.units = "ratio";
+            ratio.min = 0;
+            ratio.max = 2;
+            ratio.value = ((BYTE(0)*256)+BYTE(1))/32768;
+            saveNumericalData(ratio);
+            
+            var current = new NumericalDataObj();
+            current.units = "mA";
+            current.min = -128;
+            current.max = 128;
+            current.value = ((BYTE(2)*256)+BYTE(3))/256-128;
+            saveNumericalData(current);
+            ]]>
+         </script>
       </parameter>
-      
+
       <parameter name="Catalyst Temperature Bank 1, Sensor 1"
          request="0x01 0x3C" response.prefix="0x41 0x3C" response.bytes="2">
-         <parse expr="(([0]*256)+[1])/10 - 40" units="C" min="-40" max="6513.5" />
+         <script>
+            <![CDATA[
+            var catalystTemp = new NumericalDataObj();
+            catalystTemp.units = "C";
+            catalystTemp.min = -40;
+            catalystTemp.max = 6513.5;
+            catalystTemp.value = ((BYTE(0)*256)+BYTE(1))/10-40;
+            saveNumericalData(catalystTemp);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Catalyst Temperature Bank 2, Sensor 1"
          request="0x01 0x3D" response.prefix="0x41 0x3D" response.bytes="2">
-         <parse expr="(([0]*256)+[1])/10 - 40" units="C" min="-40" max="6513.5" />
+         <script>
+            <![CDATA[
+            var catalystTemp = new NumericalDataObj();
+            catalystTemp.units = "C";
+            catalystTemp.min = -40;
+            catalystTemp.max = 6513.5;
+            catalystTemp.value = ((BYTE(0)*256)+BYTE(1))/10-40;
+            saveNumericalData(catalystTemp);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Catalyst Temperature Bank 1, Sensor 2"
          request="0x01 0x3E" response.prefix="0x41 0x3E" response.bytes="2">
-         <parse expr="(([0]*256)+[1])/10 - 40" units="C" min="-40" max="6513.5" />
+         <script>
+            <![CDATA[
+            var catalystTemp = new NumericalDataObj();
+            catalystTemp.units = "C";
+            catalystTemp.min = -40;
+            catalystTemp.max = 6513.5;
+            catalystTemp.value = ((BYTE(0)*256)+BYTE(1))/10-40;
+            saveNumericalData(catalystTemp);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Catalyst Temperature Bank 2, Sensor 2"
          request="0x01 0x3F" response.prefix="0x41 0x3F" response.bytes="2">
-         <parse expr="(([0]*256)+[1])/10 - 40" units="C" min="-40" max="6513.5" />
+         <script>
+            <![CDATA[
+            var catalystTemp = new NumericalDataObj();
+            catalystTemp.units = "C";
+            catalystTemp.min = -40;
+            catalystTemp.max = 6513.5;
+            catalystTemp.value = ((BYTE(0)*256)+BYTE(1))/10-40;
+            saveNumericalData(catalystTemp);
+            ]]>
+         </script>
       </parameter>
-
+      
       <parameter name="PIDs Supported 0x41-0x60"
          request="0x01 0x40" response.prefix="0x41 0x40" response.bytes="2">
-         <parse expr="[0][7]" property="PID 0x41" true="Supported" false="Unsupported" />
-         <parse expr="[0][6]" property="PID 0x42" true="Supported" false="Unsupported" />
-         <parse expr="[0][5]" property="PID 0x43" true="Supported" false="Unsupported" />
-         <parse expr="[0][4]" property="PID 0x44" true="Supported" false="Unsupported" />
-         <parse expr="[0][3]" property="PID 0x45" true="Supported" false="Unsupported" />
-         <parse expr="[0][2]" property="PID 0x46" true="Supported" false="Unsupported" />
-         <parse expr="[0][1]" property="PID 0x47" true="Supported" false="Unsupported" />
-         <parse expr="[0][0]" property="PID 0x48" true="Supported" false="Unsupported" />
-         
-         <parse expr="[1][7]" property="PID 0x49" true="Supported" false="Unsupported" />
-         <parse expr="[1][6]" property="PID 0x4A" true="Supported" false="Unsupported" />
-         <parse expr="[1][5]" property="PID 0x4B" true="Supported" false="Unsupported" />
-         <parse expr="[1][4]" property="PID 0x4C" true="Supported" false="Unsupported" />
-         <parse expr="[1][3]" property="PID 0x4D" true="Supported" false="Unsupported" />
-         <parse expr="[1][2]" property="PID 0x4E" true="Supported" false="Unsupported" />
-         <parse expr="[1][1]" property="PID 0x4F" true="Supported" false="Unsupported" />
-         <parse expr="[1][0]" property="PID 0x50" true="Supported" false="Unsupported" />
-         
-         <parse expr="[2][7]" property="PID 0x51" true="Supported" false="Unsupported" />
-         <parse expr="[2][6]" property="PID 0x52" true="Supported" false="Unsupported" />
-         <parse expr="[2][5]" property="PID 0x53" true="Supported" false="Unsupported" />
-         <parse expr="[2][4]" property="PID 0x54" true="Supported" false="Unsupported" />
-         <parse expr="[2][3]" property="PID 0x55" true="Supported" false="Unsupported" />
-         <parse expr="[2][2]" property="PID 0x56" true="Supported" false="Unsupported" />
-         <parse expr="[2][1]" property="PID 0x57" true="Supported" false="Unsupported" />
-         <parse expr="[2][0]" property="PID 0x58" true="Supported" false="Unsupported" />
-         
-         <parse expr="[3][7]" property="PID 0x59" true="Supported" false="Unsupported" />
-         <parse expr="[3][6]" property="PID 0x5A" true="Supported" false="Unsupported" />
-         <parse expr="[3][5]" property="PID 0x5B" true="Supported" false="Unsupported" />
-         <parse expr="[3][4]" property="PID 0x5C" true="Supported" false="Unsupported" />
-         <parse expr="[3][3]" property="PID 0x5D" true="Supported" false="Unsupported" />
-         <parse expr="[3][2]" property="PID 0x5E" true="Supported" false="Unsupported" />
-         <parse expr="[3][1]" property="PID 0x5F" true="Supported" false="Unsupported" />
-         <parse expr="[3][0]" property="PID 0x60" true="Supported" false="Unsupported" />
+         <script>
+            <![CDATA[  
+            var k = 0x41;
+            for(var i=0; i < 4; i++)
+            {
+               for(var j=0; j < 8; j++)
+               {
+                  var pid = new LiteralDataObj();
+                  pid.property = "PID " + k.toString(16);
+                  pid.valueIfTrue = "Supported";
+                  pid.valueIfFalse = "Unsupported";
+                  pid.value = BIT(i,(7-j)) ? true : false;                                 
+                  saveLiteralData(pid);
+                  k++;
+               }
+            }
+            ]]>
+         </script>         
       </parameter>
-
+      
       <parameter name="Monitor Status this Drive Cycle"
          request="0x01 0x41" response.prefix="0x41 0x41" response.bytes="2">
-         
-         <!-- Byte B represents Continuous Monitoring tests -->
-         <parse expr="[1][0]" property="Misfire Monitoring"       true="Enabled"    false="Disabled" />
-         <parse expr="[1][1]" property="Fuel System Monitoring"   true="Enabled"    false="Disabled" />
-         <parse expr="[1][2]" property="Component Monitoring"     true="Enabled"    false="Disabled" />
-         
-         <parse expr="[1][4]" property="Misfire Test Status"      true="Complete"   false="Incomplete" />
-         <parse expr="[1][5]" property="Fuel System Test Status"  true="Complete"   false="Incomplete" />
-         <parse expr="[1][6]" property="Component Test Status"    true="Complete"   false="Incomplete" />
-         
-         <!-- Bytes C and D represent Non-Continuous Monitoring tests -->
-         <parse expr="[2][0]" property="Catalyst Test"               true="Enabled"   false="Disabled" />
-         <parse expr="[2][1]" property="Heated Catalyst Test"        true="Enabled"   false="Disabled" />
-         <parse expr="[2][2]" property="Evaporative System Test"     true="Enabled"   false="Disabled" />
-         <parse expr="[2][3]" property="Secondary Air System Test"   true="Enabled"   false="Disabled" />
-         <parse expr="[2][3]" property="A/C Refrigerant Test"        true="Enabled"   false="Disabled" />
-         <parse expr="[2][4]" property="Oxygen Sensor Test"          true="Enabled"   false="Disabled" />
-         <parse expr="[2][5]" property="Oxygen Sensor Heater Test"   true="Enabled"   false="Disabled" />
-         <parse expr="[2][6]" property="EGR System Test"             true="Enabled"   false="Disabled" />
-
-         <parse expr="[3][0]" property="Catalyst Test Status"                true="Incomplete"  false="Complete" />
-         <parse expr="[3][1]" property="Heated Catalyst Test Status"         true="Incomplete"  false="Complete" />
-         <parse expr="[3][2]" property="Evaporative System Test Status"      true="Incomplete"  false="Complete" />
-         <parse expr="[3][3]" property="Secondary Air System Test Status"    true="Incomplete"  false="Complete" />
-         <parse expr="[3][3]" property="A/C Refrigerant Test Status"         true="Incomplete"  false="Complete" />
-         <parse expr="[3][4]" property="Oxygen Sensor Test Status"           true="Incomplete"  false="Complete" />
-         <parse expr="[3][5]" property="Oxygen Sensor Heater Test Status"    true="Incomplete"  false="Complete" />
-         <parse expr="[3][6]" property="EGR System Test Status"              true="Incomplete"  false="Complete" />
+         <script>
+            <![CDATA[
+            
+            // BYTE(1) represents continuous monitoring tests
+            var listProperties = ["Misfire","Fuel System","Component"];
+            for(var i=0; i < 7; i++)
+            {
+               if(!(i == 3 || i > 6))
+               {
+                  var litData = new LiteralDataObj();
+                  if(i < 3)
+                  {
+                     litData.property = listProperties[i] + " Monitoring";
+                     litData.valueIfTrue = "Enabled";
+                     litData.valueIfFalse = "Disabled";
+                  }
+                  else
+                  {   
+                     litData.property = listProperties[i-4] + " Test Status";
+                     litData.valueIfTrue = "Incomplete";
+                     litData.valueIfFalse = "Complete"; 
+                  }
+                  litData.value = BIT(1,i);
+                  saveLiteralData(litData);
+               }
+            }
+            // BYTE(2) and BYTE(3) represent non-continuous monitoring tests
+            listProperties = ["Catalyst","Heated Catalyst","Evaporative","Secondary Air",
+                              "A/C Refrigerant","Oxygen Sensor","Oxygen Sensor Heater", "EGR System"];
+            for(var i=0; i < 8; i++)
+            {
+               var litData1 = new LiteralDataObj();
+               litData1.property = listProperties[i] + " Test";
+               litData1.valueIfTrue = "Enabled";
+               litData1.valueIfFalse = "Disabled";
+               litData1.value = BIT(2,i);
+               saveLiteralData(litData1);
+               
+               var litData2 = new LiteralDataObj();
+               litData2.property = listProperties[i] + " Test Status";
+               litData2.valueIfFalse = "Incomplete";
+               litData2.valueIfTrue = "Complete";
+               litData2.value = BIT(3,i);
+               saveLiteralData(litData2);
+            }
+            
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Control Module Voltage"
          request="0x01 0x42" response.prefix="0x41 0x42" response.bytes="2">
-         <parse expr="(([0]*256)+[1])/1000" units="V" min="0" max="65.535" />
+         <script>
+            <![CDATA[
+            var cmVoltage = new NumericalDataObj();
+            cmVoltage.units = "V";
+            cmVoltage.min = 0;
+            cmVoltage.max = 65.535;
+            cmVoltage.value = ((BYTE(0)*256)+BYTE(1))/1000;
+            saveNumericalData(cmVoltage);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Absolute Load Value"
          request="0x01 0x43" response.prefix="0x41 0x43" response.bytes="2">
-         <parse expr="(([0]*256)+[1])*100/255" units="%" min="0" max="25700" />
+         <script>
+            <![CDATA[
+            var loadVal = new NumericalDataObj();
+            loadVal.units = "%";
+            loadVal.min = 0;
+            loadVal.max = 25700;
+            loadVal.value = ((BYTE(0)*256)+BYTE(1))*100/255;
+            saveNumericalData(loadVal);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Command Equivalence Ratio"
          request="0x01 0x44" response.prefix="0x41 0x44" response.bytes="2">
-         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
+         <script>
+            <![CDATA[
+            var cmdRatio = new NumericalDataObj();
+            cmdRatio.units = "ratio";
+            cmdRatio.min = 0;
+            cmdRatio.max = 2;
+            cmdRatio.value = ((BYTE(0)*256)+BYTE(1))/32768;
+            saveNumericalData(cmdRatio);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Relative Throttle Position"
          request="0x01 0x45" response.prefix="0x41 0x45" response.bytes="1">
-         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+            var relThrottle = new NumericalDataObj();
+            relThrottle.units = "%";
+            relThrottle.min = 0;
+            relThrottle.max = 100;
+            relThrottle.value = BYTE(0)*100/255;
+            saveNumericalData(relThrottle);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Ambient Air Temperature"
          request="0x01 0x46" response.prefix="0x41 0x46" response.bytes="1">
-         <parse expr="[0]-40" units="C" min="-40" max="215" />
+         <script>
+            <![CDATA[
+               var ambAirTemp = new NumericalDataObj();
+               ambAirTemp.units = "C";
+               ambAirTemp.min = -40;
+               ambAirTemp.max = 215;
+               ambAirTemp.value = BYTE(0)-40;
+               saveNumericalData(ambAirTemp);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Absolute Throttle Position B"
          request="0x01 0x47" response.prefix="0x41 0x47" response.bytes="1">
-         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+               var absThrottle = new NumericalDataObj();
+               absThrottle.units = "%";
+               absThrottle.min = 0;
+               absThrottle.max = 100;
+               absThrottle.value = BYTE(0)*100/255;
+               saveNumericalData(absThrottle);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Absolute Throttle Position C"
          request="0x01 0x48" response.prefix="0x41 0x48" response.bytes="1">
-         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+               var absThrottle = new NumericalDataObj();
+               absThrottle.units = "%";
+               absThrottle.min = 0;
+               absThrottle.max = 100;
+               absThrottle.value = BYTE(0)*100/255;
+               saveNumericalData(absThrottle);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Absolute Throttle Position D"
          request="0x01 0x49" response.prefix="0x41 0x49" response.bytes="1">
-         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+               var absThrottle = new NumericalDataObj();
+               absThrottle.units = "%";
+               absThrottle.min = 0;
+               absThrottle.max = 100;
+               absThrottle.value = BYTE(0)*100/255;
+               saveNumericalData(absThrottle);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Absolute Throttle Position E"
          request="0x01 0x4A" response.prefix="0x41 0x4A" response.bytes="1">
-         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+               var absThrottle = new NumericalDataObj();
+               absThrottle.units = "%";
+               absThrottle.min = 0;
+               absThrottle.max = 100;
+               absThrottle.value = BYTE(0)*100/255;
+               saveNumericalData(absThrottle);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Absolute Throttle Position F"
          request="0x01 0x4B" response.prefix="0x41 0x4B" response.bytes="1">
-         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+               var absThrottle = new NumericalDataObj();
+               absThrottle.units = "%";
+               absThrottle.min = 0;
+               absThrottle.max = 100;
+               absThrottle.value = BYTE(0)*100/255;
+               saveNumericalData(absThrottle);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Commanded Throttle Actuator"
          request="0x01 0x4C" response.prefix="0x41 0x4C" response.bytes="1">
-         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+               var cmdThrottle = new NumericalDataObj();
+               cmdThrottle.units = "%";
+               cmdThrottle.min = 0;
+               cmdThrottle.max = 100;
+               cmdThrottle.value = BYTE(0)*100/255;
+               saveNumericalData(cmdThrottle);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Time Run with MIL On"
          request="0x01 0x4D" response.prefix="0x41 0x4D" response.bytes="2">
          <parse expr="([0]*256)+[1]" units="minutes" min="0" max="65535" />
+         <script>
+            <![CDATA[
+               var milTime = new NumericalDataObj();
+               milTime.units = "minutes";
+               milTime.min = 0;
+               milTime.max = 65535;
+               milTime.value = (BYTE(0)*256)+BYTE(1);
+               saveNumericalData(milTime);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Time Since Trouble Codes Cleared"
          request="0x01 0x4E" response.prefix="0x41 0x4E" response.bytes="2">
-         <parse expr="([0]*256)+[1]" units="minutes" min="0" max="65535" />
+         <script>
+            <![CDATA[
+               var milTime = new NumericalDataObj();
+               milTime.units = "minutes";
+               milTime.min = 0;
+               milTime.max = 65535;
+               milTime.value = (BYTE(0)*256)+BYTE(1);
+               saveNumericalData(milTime);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Maximum Value for Equivalence Ratio, Oxygen Sensor Voltage, Oxygen Sensor Current, and Intake Manifold Absolute Pressure"
          request="0x01 0x4F" response.prefix="0x41 0x4F" response.bytes="4">
-         <parse expr="[0]" units="ratio" min="0" max="255" />
-         <parse expr="[1]" units="V" min="0" max="255" />
-         <parse expr="[2]" units="mA" min="0" max="255" />
-         <parse expr="[3]*10" units="kPa" min="0" max="2550" />
+         <script>
+            <![CDATA[
+               var ratio = new NumericalDataObj();
+               ratio.units = "ratio";
+               ratio.min = 0; 
+               ratio.max = "255";
+               ratio.value = BYTE(0);
+               saveNumericalData(ratio);
+               
+               var voltage = new NumericalDataObj();
+               voltage.units = "V";
+               voltage.min = 0; 
+               voltage.max = "255";
+               voltage.value = BYTE(1);
+               saveNumericalData(voltage);
+               
+               var current = new NumericalDataObj();
+               current.units = "mA";
+               current.min = 0; 
+               current.max = "255";
+               current.value = BYTE(2);
+               saveNumericalData(current);
+               
+               var imap = new NumericalDataObj();
+               imap.units = "kPa";
+               imap.min = 0; 
+               imap.max = "2550";
+               imap.value = BYTE(3)*10;
+               saveNumericalData(imap);
+            ]]>
+         </script>
       </parameter>
 
       <parameter name="Maximum value for Air Flow Rate from Mass Air Flow Sensor"
          request="0x01 0x50" response.prefix="0x41 0x50" response.bytes="4">
-         <parse expr="[0]*10" units="g/s" min="0" max="2550" />
+         <script>
+            <![CDATA[
+            var maxMAFAirFlow = new NumericalDataObj();
+            maxMAFAirFlow.units = "g/s";
+            maxMAFAirFlow.min = 0; 
+            maxMAFAirFlow.max = "2550";
+            maxMAFAirFlow.value = BYTE(0)*10;
+            saveNumericalData(maxMAFAirFlow);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Fuel Type"
          request="0x01 0x51" response.prefix="0x41 0x51" response.bytes="1">
-         <parse expr="[0] == 0x01" true="Gasoline" />
-         <parse expr="[0] == 0x02" true="Methanol" />
-         <parse expr="[0] == 0x03" true="Ethanol" />
-         <parse expr="[0] == 0x04" true="Diesel" />
-         <parse expr="[0] == 0x05" true="LPG" />        <!-- LPG: Liquified Petroleum Gas -->
-         <parse expr="[0] == 0x06" true="CNG" />        <!-- CNG: Compressed Natural Gas -->
-         <parse expr="[0] == 0x07" true="Propane" />       <!-- and propane accessories -->
-         <parse expr="[0] == 0x08" true="Electric" />
-         <parse expr="[0] == 0x09" true="Bifuel running Gasoline" />
-         <parse expr="[0] == 0x0A" true="Bifuel running Methanol" />
-         <parse expr="[0] == 0x0B" true="Bifuel running Ethanol" />
-         <parse expr="[0] == 0x0C" true="Bifuel running LPG" />
-         <parse expr="[0] == 0x0D" true="Bifuel running CNG" />
-         <parse expr="[0] == 0x0E" true="Bifuel running Propane" />
-         <parse expr="[0] == 0x0F" true="Bifuel running Electricity" />
-         <parse expr="[0] == 0x10" true="Bifuel Mixed Gas/Electric" />
-         <parse expr="[0] == 0x11" true="Hybrid Gasoline" />
-         <parse expr="[0] == 0x12" true="Hybrid Ethanol" />
-         <parse expr="[0] == 0x13" true="Hybrid Diesel" />
-         <parse expr="[0] == 0x14" true="Hybrid Electric" />
-         <parse expr="[0] == 0x15" true="Hybrid Mixed Fuel" />
-         <parse expr="[0] == 0x16" true="Hybrid Regenerative" />
+         <script>
+            <![CDATA[            
+            var listFuelTypes = ["Gasoline",
+                                 "Methanol",
+                                 "Ethanol",
+                                 "Diesel",
+                                 "LPG",                     // LPG - liquified petroleum gas
+                                 "CNG",                     // CNG - compressed natural gas
+                                 "Propane",
+                                 "Electric",
+                                 "Bifuel running Gasoline",
+                                 "Bifuel running Methanol",
+                                 "Bifuel running LPG",
+                                 "Bifuel running CNG",
+                                 "Bifuel running Propane",
+                                 "Bifuel running Electricity",
+                                 "Bifuel Mixed Gas/Electric",
+                                 "Hybrid Gasoline", 
+                                 "Hybrid Ethanol",
+                                 "Hybrid Diesel", 
+                                 "Hybrid Electric", 
+                                 "Hybrid Mixed Fuel", 
+                                 "Hybrid Regenrative"];                                 
+            for(var i=0; i < 0x16; i++)
+            {
+               if(BYTE(0) == i)
+               {
+                  var fuelType = new LiteralDataObj();
+                  fuelType.value = true;
+                  fuelType.valueIfTrue = listFuelTypes[i];
+                  saveLiteralData(fuelType);
+               }
+            }            
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Ethanol Fuel %"
          request="0x01 0x52" response.prefix="0x41 0x52" response.bytes="1">
          <parse expr="[0]*100/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+            var ethFuel = new NumericalDataObj();
+            ethFuel.units = "%";
+            ethFuel.min = 0;
+            ethFuel.max = 100;
+            ethFuel.value = BYTES(0)*100/255;
+            saveNumericalData(ethFuel);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Absolute Evaporative System Vapour Pressure"
          request="0x01 0x53" response.prefix="0x41 0x53" response.bytes="2">
          <parse expr="(([0]*256)+[1])*0.005" units="kPa" min="0" max="327.675" />
+         <script>
+            <![CDATA[
+            var numData = new NumericalDataObj();
+            numData.units = "kPa";
+            numData.min = 0;
+            numData.max = 327.675;
+            numData.value = ((BYTES(0)*256)+BYTES(1))*0.005;
+            saveNumericalData(numData);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Evaporative System Vapour Pressure (2)"
          request="0x01 0x54" response.prefix="0x41 0x54" response.bytes="2">
-         <!--  A is signed (+ve) with (I THINK) 2's complement - needs to be VERIFIED
+         <!--  A is signed with (I THINK) 2's complement - needs to be VERIFIED
                min, max are different than values listed on Wikipedia since they don't
                make sense to me if the value is signed with 2's complement  -->
-         <condition expr="([0] & 0b10000000) == 0"> 
-            <parse expr="([0]*256)+[1]" units="Pa" min="-32768" max="32767" />
-         </condition>
-         <!--  A is signed (-ve) with (I THINK) 2's complement - needs to be VERIFIED
-               min, max are different than values listed on Wikipedia since they don't
-               make sense to me if the value is signed with 2's complement  -->
-         <condition expr="([0] & 0b10000000) == 1">
-            <parse expr="((~([0]-1))*256)+[1]" units="Pa" min="-32768" max="32767" />
-         </condition>
+         <script>
+            <![CDATA[
+            if(BIT(0,7))
+            {
+               var numData = new NumericalDataObj();
+               numData.units = "Pa";
+               numData.min = -32768;
+               numData.max = 32767;
+               numData.value = ((~(BYTE(0)-1))*256)+BYTE(1);
+               saveNumericalData(numData);
+            }
+            else
+            {
+               var numData = new NumericalDataObj();
+               numData.units = "Pa";
+               numData.min = -32768;
+               numData.max = 32767;
+               numData.value = (BYTE(0)*256)+BYTE(1);
+               saveNumericalData(numData);                  
+            }
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Short Term Secondary Oxygen Sensor Fuel Trim - Bank 1 [and Bank 3]"
          request="0x01 0x55" response.prefix="0x41 0x55" response.bytes="N">
          <parse expr="([0]-128)*100/128" units="%" min="-100" max="99.22" />
+         <script>
+            <![CDATA[
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.22;
+            fuelTrim.value = (BYTE(0)-128)*100/128;
+            saveNumericalData(fuelTrim);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Long Term Secondary Oxygen Sensor Fuel Trim - Bank 1 [and Bank 3]"
          request="0x01 0x56" response.prefix="0x41 0x56" response.bytes="N">
-         <parse expr="([0]-128)*100/128" units="%" min="-100" max="99.22" />
+         <script>
+            <![CDATA[
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.22;
+            fuelTrim.value = (BYTE(0)-128)*100/128;
+            saveNumericalData(fuelTrim);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Short Term Secondary Oxygen Sensor Fuel Trim - Bank 2 [and Bank 4]"
          request="0x01 0x57" response.prefix="0x41 0x57" response.bytes="N">
-         <parse expr="([0]-128)*100/128" units="%" min="-100" max="99.22" />
+         <script>
+            <![CDATA[
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.22;
+            fuelTrim.value = (BYTE(0)-128)*100/128;
+            saveNumericalData(fuelTrim);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Long Term Secondary Oxygen Sensor Fuel Trim - Bank 2 [and Bank 4]"
          request="0x01 0x58" response.prefix="0x41 0x58" response.bytes="N">
-         <parse expr="([0]-128)*100/128" units="%" min="-100" max="99.22" />
+         <script>
+            <![CDATA[
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.22;
+            fuelTrim.value = (BYTE(0)-128)*100/128;
+            saveNumericalData(fuelTrim);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Fuel Rail Pressure (Absolute)"
          request="0x01 0x59" response.prefix="0x41 0x59" response.bytes="2">
-         <parse expr="(([0]*256)+[1])*10" units="kPa" min="0" max="655350" />
+         <script>
+            <![CDATA[
+            var fuelRail = new NumericalDataObj();
+            fuelRail.units = "kPa";
+            fuelRail.min = 0;
+            fuelRail.max = 655350;
+            fuelRail.value = ((BYTE(0)*256)+BYTE(1))*10;
+            saveNumericalData(fuelRail);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Relative Accelerator Pedal Position"
          request="0x01 0x5A" response.prefix="0x41 0x5A" response.bytes="1">
-         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+            var gasPedalPosn = new NumericalDataObj();
+            gasPedalPosn.units = "%";
+            gasPedalPosn.min = 0;
+            gasPedalPosn.max = 100;
+            gasPedalPosn.value = BYTE(0)*100/255;
+            saveNumericalData(gasPedalPosn);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Hybrid Battery Pack Remaining Life"
          request="0x01 0x5B" response.prefix="0x41 0x5B" response.bytes="1">
-         <parse expr="[0]*100/255" units="%" min="0" max="100" />
+         <script>
+            <![CDATA[
+            var battLife = new NumericalDataObj();
+            battLife.units = "%";
+            battLife.min = 0;
+            battLife.max = 100;
+            battLife.value = BYTE(0)*100/255;
+            saveNumericalData(battLife);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Engine Oil Temperature" 
          request="0x01 0x5C" response.prefix="0x41 0x5C" response.bytes="1">
-         <parse expr="[0]-40" units="C" min="-40" max="210" />
+         <script>
+            <![CDATA[
+            var engOilTemp = new NumericalDataObj();
+            engOilTemp.units = "%";
+            engOilTemp.min = -40;
+            engOilTemp.max = 210;
+            engOilTemp.value = BYTE(0)-40;
+            saveNumericalData(engOilTemp);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Fuel Injection Timing" 
          request="0x01 0x5D" response.prefix="0x41 0x5D" response.bytes="2">
-         <parse expr="((([0]*256)+[1])-26880)/128" units="degrees" min="-210" max="301.992" />
+         <script>
+            <![CDATA[
+            var fuelInjTiming = new NumericalDataObj();
+            fuelInjTiming.units = "degrees";
+            fuelInjTiming.min = -210;
+            fuelInjTiming.max = 301.992;
+            fuelInjTiming.value = (((BYTE(0)*256)+BYTE(1))-26880)/128;
+            saveNumericalData(fuelInjTiming);
+            ]]>
+         </script>
       </parameter>
       
       <parameter name="Engine Fuel Rate" 
          request="0x01 0x5E" response.prefix="0x41 0x5E" response.bytes="2">
          <parse expr="(([0]*256)+[1])*0.05" units="L/h" min="0" max="3212.75" />
+         <script>
+            <![CDATA[
+            var fuelRate = new NumericalDataObj();
+            fuelRate.units = "L/h";
+            fuelRate.min = 0;
+            fuelRate.max = 3212.75;
+            fuelRate.value = ((BYTE(0)*256)+BYTE(1))*0.05;
+            saveNumericalData(fuelRate);
+            ]]>
+         </script>
       </parameter>           
       <!-- END MODE $01 PIDs -->
       
@@ -1018,10 +2083,7 @@
             <parse expr="([1] & 0b00001111)" property="DTC Character 5" min="0" max="F" />
          </condition>
       </parameter>
-      <!-- END MODE 03 -->
-      
-
-      
+      <!-- END MODE 03 --> 
    </parameters>
 </spec>
 
@@ -1029,15 +2091,23 @@
 </spec>
 
 <spec name="SSM3" desc="Subaru Select Monitor III">
-
-      <!-- TESTING! IGNORE -->
+      <!--
       <parameter name="SSM Engine Speed"
          request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
-         request2="0xA8 0x00 0x00 0x00 0x0F" request2.delay="100" response2.prefix="0xE8" response2.bytes="1">
-         <parse units="rpm" expr="((resp1[0]*256)+resp2[0])/4" min="0" max="16384" />
+         request2="0xA8 0x00 0x00 0x00 0x0F" response2.prefix="0xE8" response2.bytes="1" 
+         request2.delay="100">
+         <script>
+            <![CDATA[
+            var engSpd = new NumericalDataObj();
+            engSpd.units = "rpm";
+            engSpd.min = 0;
+            engSpd.max = 16384;
+            engSpd.value = ((DATA(0).BYTE(0)*256) + DATA(1).BYTE(0))/4;
+            saveNumericalData(engSpd);
+            ]]>
+         </script>
       </parameter>
-      <!-- END TESTING -->
-
+      -->
 </spec>
 
 <spec name="GMLAN" desc="General Motors Local Area Network">
