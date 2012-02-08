@@ -230,6 +230,7 @@
          <script>
             <![CDATA[
             // number of DTCs available
+            
             var availDTCs = new NumericalDataObj();
             availDTCs.min = 0;
             availDTCs.max = 127;
@@ -260,7 +261,7 @@
             for(var i=4; i < 7; i++)
             {
                litData = new LiteralDataObj();
-               litData.property = commProperties[i] + " Test Status";
+               litData.property = commProperties[i-4] + " Test Status";
                litData.valueIfTrue = "Complete";      // TODO: verify this
                litData.valueIfFalse = "Incomplete";   // TODO: verify this
                litData.value = (BIT(1,i)) ? true : false;
@@ -272,12 +273,12 @@
             litData.valueIfTrue = "Compression";
             litData.valueIfFalse = "Spark";
             litData.value = (BIT(1,3)) ? true : false;
-            saveLiteralData(litData);              
+            saveLiteralData(litData);  
             
             // compression ignition monitor and test info
             if(BIT(1,3))
             {
-               var compProperties = ["NMHC Cat","NOx/SCR Monitor","Boost Pressure",
+               var compProperties = ["NMHC Cat","NOx/SCR Monitor","","Boost Pressure","",
                                     "Exhaust Gas Sensor","PM Filter Monitoring","EGR/VVT System"];
                                     
                for(var i=0; i < 8; i++)
@@ -309,7 +310,7 @@
             // spark ignition monitor and test info
             else
             {
-               var sparkProperties = ["Catalyst","Heated Catalyst","Evaporative System", "Secondary Air System"
+               var sparkProperties = ["Catalyst","Heated Catalyst","Evaporative System", "Secondary Air System",
                                       "A/C Refrigerant","Oxygen Sensor","Oxygen Sensor Heater", "EGR System"];
                                       
                for(var i=0; i < 8; i++)
@@ -325,13 +326,13 @@
                for(var i=0; i < 8; i++)
                {
                   litData = new LiteralDataObj();
-                  litData.property = compProperties[i] + " Test Status";
+                  litData.property = sparkProperties[i] + " Test Status";
                   litData.valueIfTrue = "Incomplete";
                   litData.valueIfFalse = "Complete";
                   litData.value = (BIT(3,i)) ? true : false;
                   saveLiteralData(litData);  
                }
-            }
+            }     
             ]]>
          </script>
       </parameter>                  
@@ -345,25 +346,32 @@
                               "Open Loop: Due to engine load OR fuel cut due to acceleration",
                               "Open Loop: Due to system failure",
                               "Closed loop: Using at least one oxygen sensor but there is a fault in the feedback system"];
+                              
             // fuel system 1
-            for(int i=0; i < 5; i++)
+            for(var i=0; i < 5; i++)
             {
-               var fuelSysData = new LiteralDataObj();
-               fuelSysData.property = "Fuel System 1 Status";
-               fuelSysData.valueIfTrue = fsWhenTrue[i];
-               fuelSysData.value = BIT(0,i) ? true : false;
-               saveLiteralData(litData);  
+               if(BIT(0,i))
+               {
+                  var fuelSysData = new LiteralDataObj();
+                  fuelSysData.property = "Fuel System 1 Status";
+                  fuelSysData.valueIfTrue = fsWhenTrue[i];
+                  fuelSysData.value = true;
+                  saveLiteralData(fuelSysData);  
+               }
             }
             
             // fuel system 2
-            for(int i=0; i < 5; i++)
+            for(var i=0; i < 5; i++)
             {
-               var fuelSysData = new LiteralDataObj();
-               fuelSysData.property = "Fuel System 2 Status";
-               fuelSysData.valueIfTrue = fsWhenTrue[i];
-               fuelSysData.value = BIT(1,i) ? true : false;
-               saveLiteralData(litData);  
-            }
+               if(BIT(1,i))
+               {
+                  var fuelSysData = new LiteralDataObj();
+                  fuelSysData.property = "Fuel System 2 Status";
+                  fuelSysData.valueIfTrue = fsWhenTrue[i];
+                  fuelSysData.value = true;
+                  saveLiteralData(fuelSysData); 
+               }
+            }            
             ]]>
          </script>
       </parameter>
@@ -395,7 +403,7 @@
             ]]>
          </script>     
       </parameter>
-      
+
       <parameter name="SSM Engine Speed"
          request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
          request2="0xA8 0x00 0x00 0x00 0x0F" response2.prefix="0xE8" response2.bytes="1" 
@@ -405,12 +413,12 @@
             var engSpd = new NumericalDataObj();
             engSpd.units = "rpm";
             engSpd.min = 0;
-            engSpd.max = 16384";
+            engSpd.max = 16384;
             engSpd.value = ((DATA(0).BYTE(0)*256) + DATA(1).BYTE(0))/4;
             saveNumericalData(engSpd);
             ]]>
          </script>
       </parameter>
-      
+
    </parameters>
 </spec>

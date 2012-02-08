@@ -80,7 +80,7 @@ function ListDataBytesObj()
       {   this.listDataBytes.length = 0;   }
 }
 
-// global list of databytes for when a parameter
+// global list of databytes for when a given parameter
 // needs to be reconstructed from multiple messages
 var global_list_databytes = new ListDataBytesObj();
 

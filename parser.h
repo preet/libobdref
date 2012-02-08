@@ -71,6 +71,8 @@ private:
     bool parseMultiPartResponse(MessageFrame const &msgFrame,
                                 QList<Data> &listDataResults);
 
+    void saveNumAndLitData(Data &myData);
+
     void convToDecEquivExpression(QString &parseExpr);
 
     uint stringToUInt(bool &convOk, QString const &parseStr);

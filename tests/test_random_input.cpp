@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
                                              "ISO 15765-4 Standard",
                                              "Default");
 
-    for(int i=4; i < 5; i++)
+    for(int i=0; i < myParamList.size(); i++)
     {
         // build a message frame for the current param
         obdref::MessageFrame myMsg;
@@ -82,19 +82,20 @@ int main(int argc, char* argv[])
         for(int j=0; j < myMsg.listMessageData.size(); j++)
         {
             obdref::ByteList randomData;
-            srand(j+153);
+            srand(j+1);
+            int prefixSize;
 
 //            // response 1
-//            randomData.data << 0x07 << 0xE9 << 0x24;
-//            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-//            int prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
-//            for(int k=0; k < 7-prefixSize; k++)
-//            {
-//                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
-//                randomData.data << myDataByte;
-//            }
-//            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
-//            randomData.data.clear();
+            randomData.data << 0x07 << 0xE9 << 0x24;
+            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
+            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
+            for(int k=0; k < 7-prefixSize; k++)
+            {
+                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
+                randomData.data << myDataByte;
+            }
+            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
+            randomData.data.clear();
 
 //            // response 2
 //            srand(j+32);
@@ -110,8 +111,8 @@ int main(int argc, char* argv[])
 //            randomData.data.clear();
 
 //            // response 3
-//            srand(j+32);
-//            randomData.data << 0x07 << 0xA9 << 0x23 << 0x06;
+//            srand(j+1);
+//            randomData.data << 0x07 << 0xA9 << 0x03;
 //            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
 //            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
 //            for(int k=0; k < 7-prefixSize; k++)
@@ -123,17 +124,17 @@ int main(int argc, char* argv[])
 //            randomData.data.clear();
 
             // response 4
-            srand(j+32);
-            randomData.data << 0x07 << 0xA9 << 0x07;
-            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-            int prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
-            for(int k=0; k < 7-prefixSize; k++)
-            {
-                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
-                randomData.data << myDataByte;
-            }
-            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
-            randomData.data.clear();
+//            srand(j+32);
+//            randomData.data << 0x07 << 0x69 << 0x07;
+//            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
+//            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
+//            for(int k=0; k < 7-prefixSize; k++)
+//            {
+//                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
+//                randomData.data << myDataByte;
+//            }
+//            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
+//            randomData.data.clear();
         }
 
         // parse message frame
@@ -153,38 +154,40 @@ int main(int argc, char* argv[])
         }
 
         // print out data
-//        qDebug() << "================================================";
-//        qDebug() << myParamList.at(i) << "| Found" << listData.size() << "results";
+        qDebug() << "================================================";
+        qDebug() << myParamList.at(i) << "|" << listData.size() << "responses";
 
-//        for(int i=0; i < listData.size(); i++)
-//        {
-//            if(listData.at(i).listLiteralData.size() > 0)
-//            {   qDebug() << "[Literal Data]";   }
+        for(int i=0; i < listData.size(); i++)
+        {
+            qDebug() << "\n[From Address]" << listData.at(i).srcAddress;
 
-//            for(int j=0; j < listData.at(i).listLiteralData.size(); j++)
-//            {
-//                if(listData.at(i).listLiteralData.at(j).value)
-//                {
-//                    qDebug() << listData.at(i).listLiteralData.at(j).property;
-//                    qDebug() << listData.at(i).listLiteralData.at(j).valueIfTrue;
-//                }
-//                else
-//                {
-//                    qDebug() << listData.at(i).listLiteralData.at(j).property;
-//                    qDebug() << listData.at(i).listLiteralData.at(j).valueIfFalse;
-//                }
-//            }
+            if(listData.at(i).listLiteralData.size() > 0)
+            {   qDebug() << "[Literal Data]";   }
 
-//            if(listData.at(i).listNumericalData.size() > 0)
-//            {   qDebug() << "[Numerical Data]";   }
+            for(int j=0; j < listData.at(i).listLiteralData.size(); j++)
+            {
+                if(listData.at(i).listLiteralData.at(j).value)
+                {
+                    qDebug() << listData.at(i).listLiteralData.at(j).property <<
+                    "  " << listData.at(i).listLiteralData.at(j).valueIfTrue;
+                }
+                else
+                {
+                    qDebug() << listData.at(i).listLiteralData.at(j).property <<
+                    "  " << listData.at(i).listLiteralData.at(j).valueIfFalse;
+                }
+            }
 
-//            for(int j=0; j < listData.at(i).listNumericalData.size(); j++)
-//            {
-//                qDebug() << listData.at(i).listNumericalData.at(j).value
-//                         << listData.at(i).listNumericalData.at(j).units;
-//            }
-//        }
-//        qDebug() << "================================================";
+            if(listData.at(i).listNumericalData.size() > 0)
+            {   qDebug() << "[Numerical Data]";   }
+
+            for(int j=0; j < listData.at(i).listNumericalData.size(); j++)
+            {
+                qDebug() << listData.at(i).listNumericalData.at(j).value
+                         << listData.at(i).listNumericalData.at(j).units;
+            }
+        }
+        qDebug() << "================================================";
     }
 
     return 0;

@@ -100,19 +100,6 @@ public:
     QList<NumericalData> listNumericalData;
 };
 
-class ParseInfo
-{
-public:
-    ParseInfo() : isLiteral(false),isNumerical(false) {}
-
-    QString expr;
-    bool isLiteral;
-    bool isNumerical;
-    LiteralData literalData;
-    NumericalData numericalData;
-    QStringList listConditions;
-};
-
 class MessageData
 {
 public:
