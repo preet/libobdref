@@ -2037,7 +2037,7 @@
       <!-- END MODE $01 PIDs -->
       
       <!-- START MODE $02 PIDs -->
-      <parameter name="Freeze Frame DTC"
+      <parameter name="Freeze Frame Diagnostic Trouble Codes"
          request="0x02 0x02 0x00" response.prefix="0x42 0x02 0x00" response.bytes="2">
          <!--  0x02 0x02 0x00 returns the DTC which caused the freeze frame data
                available in Mode $02 to be saved. Freeze frame 0x00 is set the
@@ -2048,18 +2048,41 @@
                      frame data is available -->
                      
          <parse expr="!([0] || [1])" true="No Freeze Frame Data Available" />
-         <condition expr="([0] || [1])">
-            <parse expr="([0] & 0b11000000) == 0b00000000" property="DTC Character 1 (Powertrain)"  true="P" />
-            <parse expr="([0] & 0b11000000) == 0b01000000" property="DTC Character 1 (Chassis)"     true="C" />
-            <parse expr="([0] & 0b11000000) == 0b10000000" property="DTC Character 1 (Body)"        true="B" />
-            <parse expr="([0] & 0b11000000) == 0b11000000" property="DTC Character 1 (Network)"     true="U" />
-            <parse expr="([0] & 0b00110000)" property="DTC Character 2" min="0" max="3" />
-            <parse expr="([0] & 0b00001111)" property="DTC Character 3" min="0" max="F" />
-            <parse expr="([1] & 0b11110000)" property="DTC Character 4" min="0" max="F" />
-            <parse expr="([1] & 0b00001111)" property="DTC Character 5" min="0" max="F" />
-         </condition>
+         <script>
+            <![CDATA[
+            if(!(BYTE(0) || BYTE(1)))
+            {
+               var dtcData = new LiteralDataObj();
+               dtcData.valueIfTrue = "No DTCs Stored";
+               dtcData.value = true;
+               saveLiteralData(dtcData);
+            }
+            else
+            {
+               for(var i=0; i < LENGTH(); i+=2)
+               {  
+                  var dtcData = new LiteralDataObj();
+                  dtcData.property = "Diagnostic Trouble Code";
+                  dtcData.value = true;
+                  
+                  // DTC character 1
+                  if((BYTE(i) >> 6) == 0)          {   dtcData.valueIfTrue = "P";   }                  
+                  else if((BYTE(i) >> 6) == 1)     {   dtcData.valueIfTrue = "C";   }                  
+                  else if((BYTE(i) >> 6) == 2)     {   dtcData.valueIfTrue = "B";   }                  
+                  else if((BYTE(i) >> 6) == 3)     {   dtcData.valueIfTrue = "U";   }
+                  
+                  dtcData.valueIfTrue += ((BYTE(i) >> 4) & 0x03).toString(16);    // DTC character 2
+                  dtcData.valueIfTrue += (BYTE(i) & 0x0F).toString(16);           // DTC character 3
+                  dtcData.valueIfTrue += (BYTE(i+1) >> 4).toString(16);           // DTC character 4
+                  dtcData.valueIfTrue += (BYTE(i+1) & 0x0F).toString(16);         // DTC character 5
+                  dtcData.valueIfTrue = dtcData.valueIfTrue.toUpperCase();
+                  saveLiteralData(dtcData);
+               }
+            }
+            ]]>
+         </script>
       </parameter>
-      <!-- END MODE $02 PIDs -->
+      <!-- END MODE $02 PIDs --> 
       
       <!-- START MODE $03 -->
       <parameter name="Request Stored Diagnostic Trouble Codes"
@@ -2070,18 +2093,40 @@
                If no DTCs are stored, the vehicle might respond with (0x00 0x00) for each
                possible DTC that would fit into a frame (3 DTCs, 6 bytes all 0x00 in a
                single standard OBD frame), or the vehicle may not respond at all. -->
-                     
-         <parse expr="!([0] || [1])" true="No DTCs Stored" />
-         <condition expr="([0] || [1])">
-            <parse expr="([0] & 0b11000000) == 0b00000000" property="DTC Character 1 (Powertrain)"  true="P" />
-            <parse expr="([0] & 0b11000000) == 0b01000000" property="DTC Character 1 (Chassis)"     true="C" />
-            <parse expr="([0] & 0b11000000) == 0b10000000" property="DTC Character 1 (Body)"        true="B" />
-            <parse expr="([0] & 0b11000000) == 0b11000000" property="DTC Character 1 (Network)"     true="U" />
-            <parse expr="([0] & 0b00110000)" property="DTC Character 2" min="0" max="3" />
-            <parse expr="([0] & 0b00001111)" property="DTC Character 3" min="0" max="F" />
-            <parse expr="([1] & 0b11110000)" property="DTC Character 4" min="0" max="F" />
-            <parse expr="([1] & 0b00001111)" property="DTC Character 5" min="0" max="F" />
-         </condition>
+               
+         <script>
+            <![CDATA[
+            if(!(BYTE(0) || BYTE(1)))
+            {
+               var dtcData = new LiteralDataObj();
+               dtcData.valueIfTrue = "No DTCs Stored";
+               dtcData.value = true;
+               saveLiteralData(dtcData);
+            }
+            else
+            {
+               for(var i=0; i < LENGTH(); i+=2)
+               {  
+                  var dtcData = new LiteralDataObj();
+                  dtcData.property = "Diagnostic Trouble Code";
+                  dtcData.value = true;
+                  
+                  // DTC character 1
+                  if((BYTE(i) >> 6) == 0)          {   dtcData.valueIfTrue = "P";   }                  
+                  else if((BYTE(i) >> 6) == 1)     {   dtcData.valueIfTrue = "C";   }                  
+                  else if((BYTE(i) >> 6) == 2)     {   dtcData.valueIfTrue = "B";   }                  
+                  else if((BYTE(i) >> 6) == 3)     {   dtcData.valueIfTrue = "U";   }
+                  
+                  dtcData.valueIfTrue += ((BYTE(i) >> 4) & 0x03).toString(16);    // DTC character 2
+                  dtcData.valueIfTrue += (BYTE(i) & 0x0F).toString(16);           // DTC character 3
+                  dtcData.valueIfTrue += (BYTE(i+1) >> 4).toString(16);           // DTC character 4
+                  dtcData.valueIfTrue += (BYTE(i+1) & 0x0F).toString(16);         // DTC character 5
+                  dtcData.valueIfTrue = dtcData.valueIfTrue.toUpperCase();
+                  saveLiteralData(dtcData);
+               }
+            }
+            ]]>
+         </script>
       </parameter>
       <!-- END MODE 03 --> 
    </parameters>

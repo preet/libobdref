@@ -54,6 +54,9 @@ function DataBytesObj()
                  {   return 0;   }
              }
          }
+         
+    this.LENGTH = function()
+         {   return this.bytes.length;   }
 
     this.appendByte = function(byteVal)
          {
@@ -98,3 +101,5 @@ function BYTE(bytePos)
 function BIT(bytePos,bitPos)
 {   return DATA(0).BIT(bytePos,bitPos);   }
 
+function LENGTH()
+{   return DATA(0).LENGTH();   }

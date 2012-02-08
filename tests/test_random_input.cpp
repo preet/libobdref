@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
     QString filePath(argv[1]);
     if(filePath.isEmpty())
     {
-        filePath = "/home/preet/Dev/obdref/definitions/obd2_new.xml";
+        filePath = "/home/preet/Dev/obdref/definitions/obd2.xml";
     }
 
     // read in xml definitions file and globals js
