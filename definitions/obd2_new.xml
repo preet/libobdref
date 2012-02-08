@@ -403,7 +403,520 @@
             ]]>
          </script>     
       </parameter>
+      
+      <parameter name="Short Term Fuel % Trim - Bank 1"
+         request="0x01 0x06" response.prefix="0x41 0x06" response.bytes="1">
+         <script>
+            <![CDATA[
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 100;
+            fuelTrim.value = (BYTE(0)-128)*(100/128);
+            saveNumericalData(fuelTrim);
+            ]]>
+         </script>
+      </parameter>
 
+      <parameter name="Long Term Fuel % Trim - Bank 1"
+         request="0x01 0x07" response.prefix="0x41 0x07" response.bytes="1">        
+         <script>
+            <![CDATA[
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 100;
+            fuelTrim.value = (BYTE(0)-128)*(100/128);
+            saveNumericalData(fuelTrim);
+            ]]>
+         </script>
+      </parameter>
+
+      <parameter name="Long Term Fuel % Trim - Bank 2"
+         request="0x01 0x08" response.prefix="0x41 0x08" response.bytes="1">        
+         <script>
+            <![CDATA[
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 100;
+            fuelTrim.value = (BYTE(0)-128)*(100/128);
+            saveNumericalData(fuelTrim);
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="Long Term Fuel % Trim - Bank 2"
+         request="0x01 0x09" response.prefix="0x41 0x09" response.bytes="1">        
+         <script>
+            <![CDATA[
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 100;
+            fuelTrim.value = (BYTE(0)-128)*(100/128);
+            saveNumericalData(fuelTrim);
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="Fuel Pressure"
+         request="0x01 0x0A" response.prefix="0x41 0x0A" response.bytes="1">        
+         <parse expr="[0]*3" units="kPa (gauge)" min="0" max="765" />
+         <script>
+            <![CDATA[
+            var fuelPr = new NumericalDataObj();
+            fuelPr.units = "kPa (gauge)";
+            fuelPr.min = 0;
+            fuelPr.max = 765;
+            fuelPr.value = BYTE(0)*3;
+            saveNumericalData(fuelPr);
+            ]]>
+         </script>
+      </parameter>
+
+      <parameter name="Intake Manifold Absolute Pressure"
+         request="0x01 0x0B" response.prefix="0x41 0x0B" response.bytes="1">        
+         <script>
+            <![CDATA[
+            var imap = new NumericalDataObj();
+            imap.units = "kPa (absolute)";
+            imap.min = 0;
+            imap.max = 255;
+            imap.value = BYTE(0);
+            saveNumericalData(imap);
+            ]]>
+         </script>
+      </parameter>
+
+      <parameter name="Engine RPM"
+         request="0x01 0x0C" response.prefix="0x41 0x0C" response.bytes="2">
+         <script>
+            <![CDATA[
+            var engSpd = new NumericalDataObj();
+            engSpd.units = "rpm";
+            engSpd.min = 0;
+            engSpd.max = 16383.75;
+            engSpd.value = (BYTE(0)*256 + BYTE(1))/4;
+            saveNumericalData(engSpd);
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="Vehicle Speed"
+         request="0x01 0x0D" response.prefix="0x41 0x0D" response.bytes="1">
+         <script>
+            <![CDATA[
+            var vSpd = new NumericalDataObj();
+            vSpd.units = "km/h";
+            vSpd.min = 0;
+            vSpd.max = 255;
+            vSpd.value = BYTE(0);
+            saveNumericalData(vSpd);
+            ]]>
+         </script>         
+      </parameter>
+      
+      <parameter name="Timing Advance"
+         request="0x01 0x0E" response.prefix="0x41 0x0E" response.bytes="1">
+         <script>
+            <![CDATA[
+            var vSpd = new NumericalDataObj();
+            vSpd.units = "deg";
+            vSpd.min = -64;
+            vSpd.max = 63.5;
+            vSpd.value = (BYTE(0)/2)-64;
+            saveNumericalData(vSpd);
+            ]]>
+         </script>          
+      </parameter>
+      
+      <parameter name="Intake Air Temperature"
+         request="0x01 0x0F" response.prefix="0x41 0x0F" response.bytes="1">
+         <script>
+            <![CDATA[
+            var iat = new NumericalDataObj();
+            iat.units = "C";
+            iat.min = -40;
+            iat.max = 215;
+            iat.value = BYTE(0)-40;
+            saveNumericalData(iat);
+            ]]>
+         </script>  
+      </parameter>
+      
+      <parameter name="MAF Air Flow Rate"
+         request="0x01 0x10" response.prefix="0x41 0x10" response.bytes="2">
+         <script>
+            <![CDATA[
+            var mafRate = new NumericalDataObj();
+            mafRate.units = "g/s";
+            mafRate.min = 0;
+            mafRate.max = 655.35;
+            mafRate.value = (BYTE(0)*256+BYTE(1))/100;
+            saveNumericalData(mafRate);
+            ]]>
+         </script>  
+      </parameter>
+
+      <parameter name="Throttle Position"
+         request="0x01 0x11" response.prefix="0x41 0x11" response.bytes="1">
+         <script>
+            <![CDATA[
+            var throttle = new NumericalDataObj();
+            throttle.units = "%";
+            throttle.min = 0;
+            throttle.max = 100;
+            throttle.value = BYTE(0)*100/255;
+            saveNumericalData(throttle);
+            ]]>
+         </script>  
+      </parameter>
+      
+      <parameter name="Commanded Secondary Air Status"
+         request="0x01 0x12" response.prefix="0x41 0x12" response.bytes="1">
+         <script>
+            <![CDATA[
+            var statusIfTrue = ["Upstream of Catalytic Converter",
+                                "Downstream of Catalytic Converter", 
+                                "From Atmosphere or OFF"];
+            for(var i=0; i < 3; i++)
+            {
+               var airStatus = new LiteralDataObj();
+               airStatus.value = BIT(0,i);
+               if(airStatus.value)
+               {
+                  airStatus.property = "Secondary air exhaust input location";
+                  airStatus.valueIfTrue = statusIfTrue[i];
+                  saveLiteralData(airStatus);
+               }
+            }
+            ]]>
+         </script>  
+      </parameter>
+      
+      <parameter name="Oxygen Sensors Present (Banks 1-2)"
+         request="0x01 0x13" response.prefix="0x41 0x13" response.bytes="1">
+         <script>
+            <![CDATA[
+            
+            for(var i=0; i < 4; i++)
+            {
+               var oxygenSensor = new LiteralDataObj();
+               oxygenSensor.property = "Bank 1, Sensor " + (i+1);
+               oxygenSensor.valueIfFalse = "N/A";
+               oxygenSensor.valueIfTrue = "Present";
+               oxygenSensor.value = BIT(0,i);
+               saveLiteralData(oxygenSensor);
+            }
+            
+            for(var i=4; i < 8; i++)
+            {
+               var oxygenSensor = new LiteralDataObj();
+               oxygenSensor.property = "Bank 2, Sensor " + (i-3);
+               oxygenSensor.valueIfFalse = "N/A";
+               oxygenSensor.valueIfTrue = "Present";
+               oxygenSensor.value = BIT(0,i);
+               saveLiteralData(oxygenSensor);
+            }
+            
+            ]]>
+         </script>  
+      </parameter>
+      
+      <parameter name="Bank 1, Sensor 1: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x14" response.prefix="0x41 0x14" response.bytes="2">
+         <!-- Note: if BYTE(1) == 0xFF, sensor is not used in fuel trim calculation -->
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script> 
+      </parameter>
+
+      <parameter name="Bank 1, Sensor 2: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x15" response.prefix="0x41 0x15" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script> 
+      </parameter>
+      
+      <parameter name="Bank 1, Sensor 3: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x16" response.prefix="0x41 0x16" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script> 
+      </parameter>
+      
+      <parameter name="Bank 1, Sensor 4: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x17" response.prefix="0x41 0x17" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script> 
+      </parameter>
+      
+      <parameter name="Bank 2, Sensor 1: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x18" response.prefix="0x41 0x18" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script> 
+      </parameter>
+      
+      <parameter name="Bank 2, Sensor 2: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x19" response.prefix="0x41 0x19" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script> 
+      </parameter>
+      
+      <parameter name="Bank 2, Sensor 3: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x1A" response.prefix="0x41 0x1A" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="Bank 2, Sensor 4: Oxygen Sensor Voltage, Short Term Fuel Trim"
+         request="0x01 0x1B" response.prefix="0x41 0x1B" response.bytes="2">
+         <!-- Note: if B == 0xFF, sensor is not used in fuel trim calculation -->
+         <script>
+            <![CDATA[
+            var voltage = new NumericalDataObj();
+            voltage.units = "V";
+            voltage.min = 0;
+            voltage.max = 1.275;
+            voltage.value = BYTE(0)/200;
+            saveNumericalData(voltage);
+            
+            var fuelTrim = new NumericalDataObj();
+            fuelTrim.units = "%";
+            fuelTrim.min = -100;
+            fuelTrim.max = 99.2;
+            fuelTrim.value = (BYTE(1)-128)*100/128;
+            saveNumericalData(fuelTrim);            
+            ]]>
+         </script>
+      </parameter>      
+      
+      <parameter name="OBD Standards This Vehicle Conforms To"
+         request="0x01 0x1C" response.prefix="0x41 0x18" response.bytes="1">
+         <script>
+            <![CDATA[
+            var obdStd = new LiteralDataObj();
+            obdStd.value = true;
+            switch(BYTE(0))
+            {
+               case 0x01:
+                  obdStd.valueIfTrue = "OBDII as defined by the CARB";
+                  break;
+               case 0x02:
+                  obdStd.valueIfTrue = "OBD as defined by the EPA";
+                  break;
+               case 0x03:
+                  obdStd.valueIfTrue = "OBD and OBDII";
+                  break;
+               case 0x04:
+                  obdStd.valueIfTrue = "OBDI";
+                  break;
+               case 0x05:
+                  obdStd.valueIfTrue = "Does not comply with any OBD Standard";
+                  break;
+               case 0x06:
+                  obdStd.valueIfTrue = "EOBD (Europe)";
+                  break;
+               case 0x07:
+                  obdStd.valueIfTrue = "EOBD and OBDII";
+                  break;
+               case 0x08:
+                  obdStd.valueIfTrue = "EOBD and OBD";
+                  break;
+               case 0x09:
+                  obdStd.valueIfTrue = "EOBD, OBD and OBDII";
+                  break;
+               case 0x0A:
+                  obdStd.valueIfTrue = "JOBD (Japan)";
+                  break;
+               case 0x0B:
+                  obdStd.valueIfTrue = "JOBD and OBDII";
+                  break;
+               case 0x0C:
+                  obdStd.valueIfTrue = "JOBD and EOBD";
+                  break;
+               case 0x0D:
+                  obdStd.valueIfTrue = "JOBD, EOBD, and OBDII";
+                  break;
+               default:
+                  obdStd.value = false;
+            }
+            saveLiteralData(obdStd);
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="Oxygen Sensors Present (Banks 1-4)"
+         request="0x01 0x1D" response.prefix="0x41 0x1D" response.bytes="1">
+         <script>
+            <![CDATA[
+            for(var i=0; i < 8; i++)
+            {
+               var oxygenSensor = new LiteralDataObj();
+               oxygenSensor.valueIfFalse = "N/A";
+               oxygenSensor.valueIfTrue = "Present";
+               oxygenSensor.value = BIT(0,i);
+            
+               if(i < 2)
+               {   oxygenSensor.property = "Bank 1, Sensor " + (i+1);   }
+               
+               else if(i > 1 && i < 4)
+               {   oxygenSensor.property = "Bank 2, Sensor " + (i+1-2);   }
+               
+               else if(i > 3 && i < 6)
+               {   oxygenSensor.property = "Bank 3, Sensor " + (i+1-4);   }
+               
+               else if(i > 5 && i < 8)
+               {   oxygenSensor.property = "Bank 4, Sensor " + (i+1-6);   }
+                              
+               saveLiteralData(oxygenSensor);
+            }            
+            ]]>
+         </script> 
+      </parameter>
+      
+      <parameter name="Auxiliary Input Status"
+         request="0x01 0x1E" response.prefix="0x41 0x1E" response.bytes="1">
+         <parse expr="[0][0]" true="Power Take Off Active" />
+         <script>
+            <![CDATA[
+            if(BIT(0,0))
+            {
+               var auxIn = new LiteralDataObj();
+               auxIn.value = true;
+               auxIn.valueIfTrue = "Power Take Off Active";
+               saveLiteralData(auxIn);
+            }
+            ]]>
+         </script>          
+      </parameter>
+      
+      <parameter name="Runtime Since Engine Start"
+         request="0x01 0x1F" response.prefix="0x41 0x1F" response.bytes="2">
+         <script>
+            <![CDATA[
+            var runTime = new NumericalDataObj();
+            runTime.units = "seconds";
+            runTime.min = 0;
+            runTime.max = 65535;
+            runTime.value = (BYTE(0)*256) + BYTE(1);
+            saveNumericalData(runTime);
+            ]]>
+         </script>   
+      </parameter>
+      
+        
+
+      <!--
       <parameter name="SSM Engine Speed"
          request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
          request2="0xA8 0x00 0x00 0x00 0x0F" response2.prefix="0xE8" response2.bytes="1" 
@@ -419,6 +932,7 @@
             ]]>
          </script>
       </parameter>
+         -->
 
    </parameters>
 </spec>
