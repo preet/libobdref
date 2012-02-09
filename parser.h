@@ -61,9 +61,9 @@ public:
     QStringList GetLastKnownErrors();
 
 private:  
+    bool cleanRawData_ISO_15765_4(MessageFrame &msgFrame);
 
-    bool cleanRawData_ISO_15765_4_ST(MessageFrame &msgFrame);
-    bool cleanRawData_ISO_15765_4_EX(MessageFrame &msgFrame);
+    void dumpRawDataToDebugInfo(QList<ByteList> const &listRawDataFrames);
 
     bool parseSinglePartResponse(MessageFrame const &msgFrame,
                                  QList<Data> &listDataResults);

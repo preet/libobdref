@@ -75,7 +75,6 @@ public:
     QString valueIfFalse;
     QString valueIfTrue;
     QString property;
-    QString desc;
 };
 
 class NumericalData
@@ -87,7 +86,7 @@ public:
     double min;
     double max;
     QString units;
-    QString desc;
+    QString property;
 };
 
 class Data
@@ -145,6 +144,7 @@ public:
 
     ByteList  reqHeaderBytes;
     ByteList  expHeaderBytes;
+    ByteList  expHeaderMask;
 
     QList<MessageData>  listMessageData;            // [list of message data for this chain]
 

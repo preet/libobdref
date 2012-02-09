@@ -161,8 +161,8 @@ namespace obdref
                                         {
                                             bool convOk = false;
                                             uint headerVal = stringToUInt(convOk,myHeader);
-                                            uint upperByte = headerVal & 0xF00;      // 0b0000111100000000 = 3840
-                                            uint lowerByte = headerVal & 0xFF;       // 0b0000000011111111 = 255
+                                            uint upperByte = headerVal & 0xF00;
+                                            uint lowerByte = headerVal & 0xFF;
 
                                             msgFrame.reqHeaderBytes.data.append(char(upperByte));
                                             msgFrame.reqHeaderBytes.data.append(char(lowerByte));
@@ -177,12 +177,18 @@ namespace obdref
                                         {
                                             bool convOk = false;
                                             uint headerVal = stringToUInt(convOk,myHeader);
-                                            uint upperByte = headerVal & 0xF00;      // 0b0000111100000000 = 3840
-                                            uint lowerByte = headerVal & 0xFF;       // 0b0000000011111111 = 255
+                                            uint upperByte = headerVal & 0xF00;
+                                            uint lowerByte = headerVal & 0xFF;
 
                                             msgFrame.expHeaderBytes.data.append(char(upperByte));
                                             msgFrame.expHeaderBytes.data.append(char(lowerByte));
+                                            msgFrame.expHeaderMask.data << char(0xFF) << char(0xFF);
                                         }
+                                    }
+                                    else
+                                    {
+                                        msgFrame.expHeaderBytes.data << char(0x00) << char(0x00);
+                                        msgFrame.expHeaderMask.data << char(0x00) << char(0x00);
                                     }
                                 }
 
@@ -215,6 +221,8 @@ namespace obdref
                                         uint sourceByte = stringToUInt(convOk,headerSource);
                                         msgFrame.reqHeaderBytes.data.append(char(sourceByte));
                                     }
+                                    else
+                                    {   OBDREFDEBUG << "OBDREF: Invalid Header request bytes";  return false;   }
 
                                     pugi::xml_node nodeResp = nodeAddress.child("response");
                                     if(nodeResp)
@@ -228,63 +236,26 @@ namespace obdref
 
                                         uint prioByte = stringToUInt(convOk,headerPrio);
                                         msgFrame.expHeaderBytes.data.append(char(prioByte));
+                                        msgFrame.expHeaderMask.data << char(0xFF);
 
                                         uint formatByte = stringToUInt(convOk,headerFormat);
                                         msgFrame.expHeaderBytes.data.append(char(formatByte));
+                                        msgFrame.expHeaderMask.data << char(0xFF);
 
                                         uint targetByte = stringToUInt(convOk,headerTarget);
                                         msgFrame.expHeaderBytes.data.append(char(targetByte));
+                                        msgFrame.expHeaderMask.data << char(0xFF);
 
                                         if(!headerSource.isEmpty())
                                         {
                                             uint sourceByte = stringToUInt(convOk,headerSource);
                                             msgFrame.expHeaderBytes.data.append(char(sourceByte));
+                                            msgFrame.expHeaderMask.data << char(0xFF);
                                         }
-                                    }
-                                }
-
-                                else
-                                {
-                                    // special case 3/note: ISO 14230-4
-                                    // the data length needs to be inserted into the
-                                    // priority byte (has to be done later)
-
-                                    pugi::xml_node nodeReq = nodeAddress.child("request");
-                                    if(nodeReq)
-                                    {
-                                        QString headerPrio(nodeReq.attribute("prio").value());
-                                        QString headerTarget(nodeReq.attribute("target").value());
-                                        QString headerSource(nodeReq.attribute("source").value());
-
-                                        bool convOk = false;
-                                        uint prioByte = stringToUInt(convOk,headerPrio);
-                                        msgFrame.reqHeaderBytes.data.append(char(prioByte));
-
-                                        uint targetByte = stringToUInt(convOk,headerTarget);
-                                        msgFrame.reqHeaderBytes.data.append(char(targetByte));
-
-                                        uint sourceByte = stringToUInt(convOk,headerSource);
-                                        msgFrame.reqHeaderBytes.data.append(char(sourceByte));
-                                    }
-
-                                    pugi::xml_node nodeResp = nodeAddress.child("response");
-                                    if(nodeResp)
-                                    {
-                                        QString headerPrio(nodeResp.attribute("prio").value());
-                                        QString headerTarget(nodeResp.attribute("target").value());
-                                        QString headerSource(nodeResp.attribute("source").value());
-
-                                        bool convOk = false;
-                                        uint prioByte = stringToUInt(convOk,headerPrio);
-                                        msgFrame.expHeaderBytes.data.append(char(prioByte));
-
-                                        uint targetByte = stringToUInt(convOk,headerTarget);
-                                        msgFrame.expHeaderBytes.data.append(char(targetByte));
-
-                                        if(!headerSource.isEmpty())
+                                        else
                                         {
-                                            uint sourceByte = stringToUInt(convOk,headerSource);
-                                            msgFrame.expHeaderBytes.data.append(char(sourceByte));
+                                            msgFrame.expHeaderBytes.data << char(0x00);
+                                            msgFrame.expHeaderMask.data << char(0x00);
                                         }
                                     }
                                 }
@@ -403,12 +374,22 @@ namespace obdref
                                     return false;
                                 }
 
+                                QString parseCode;
+                                pugi::xml_node nodeScript = nodeParameter.child("script");
+                                if(nodeScript.attribute("protocols"))
+                                {
+                                    QString scriptProtocols(nodeScript.attribute("protocols").value());
+                                    if(scriptProtocols.contains(protocolName))
+                                    {   parseCode = QString(nodeParameter.child_value("script"));   }
+                                }
+                                else
+                                {   parseCode = QString(nodeParameter.child_value("script"));   }
+
                                 // save parse code
-                                QString parseCode(nodeParameter.child_value("script"));
                                 if(parseCode.isEmpty())
                                 {
                                     OBDREFDEBUG << "OBDREF: Error: No parse info found for "
-                                                << "message: " << paramName;
+                                                << "message: " << paramName << "\n";
                                     return false;
                                 }
                                 msgFrame.parseScript = parseCode;
@@ -464,12 +445,9 @@ namespace obdref
 
         // clean up response data based on protocol type
         bool formatOk = false;
-        if(msgFrame.protocol == "ISO 15765-4 Standard")
-        {   formatOk = cleanRawData_ISO_15765_4_ST(msgFrame);   }
 
-        else if(msgFrame.protocol == "ISO 15765-4 Extended")
-        {   formatOk = cleanRawData_ISO_15765_4_EX(msgFrame);   }
-
+        if(msgFrame.protocol.contains("ISO 15765-4"))
+        {   formatOk = cleanRawData_ISO_15765_4(msgFrame);   }
         else
         {   // TODO
         }     
@@ -581,7 +559,7 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    bool Parser::cleanRawData_ISO_15765_4_ST(MessageFrame &msgFrame)
+    bool Parser::cleanRawData_ISO_15765_4(MessageFrame &msgFrame)
     {
         for(int i=0; i < msgFrame.listMessageData.size(); i++)
         {
@@ -591,19 +569,37 @@ namespace obdref
             QList<ByteList> listUniqueHeaders;
             QList<QList<ByteList> > listMappedDataFrames;
 
+            int numHeaderBytes;
+            if(msgFrame.protocol.contains("Standard"))
+            {   numHeaderBytes = 2;   }
+            else
+            {   numHeaderBytes = 4;   }
+
             for(int j=0; j < listRawDataFrames.size(); j++)
             {
                 // separate into header/data bytes
                 ByteList headerBytes,dataBytes;
+
                 for(int k=0; k < listRawDataFrames.at(j).data.size(); k++)
                 {
-                    if(k < 2)   {   headerBytes.data << listRawDataFrames.at(j).data.at(k);   }
-                    else        {   dataBytes.data << listRawDataFrames.at(j).data.at(k);   }
+                    if(k < numHeaderBytes)   {   headerBytes.data << listRawDataFrames.at(j).data.at(k);   }
+                    else                     {   dataBytes.data << listRawDataFrames.at(j).data.at(k);   }
                 }
 
                 // check if expected header bytes exist / match
-                if((msgFrame.expHeaderBytes.data.size() > 0) && !(msgFrame.expHeaderBytes == headerBytes))
-                {   continue;   }
+                bool headerBytesMatch = true;
+                if(msgFrame.expHeaderBytes.data.size() > 0)
+                {
+                    for(int k=0; k < headerBytes.data.size(); k++)
+                    {   // expHeaderMask byte of 0xFF means we expect a match
+                        if(msgFrame.expHeaderMask.data.at(k) == 0xFF &&
+                                (msgFrame.expHeaderBytes.data.at(k) != headerBytes.data.at(k)))
+                        {   headerBytesMatch = false;   }
+                    }
+                }
+
+                if(!headerBytesMatch)
+                {   qDebug() << "CONTINUE"; continue;   }
 
                 // save dataBytes based on frame type (pci byte)
                 if((dataBytes.data.at(0) & 0xF0) == 0)              // single frame
@@ -612,13 +608,7 @@ namespace obdref
                     {
                         OBDREFDEBUG << "OBDREF: Error: Found multiple frame "
                                     << "response types from single address:\n";
-                        for(int k=0; k < listRawDataFrames.size(); k++)
-                        {
-                            OBDREFDEBUG << "OBDREF: Raw Data Frame " << k << ": ";
-                            for(int l=0; l < listRawDataFrames.at(k).data.size(); l++)
-                            {   OBDREFDEBUG << m_mapValToHexByte.value(listRawDataFrames.at(k).data.at(l)) << ",";   }
-                            OBDREFDEBUG << "\n";
-                        }
+                        dumpRawDataToDebugInfo(listRawDataFrames);
                         return false;
                     }
                     else
@@ -637,13 +627,7 @@ namespace obdref
                         {
                             OBDREFDEBUG << "OBDREF: Error: Found multiple frame "
                                         << "response types from single address:\n";
-                            for(int k=0; k < listRawDataFrames.size(); k++)
-                            {
-                                OBDREFDEBUG << "OBDREF: Raw Data Frame " << k << ": ";
-                                for(int l=0; l < listRawDataFrames.at(k).data.size(); l++)
-                                {   OBDREFDEBUG << m_mapValToHexByte.value(listRawDataFrames.at(k).data.at(l)) << ",";   }
-                                OBDREFDEBUG << "\n";
-                            }
+                            dumpRawDataToDebugInfo(listRawDataFrames);
                             return false;
                         }
                         else
@@ -654,13 +638,7 @@ namespace obdref
                                 {
                                     OBDREFDEBUG << "OBDREF: Error: Found multiple frame "
                                                 << "response types from single address:\n";
-                                    for(int l=0; l < listRawDataFrames.size(); l++)
-                                    {
-                                        OBDREFDEBUG << "OBDREF: Raw Data Frame " << l << ": ";
-                                        for(int m=0; m < listRawDataFrames.at(l).data.size(); m++)
-                                        {   OBDREFDEBUG << m_mapValToHexByte.value(listRawDataFrames.at(l).data.at(m)) << ",";   }
-                                        OBDREFDEBUG << "\n";
-                                    }
+                                    dumpRawDataToDebugInfo(listRawDataFrames);
                                     return false;
                                 }
                             }
@@ -683,13 +661,7 @@ namespace obdref
                         {
                             OBDREFDEBUG << "OBDREF: Error: Found mixed single/multi-frame "
                                         << "response from single address:\n";
-                            for(int k=0; k < listRawDataFrames.size(); k++)
-                            {
-                                OBDREFDEBUG << "OBDREF: Raw Data Frame " << k << ": ";
-                                for(int l=0; l < listRawDataFrames.at(k).data.size(); l++)
-                                {   OBDREFDEBUG << m_mapValToHexByte.value(listRawDataFrames.at(k).data.at(l)) << ",";   }
-                                OBDREFDEBUG << "\n";
-                            }
+                            dumpRawDataToDebugInfo(listRawDataFrames);
                             return false;
                         }
                         else
@@ -706,14 +678,8 @@ namespace obdref
 
             if(listUniqueHeaders.size() == 0)
             {
-                OBDREFDEBUG << "OBDREF: No valid data frames found: \n";
-                for(int k=0; k < listRawDataFrames.size(); k++)
-                {
-                    OBDREFDEBUG << "OBDREF: Raw Data Frame " << k << ": ";
-                    for(int l=0; l < listRawDataFrames.at(k).data.size(); l++)
-                    {   OBDREFDEBUG << m_mapValToHexByte.value(listRawDataFrames.at(k).data.at(l)) << ",";   }
-                    OBDREFDEBUG << "\n";
-                }
+                OBDREFDEBUG << "OBDREF: Error: No valid data frames found: \n";
+                dumpRawDataToDebugInfo(listRawDataFrames);
                 return false;
             }
 
@@ -723,6 +689,13 @@ namespace obdref
             {
                 if(listMappedDataFrames.at(j).size() == 1)          // single frame
                 {
+                    if((listMappedDataFrames.at(j).at(0).data.at(0) & 0xF0) != 0x00)
+                    {
+                        OBDREFDEBUG << "OBDREF: Error: Single frame response,"
+                                    << "but incorrect PCI byte: \n";
+                        dumpRawDataToDebugInfo(listRawDataFrames);
+                        return false;
+                    }
                     listMappedDataFrames[j][0].data.removeAt(0);
                     listCatDataBytes << listMappedDataFrames.at(j).at(0);
                     listMappedDataFrames[j].removeAt(0);
@@ -767,8 +740,6 @@ namespace obdref
                 }
             }
 
-            // TODO check no missing consecutive frames
-
             // check dataBytes against expected prefix
             for(int j=0; j < listUniqueHeaders.size(); j++)
             {
@@ -796,16 +767,36 @@ namespace obdref
 //                qDebug() << msgFrame.listMessageData[i].listHeaders.at(j).data << "|"
 //                         << msgFrame.listMessageData[i].listCleanData.at(j).data;
 //            }
-        }
 
-        return true;
+            if(listCatDataBytes.size() > 0)
+            {
+                if(msgFrame.listMessageData.at(i).listCleanData.size() == 0)
+                {
+                    OBDREFDEBUG << "OBDREF: Error: No frames with correct prefix: \n";
+                    dumpRawDataToDebugInfo(listRawDataFrames);
+                    return false;
+                }
+                else
+                {   return true;   }
+            }
+            else
+            {   return false;   }
+        }
     }
 
     // ========================================================================== //
     // ========================================================================== //
 
-    bool Parser::cleanRawData_ISO_15765_4_EX(MessageFrame &msgFrame)
-    {}
+    void Parser::dumpRawDataToDebugInfo(const QList<ByteList> &listRawDataFrames)
+    {
+        for(int k=0; k < listRawDataFrames.size(); k++)
+        {
+            OBDREFDEBUG << "OBDREF: Raw Data Frame " << k << ": ";
+            for(int l=0; l < listRawDataFrames.at(k).data.size(); l++)
+            {   OBDREFDEBUG << m_mapValToHexByte.value(listRawDataFrames.at(k).data.at(l)) << " ";   }
+            OBDREFDEBUG << "\n";
+        }
+    }
 
     // ========================================================================== //
     // ========================================================================== //
@@ -883,6 +874,8 @@ namespace obdref
     bool Parser::parseMultiPartResponse(const MessageFrame &msgFrame,
                                         QList<Data> &listDataResults)
     {
+        qDebug() << "!!!!";
+
         // a multi part response is limited to receiving responses
         // from only one address
         for(int i=0; i < msgFrame.listMessageData.size(); i++)
@@ -983,6 +976,7 @@ namespace obdref
     void Parser::saveNumAndLitData(Data &myData)
     {
         // saves numerical and literal data from js context
+
         // NOTE: it is expected that execution is already in
         //       a handle scope
 
@@ -995,14 +989,14 @@ namespace obdref
             v8::Local<v8::Object> obj_numData = val_numData->ToObject();
 
             v8::String::Utf8Value numUnitsStr(obj_numData->Get(v8::String::New("units"))->ToString());
-            v8::String::Utf8Value numDescStr(obj_numData->Get(v8::String::New("desc"))->ToString());
+            v8::String::Utf8Value numPropertyStr(obj_numData->Get(v8::String::New("desc"))->ToString());
 
             obdref::NumericalData myNumData;
             myNumData.value = obj_numData->Get(v8::String::New("value"))->NumberValue();
             myNumData.min = obj_numData->Get(v8::String::New("min"))->NumberValue();
             myNumData.max = obj_numData->Get(v8::String::New("max"))->NumberValue();
             myNumData.units = QString(*numUnitsStr);
-            myNumData.desc = QString(*numDescStr);
+            myNumData.property = QString(*numPropertyStr);
             myData.listNumericalData.append(myNumData);
         }
 
@@ -1024,7 +1018,6 @@ namespace obdref
             myLitData.valueIfFalse = QString(*litValIfFalseStr);
             myLitData.valueIfTrue = QString(*litValIfTrueStr);
             myLitData.property = QString(*litPropertyStr);
-            myLitData.desc = QString(*litDescStr);
             myData.listLiteralData.append(myLitData);
         }
     }

@@ -2048,7 +2048,7 @@
                      frame data is available -->
                      
          <parse expr="!([0] || [1])" true="No Freeze Frame Data Available" />
-         <script>
+         <script protocols="ISO 15765-4 Standard, ISO 15765-4 Extended">
             <![CDATA[
             if(!(BYTE(0) || BYTE(1)))
             {
@@ -2094,7 +2094,7 @@
                possible DTC that would fit into a frame (3 DTCs, 6 bytes all 0x00 in a
                single standard OBD frame), or the vehicle may not respond at all. -->
                
-         <script>
+         <script protocols="ISO 15765-4 Standard, ISO 15765-4 Extended">
             <![CDATA[
             if(!(BYTE(0) || BYTE(1)))
             {
