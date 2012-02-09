@@ -599,7 +599,7 @@ namespace obdref
                 }
 
                 if(!headerBytesMatch)
-                {   qDebug() << "CONTINUE"; continue;   }
+                {   continue;   }
 
                 // save dataBytes based on frame type (pci byte)
                 if((dataBytes.data.at(0) & 0xF0) == 0)              // single frame
@@ -761,7 +761,7 @@ namespace obdref
                 }
             }
 
-//            //debug
+            //debug
 //            for(int j=0; j < msgFrame.listMessageData[i].listHeaders.size(); j++)
 //            {
 //                qDebug() << msgFrame.listMessageData[i].listHeaders.at(j).data << "|"
@@ -818,7 +818,7 @@ namespace obdref
             {   myData.srcAddress.append(QString::number(int(headerBytes.data.at(j)),16));   }
 
             myData.paramName = msgFrame.name;
-            myData.srcAddress = myData.srcAddress.toUpper();
+            //myData.srcAddress = myData.srcAddress.toUpper();
 
             // clear existing databytes in js context
             v8::Local<v8::Value> val_clearDataBytes;
@@ -874,8 +874,6 @@ namespace obdref
     bool Parser::parseMultiPartResponse(const MessageFrame &msgFrame,
                                         QList<Data> &listDataResults)
     {
-        qDebug() << "!!!!";
-
         // a multi part response is limited to receiving responses
         // from only one address
         for(int i=0; i < msgFrame.listMessageData.size(); i++)
@@ -989,7 +987,7 @@ namespace obdref
             v8::Local<v8::Object> obj_numData = val_numData->ToObject();
 
             v8::String::Utf8Value numUnitsStr(obj_numData->Get(v8::String::New("units"))->ToString());
-            v8::String::Utf8Value numPropertyStr(obj_numData->Get(v8::String::New("desc"))->ToString());
+            v8::String::Utf8Value numPropertyStr(obj_numData->Get(v8::String::New("property"))->ToString());
 
             obdref::NumericalData myNumData;
             myNumData.value = obj_numData->Get(v8::String::New("value"))->NumberValue();
@@ -1011,7 +1009,6 @@ namespace obdref
             v8::String::Utf8Value litValIfFalseStr(obj_litData->Get(v8::String::New("valueIfFalse"))->ToString());
             v8::String::Utf8Value litValIfTrueStr(obj_litData->Get(v8::String::New("valueIfTrue"))->ToString());
             v8::String::Utf8Value litPropertyStr(obj_litData->Get(v8::String::New("property"))->ToString());
-            v8::String::Utf8Value litDescStr(obj_litData->Get(v8::String::New("desc"))->ToString());
 
             obdref::LiteralData myLitData;
             myLitData.value = obj_litData->Get(v8::String::New("value"))->BooleanValue();
