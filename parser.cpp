@@ -462,7 +462,9 @@ namespace obdref
         // determine if we have a single or multi-part response
         if(msgFrame.listMessageData.size() > 1)
         {
+            qDebug() << "parsing multiframe";
             parseMultiPartResponse(msgFrame,listData);
+            qDebug() << "done";
         }
         else
         {
@@ -776,12 +778,12 @@ namespace obdref
                     dumpRawDataToDebugInfo(listRawDataFrames);
                     return false;
                 }
-                else
-                {   return true;   }
             }
             else
             {   return false;   }
         }
+
+        return true;
     }
 
     // ========================================================================== //
@@ -896,7 +898,7 @@ namespace obdref
                     msgFrame.listMessageData.at(i-1).listHeaders.at(0)))
             {
                 OBDREFDEBUG << "OBDREF: Error: Expected all parts of "
-                            << "multi-frame message to originate from "
+                            << "multi-part message to originate from "
                             << "same address";
                 return false;
             }

@@ -27,10 +27,10 @@
 // helper function prototypes
 void PrintErrors(obdref::Parser &myParser);
 void PrintData(QList<obdref::Data> &listData);
-void GetSingleFramedResponsesFromRandom(obdref::MessageFrame &myMsg);
-void GetMultiFramedResponsesFromRandom(obdref::MessageFrame &myMsg);
+void GetSingleFramedResponseFromRandom(obdref::MessageFrame &myMsg);
+void GetMultiFramedResponseFromRandom(obdref::MessageFrame &myMsg);
 void GetSingleFramedResponseFromTarget(obdref::MessageFrame &myMsg);
-void GetMultiFramedResponsesFromTarget(obdref::MessageFrame &myMsg);
+void GetMultiFramedResponseFromTarget(obdref::MessageFrame &myMsg);
 
 int main(int argc, char* argv[])
 {
@@ -140,7 +140,8 @@ void GetSingleFramedResponseFromTarget(obdref::MessageFrame &myMsg)
         obdref::ByteList dataBytes;
         dataBytes.data.append(0x07);    // single-frame pci byte
         dataBytes.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-        for(int k=0; k < 8-dataBytes.data.size(); k++)
+        int numDataBytes = 8-dataBytes.data.size();
+        for(int k=0; k < numDataBytes; k++)
         {
             obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
             dataBytes.data << myDataByte;
@@ -152,7 +153,7 @@ void GetSingleFramedResponseFromTarget(obdref::MessageFrame &myMsg)
     }
 }
 
-void GetMultiFramedResponsesFromTarget(obdref::MessageFrame &myMsg)
+void GetMultiFramedResponseFromTarget(obdref::MessageFrame &myMsg)
 {
     for(int j=0; j < myMsg.listMessageData.size(); j++)
     {
@@ -171,7 +172,8 @@ void GetMultiFramedResponsesFromTarget(obdref::MessageFrame &myMsg)
         obdref::ByteList dataBytes;
         dataBytes.data << 0x15 << 0x05; // first-frame pci bytes (there are 2)
         dataBytes.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-        for(int k=0; k < 8-dataBytes.data.size(); k++)
+        int numDataBytes = 8-dataBytes.data.size();
+        for(int k=0; k < numDataBytes; k++)
         {
             obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
             dataBytes.data << myDataByte;
@@ -199,7 +201,7 @@ void GetMultiFramedResponsesFromTarget(obdref::MessageFrame &myMsg)
     }
 }
 
-void GetSingleFramedResponsesFromRandom(obdref::MessageFrame &myMsg)
+void GetSingleFramedResponseFromRandom(obdref::MessageFrame &myMsg)
 {
     for(int j=0; j < myMsg.listMessageData.size(); j++)
     {
@@ -216,7 +218,8 @@ void GetSingleFramedResponsesFromRandom(obdref::MessageFrame &myMsg)
             obdref::ByteList dataBytes;
             dataBytes.data.append(0x07);    // single-frame
             dataBytes.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-            for(int l=0; l < 8-dataBytes.data.size(); l++)
+            int numDataBytes = 8-dataBytes.data.size();
+            for(int l=0; l < numDataBytes; l++)
             {
                 obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
                 dataBytes.data << myDataByte;
@@ -229,7 +232,7 @@ void GetSingleFramedResponsesFromRandom(obdref::MessageFrame &myMsg)
     }
 }
 
-void GetMultiFramedResponsesFromRandom(obdref::MessageFrame &myMsg)
+void GetMultiFramedResponseFromRandom(obdref::MessageFrame &myMsg)
 {
     for(int j=0; j < myMsg.listMessageData.size(); j++)
     {
@@ -246,7 +249,8 @@ void GetMultiFramedResponsesFromRandom(obdref::MessageFrame &myMsg)
             obdref::ByteList dataBytes;
             dataBytes.data << 0x15 << 0x05; // first-frame pci bytes (there are 2)
             dataBytes.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-            for(int l=0; l < 8-dataBytes.data.size(); l++)
+            int numDataBytes = 8-dataBytes.data.size();
+            for(int l=0; l < numDataBytes; l++)
             {
                 obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
                 dataBytes.data << myDataByte;
