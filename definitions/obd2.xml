@@ -1843,7 +1843,7 @@
             ethFuel.units = "%";
             ethFuel.min = 0;
             ethFuel.max = 100;
-            ethFuel.value = BYTES(0)*100/255;
+            ethFuel.value = BYTE(0)*100/255;
             saveNumericalData(ethFuel);
             ]]>
          </script>
@@ -1858,7 +1858,7 @@
             numData.units = "kPa";
             numData.min = 0;
             numData.max = 327.675;
-            numData.value = ((BYTES(0)*256)+BYTES(1))*0.005;
+            numData.value = ((BYTE(0)*256)+BYTE(1))*0.005;
             saveNumericalData(numData);
             ]]>
          </script>
@@ -1997,7 +1997,7 @@
          <script>
             <![CDATA[
             var engOilTemp = new NumericalDataObj();
-            engOilTemp.units = "%";
+            engOilTemp.units = "C";
             engOilTemp.min = -40;
             engOilTemp.max = 210;
             engOilTemp.value = BYTE(0)-40;
@@ -2038,7 +2038,7 @@
       
       <!-- START MODE $02 PIDs -->
       <parameter name="Freeze Frame Diagnostic Trouble Codes"
-         request="0x02 0x02 0x00" response.prefix="0x42 0x02 0x00" response.bytes="2">
+         request="0x02 0x02 0x00" response.prefix="0x42 0x02 0x00">
          <!--  0x02 0x02 0x00 returns the DTC which caused the freeze frame data
                available in Mode $02 to be saved. Freeze frame 0x00 is set the
                generic frame set by default - any other frames set are
@@ -2086,7 +2086,7 @@
       
       <!-- START MODE $03 -->
       <parameter name="Request Stored Diagnostic Trouble Codes"
-         request="0x03" response.prefix="0x43" response.bytes="2N">
+         request="0x03" response.prefix="0x43">
 
          <!--  Mode $03 is to request stored DTCs. The vehicle returns 2*N bytes excluding
                the response prefix, with each set of 2 bytes specifying a single DTC.

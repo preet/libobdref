@@ -21,46 +21,130 @@
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include <cstdlib>
+#include <sys/time.h>
 #include "parser.h"
+
+void printOutErrors(obdref::Parser &myParser)
+{
+    QStringList listErrors = myParser.GetLastKnownErrors();
+    for(int i=0; i < listErrors.size(); i++)
+    {   qDebug() << listErrors.at(i);   }
+}
+
+void generateSingleFrameResponse(obdref::MessageFrame &myMsg)
+{
+    for(int j=0; j < myMsg.listMessageData.size(); j++)
+    {
+        obdref::ByteList headerBytes;
+        if(myMsg.expHeaderBytes.data.size() > 0)
+        {   headerBytes.data.append(myMsg.expHeaderBytes.data);   }
+        else
+        {
+            if(myMsg.protocol == "ISO 15765-4 Standard")
+            {   headerBytes.data << 0x07 << 0xE8;   }
+
+            else if(myMsg.protocol == "ISO 15765-4 Extended")
+            {   headerBytes.data << 0x18 << 0xDA << 0xF1 << 0x10;    }
+        }
+
+        obdref::ByteList dataBytes;
+        int prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
+
+        dataBytes.data.append(0x07);
+        dataBytes.data.append(myMsg.listMessageData[j].expDataPrefix.data);
+        for(int k=0; k < 7-prefixSize; k++)
+        {
+            obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
+            dataBytes.data << myDataByte;
+        }
+
+        obdref::ByteList messageBytes;
+        messageBytes.data << headerBytes.data << dataBytes.data;
+        myMsg.listMessageData[j].listRawDataFrames.append(messageBytes);
+    }
+}
+
+void generateMultiFrameResponse(obdref::MessageFrame &myMsg)
+{
+
+}
+
+void printOutData(QList<obdref::Data> &listData)
+{
+    for(int i=0; i < listData.size(); i++)
+    {
+        qDebug() << "================================================";
+        qDebug() << listData.at(i).paramName;
+        qDebug() << "\n[From Address]" << listData.at(i).srcAddress;
+
+        if(listData.at(i).listLiteralData.size() > 0)
+        {   qDebug() << "[Literal Data]";   }
+
+        for(int j=0; j < listData.at(i).listLiteralData.size(); j++)
+        {
+            if(listData.at(i).listLiteralData.at(j).value)
+            {
+                qDebug() << listData.at(i).listLiteralData.at(j).property <<
+                "  " << listData.at(i).listLiteralData.at(j).valueIfTrue;
+            }
+            else
+            {
+                qDebug() << listData.at(i).listLiteralData.at(j).property <<
+                "  " << listData.at(i).listLiteralData.at(j).valueIfFalse;
+            }
+        }
+
+        if(listData.at(i).listNumericalData.size() > 0)
+        {   qDebug() << "[Numerical Data]";   }
+
+        for(int j=0; j < listData.at(i).listNumericalData.size(); j++)
+        {
+            if(!listData.at(i).listNumericalData.at(j).property.isEmpty())
+            {   qDebug() << listData.at(i).listNumericalData.at(j).property;   }
+
+            qDebug() << listData.at(i).listNumericalData.at(j).value
+                     << listData.at(i).listNumericalData.at(j).units;
+        }
+    }
+}
 
 int main(int argc, char* argv[])
 {
     // we expect a single argument that's the path
-    // to the definitions file to be tested
+    // to the definitions file
     bool opOk = false;
     QString filePath(argv[1]);
     if(filePath.isEmpty())
-    {
-        filePath = "/home/preet/Dev/obdref/definitions/obd2.xml";
-    }
+    {   filePath = "/home/preet/Dev/obdref/definitions/obd2.xml";   }
 
     // read in xml definitions file and globals js
     obdref::Parser myParser(filePath,opOk);
     if(!opOk)
-    {   qDebug() << "Reading in XML and JS Failed! Exiting...";
-
-        QStringList listErrors = myParser.GetLastKnownErrors();
-        for(int i=0; i < listErrors.size(); i++)
-        {   qDebug() << listErrors.at(i);   }
-
+    {
+        qDebug() << "Reading in XML and JS Failed! Exiting...";
+        printOutErrors(myParser);
         return -1;
     }
     qDebug() << "OBDREF: Successfully read in XML Defs and JS globals!";
 
-
     // get a list of default parameters
     QStringList myParamList;
     myParamList = myParser.GetParameterNames("SAEJ1979",
-                                             "ISO 15765-4 Extended",
+                                             "ISO 15765-4 Standard",
                                              "Default");
 
+    double timeToBuildMsg = 0;
+    double timeToParseMsg = 0;
     for(int i=0; i < myParamList.size(); i++)
     {
+        // timing vars
+        timeval t1,t2;
+
         // build a message frame for the current param
+        gettimeofday(&t1,NULL);
         obdref::MessageFrame myMsg;
         myMsg.spec = "SAEJ1979";
-        myMsg.protocol = "ISO 15765-4 Extended";
+        myMsg.protocol = "ISO 15765-4 Standard";
         myMsg.address = "Default";
         myMsg.name = myParamList.at(i);
 
@@ -69,75 +153,19 @@ int main(int argc, char* argv[])
         {
             qDebug() << "BuildMessageFrame for" << myParamList.at(i)
                      << "Failed! Exiting...";
-
-            QStringList listErrors = myParser.GetLastKnownErrors();
-            for(int i=0; i < listErrors.size(); i++)
-            {   qDebug() << listErrors.at(i);   }
-
+            printOutErrors(myParser);
             return -1;
         }
+        gettimeofday(&t2,NULL);
+        timeToBuildMsg += (t2.tv_sec - t1.tv_sec) * 1000.0 * 1000.0;
+        timeToBuildMsg += (t2.tv_usec - t1.tv_usec);
 
         // generate some random data to pretend we
         // have an actual device response
-        for(int j=0; j < myMsg.listMessageData.size(); j++)
-        {
-            obdref::ByteList randomData;
-            srand(j+52);
-            int prefixSize;
-
-            // response 1
-            randomData.data << 0x18 << 0xDA << 0xF1 << 0x10 << 0x15 << 0x01;
-            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
-            for(int k=0; k < 7-prefixSize; k++)
-            {
-                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
-                randomData.data << myDataByte;
-            }
-            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
-            randomData.data.clear();
-
-            // response 2
-            srand(j+32);
-            randomData.data << 0x18 << 0xDA << 0xF1 << 0x10 << 0x21;
-            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
-            for(int k=0; k < 7-prefixSize; k++)
-            {
-                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
-                randomData.data << myDataByte;
-            }
-            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
-            randomData.data.clear();
-
-            // response 3
-//            srand(j+1);asd
-//            randomData.data << 0x07 << 0xE9 << 0x23;
-//            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-//            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
-//            for(int k=0; k < 7-prefixSize; k++)
-//            {
-//                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
-//                randomData.data << myDataByte;
-//            }
-//            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
-//            randomData.data.clear();
-
-//            // response 4
-//            srand(j+32);
-//            randomData.data << 0x07 << 0xE9 << 0x22;
-//            randomData.data.append(myMsg.listMessageData[j].expDataPrefix.data);
-//            prefixSize = myMsg.listMessageData[j].expDataPrefix.data.size();
-//            for(int k=0; k < 7-prefixSize; k++)
-//            {
-//                obdref::ubyte myDataByte = obdref::ubyte(rand() % 256);
-//                randomData.data << myDataByte;
-//            }
-//            myMsg.listMessageData[j].listRawDataFrames.append(randomData);
-//            randomData.data.clear();
-        }
+        generateSingleFrameResponse(myMsg);
 
         // parse message frame
+        gettimeofday(&t1,NULL);
         QList<obdref::Data> listData;
         opOk = myParser.ParseMessageFrame(myMsg, listData);
 
@@ -145,53 +173,24 @@ int main(int argc, char* argv[])
         {
             qDebug() << "ParseMessageFrame for" << myParamList.at(i)
                      << "Failed! Exiting...";
-
-            QStringList listErrors = myParser.GetLastKnownErrors();
-            for(int i=0; i < listErrors.size(); i++)
-            {   qDebug() << listErrors.at(i);   }
-
+            printOutErrors(myParser);
             return -1;
         }
+        gettimeofday(&t2,NULL);
+        timeToParseMsg += (t2.tv_sec - t1.tv_sec) * 1000.0 * 1000.0;
+        timeToParseMsg += (t2.tv_usec - t1.tv_usec);
 
         // print out data
-        qDebug() << "================================================";
-        qDebug() << myParamList.at(i) << "|" << listData.size() << "responses";
-
-        for(int i=0; i < listData.size(); i++)
-        {
-            qDebug() << "\n[From Address]" << listData.at(i).srcAddress;
-
-            if(listData.at(i).listLiteralData.size() > 0)
-            {   qDebug() << "[Literal Data]";   }
-
-            for(int j=0; j < listData.at(i).listLiteralData.size(); j++)
-            {
-                if(listData.at(i).listLiteralData.at(j).value)
-                {
-                    qDebug() << listData.at(i).listLiteralData.at(j).property <<
-                    "  " << listData.at(i).listLiteralData.at(j).valueIfTrue;
-                }
-                else
-                {
-                    qDebug() << listData.at(i).listLiteralData.at(j).property <<
-                    "  " << listData.at(i).listLiteralData.at(j).valueIfFalse;
-                }
-            }
-
-            if(listData.at(i).listNumericalData.size() > 0)
-            {   qDebug() << "[Numerical Data]";   }
-
-            for(int j=0; j < listData.at(i).listNumericalData.size(); j++)
-            {
-                if(!listData.at(i).listNumericalData.at(j).property.isEmpty())
-                {   qDebug() << listData.at(i).listNumericalData.at(j).property;   }
-
-                qDebug() << listData.at(i).listNumericalData.at(j).value
-                         << listData.at(i).listNumericalData.at(j).units;
-            }
-        }
-        qDebug() << "================================================";
+        printOutData(listData);
     }
+
+    // print out time taken
+    qDebug() << "================================================";
+    qDebug() << "Stats:";
+    qDebug() << "Protocol Used: ISO 15765-4 Standard";
+    qDebug() << "Average Time to Build Message:" << timeToBuildMsg/myParamList.size() << "microseconds";
+    qDebug() << "Average Time to Parse Message:" << timeToParseMsg/myParamList.size() << "microseconds";
+    qDebug() << "\n\n";
 
     return 0;
 }
