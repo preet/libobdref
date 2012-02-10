@@ -72,7 +72,7 @@ namespace obdref
 
         // read in and compile globals js
         QString scriptTxt;
-        QString scriptFilePath = "globals.js";
+        QString scriptFilePath = "/usr/local/include/obdref/globals.js";
         if(convTextFileToQStr(scriptFilePath,scriptTxt))
         {   initOk = true;   }
         else
@@ -461,17 +461,9 @@ namespace obdref
 
         // determine if we have a single or multi-part response
         if(msgFrame.listMessageData.size() > 1)
-        {
-            qDebug() << "parsing multiframe";
-            parseMultiPartResponse(msgFrame,listData);
-            qDebug() << "done";
-        }
+        {   parseMultiPartResponse(msgFrame,listData);   }
         else
-        {
-            parseSinglePartResponse(msgFrame,listData);
-        }
-
-
+        {   parseSinglePartResponse(msgFrame,listData);   }
 
         return true;
     }

@@ -39,7 +39,10 @@ int main(int argc, char* argv[])
     bool opOk = false;
     QString filePath(argv[1]);
     if(filePath.isEmpty())
-    {   filePath = "/home/preet/Dev/obdref/definitions/obd2.xml";   }
+    {
+       qDebug() << "Pass the definitions file in as an argument!";   
+       return -1;
+    }
 
     // read in xml definitions file and globals js
     obdref::Parser myParser(filePath,opOk);

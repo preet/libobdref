@@ -54,15 +54,18 @@ in another project.
 
 * Building: Including obdref directly
 
-Just add the following files to your project, and make 
-sure to link against v8:
+You must include the 'libobdref/globals.js' file somewhere in your project, 
+and explicitly specify where it is in parser.cpp, on line 75. 
 
-- message.hpp
-- parser.h
-- pugixml/pugixml.hpp
-- pugixml/pugiconfig.hpp
-- parser.cpp
-- pugixml/pugixml.cpp
+Then add the following files to your project, 
+and make sure to link against v8:
+
+- libobdref/message.hpp
+- libobdref/parser.h
+- libobdref/pugixml/pugixml.hpp
+- libobdref/pugixml/pugiconfig.hpp
+- libobdref/parser.cpp
+- libobdref/pugixml/pugixml.cpp
 
 Note: pugixml is the library obdref uses to parse XML documents. 
 Like obdref, pugixml is distributed under the MIT License. 
@@ -70,6 +73,8 @@ See http://pugixml.org/ for more information.
 
 
 * Building: Installing a shared lib
+
+This is the preferred method of installing obdref.
 
 There are *.pro files included with obdref, and qmake is 
 used to build the Makefiles for the project. 
