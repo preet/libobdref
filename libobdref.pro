@@ -1,5 +1,4 @@
 TEMPLATE = lib
-CONFIG += staticlib
 TARGET = obdref
 QT += core
 
@@ -17,11 +16,15 @@ LIBS += -lv8
 
 headerfiles.path = /usr/local/include/obdref
 headerfiles.files = parser.h \
-                    message.hpp
+                    message.hpp \
+                    globals.js
 
 pheaderfiles.path = /usr/local/include/obdref/pugixml
 pheaderfiles.files = pugixml/pugixml.hpp \
                      pugixml/pugiconfig.hpp
 							
-target.path = /usr/local/lib/obdref
+target.path = /usr/local/lib
 INSTALLS += headerfiles pheaderfiles target
+
+OTHER_FILES += \
+    globals.js

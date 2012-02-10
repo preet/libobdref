@@ -22,7 +22,7 @@
 */
 
 #include <sys/time.h>
-#include "parser.h"
+#include <obdref/parser.h>
 
 // helper function prototypes
 void PrintErrors(obdref::Parser &myParser);

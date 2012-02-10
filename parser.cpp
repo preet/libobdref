@@ -72,7 +72,7 @@ namespace obdref
 
         // read in and compile globals js
         QString scriptTxt;
-        QString scriptFilePath = "/home/preet/Dev/obdref/globals.js";
+        QString scriptFilePath = "globals.js";
         if(convTextFileToQStr(scriptFilePath,scriptTxt))
         {   initOk = true;   }
         else
