@@ -1,4 +1,5 @@
 TEMPLATE = lib
+CONFIG += staticlib
 TARGET = obdref
 QT += core
 
@@ -14,17 +15,18 @@ HEADERS += \
 
 LIBS += -lv8
 
-headerfiles.path = /usr/local/include/obdref
+H_INSTALLPATH = /home/preet/Dev/build/obdref/obdref
+L_INSTALLPATH = /home/preet/Dev/build/obdref
+DEFINES += H_INSTALLPATH=\\\"/home/preet/Dev/build/obdref/obdref\\\"
+
+headerfiles.path = $${H_INSTALLPATH}
 headerfiles.files = parser.h \
                     message.hpp \
                     globals.js
 
-pheaderfiles.path = /usr/local/include/obdref/pugixml
+pheaderfiles.path = $${H_INSTALLPATH}/pugixml
 pheaderfiles.files = pugixml/pugixml.hpp \
                      pugixml/pugiconfig.hpp
 							
-target.path = /usr/local/lib
+target.path = $${L_INSTALLPATH}
 INSTALLS += headerfiles pheaderfiles target
-
-OTHER_FILES += \
-    globals.js

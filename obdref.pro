@@ -1,3 +1,3 @@
 TEMPLATE = subdirs
-SUBDIRS += libobdref tests
+SUBDIRS += libobdref
 CONFIG += ordered

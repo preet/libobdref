@@ -146,6 +146,12 @@ public:
     ByteList  expHeaderBytes;
     ByteList  expHeaderMask;
 
+    bool multiFrameReq;                             // true if the request is to be sent as
+                                                    // a multiframe message (CAN protocols only);
+
+                                                    // if false, each message in listMessageData
+                                                    // will be sent as a single frame
+
     QList<MessageData>  listMessageData;            // [list of message data for this chain]
 
                                                     // we use a list to account for special

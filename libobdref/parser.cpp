@@ -72,7 +72,9 @@ namespace obdref
 
         // read in and compile globals js
         QString scriptTxt;
-        QString scriptFilePath = "/usr/local/include/obdref/globals.js";
+        QString scriptFilePath = H_INSTALLPATH;
+        scriptFilePath += QString("/globals.js");
+
         if(convTextFileToQStr(scriptFilePath,scriptTxt))
         {   initOk = true;   }
         else
@@ -161,13 +163,17 @@ namespace obdref
                                         {
                                             bool convOk = false;
                                             uint headerVal = stringToUInt(convOk,myHeader);
-                                            uint upperByte = headerVal & 0xF00;
+                                            uint upperByte = (headerVal & 0xF00) >> 8;
                                             uint lowerByte = headerVal & 0xFF;
 
                                             msgFrame.reqHeaderBytes.data.append(char(upperByte));
                                             msgFrame.reqHeaderBytes.data.append(char(lowerByte));
                                         }
+                                        else
+                                        {   OBDREFDEBUG << "OBDREF: Error: Request Identifier Empty"; return false;   }
                                     }
+                                    else
+                                    {   OBDREFDEBUG << "OBDREF: Error: No Request Identifier"; return false;   }
 
                                     pugi::xml_node nodeResp = nodeAddress.child("response");
                                     if(nodeResp)
@@ -177,17 +183,20 @@ namespace obdref
                                         {
                                             bool convOk = false;
                                             uint headerVal = stringToUInt(convOk,myHeader);
-                                            uint upperByte = headerVal & 0xF00;
+                                            uint upperByte = (headerVal & 0xF00) >> 8;
                                             uint lowerByte = headerVal & 0xFF;
 
                                             msgFrame.expHeaderBytes.data.append(char(upperByte));
                                             msgFrame.expHeaderBytes.data.append(char(lowerByte));
                                             msgFrame.expHeaderMask.data << char(0xFF) << char(0xFF);
                                         }
+                                        else
+                                        {   OBDREFDEBUG << "OBDREF: Error: Response Identifier Empty"; return false;   }
                                     }
                                     else
-                                    {
-                                        msgFrame.expHeaderBytes.data << char(0x00) << char(0x00);
+                                    {   // todo: why is this here? shouldnt expHeaderBytes and
+                                        // expHeaderMask both be empty if no response tag is specd?
+//                                        msgFrame.expHeaderBytes.data << char(0xAB) << char(0xCD);
                                         msgFrame.expHeaderMask.data << char(0x00) << char(0x00);
                                     }
                                 }
@@ -372,6 +381,32 @@ namespace obdref
                                                 << "messages from given xml data (does the "
                                                 << "file have a typo?) \n";
                                     return false;
+                                }
+
+                                // todo get multiframe true/false
+                                msgFrame.multiFrameReq = false;
+
+                                // if we're using a CAN protocol, we need to prepend the
+                                // data bytes with a PCI byte specifying the frame order
+                                // and number of data bytes
+                                if(protocolName.contains("ISO 15765-4"))
+                                {
+                                    if(msgFrame.multiFrameReq)
+                                    {   // todo
+                                        // set pci byte up for multiframe request
+
+                                    }
+                                    else
+                                    {   // single frame request
+                                        // higher 4 bits set to 0 to indicate single frame
+                                        // lower 4 bits gives the number of bytes in payload
+                                        for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
+                                        {
+                                            ByteList &reqDataBytes = msgFrame.listMessageData[i].reqDataBytes;
+                                            ubyte pciByte = reqDataBytes.data.size();
+                                            reqDataBytes.data.prepend(pciByte);
+                                        }
+                                    }
                                 }
 
                                 QString parseCode;
@@ -799,7 +834,7 @@ namespace obdref
                                          QList<Data> &listDataResults)
     {
         // a single part response may have responses from different addresses
-        // but is interpreted as one response messsage per parameter per address
+        // but is interpreted as one response message per parameter per address
         for(int i=0; i < msgFrame.listMessageData.at(0).listCleanData.size(); i++)
         {
             obdref::Data myData;
@@ -808,11 +843,13 @@ namespace obdref
 
             v8::HandleScope handleScope;
 
+            // fill out response meta data
             for(int j=0; j < headerBytes.data.size(); j++)
             {   myData.srcAddress.append(QString::number(int(headerBytes.data.at(j)),16));   }
 
             myData.paramName = msgFrame.name;
-            //myData.srcAddress = myData.srcAddress.toUpper();
+            myData.srcName = msgFrame.address;
+            myData.srcAddress = myData.srcAddress.toUpper();
 
             // clear existing databytes in js context
             v8::Local<v8::Value> val_clearDataBytes;

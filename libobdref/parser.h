@@ -101,5 +101,6 @@ private:
 };
 }
 
-#define OBDREFDEBUG getErrorStream()
+//#define OBDREFDEBUG getErrorStream()
+#define OBDREFDEBUG qDebug()
 #endif // PARSER_H
