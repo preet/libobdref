@@ -104,14 +104,14 @@
             length of the data byte section of the message  -->
             
       <!--  Request Params:
-            prio:       0b11LLLLLL: Mode (functional) and data length
+            format:     0b11LLLLLL: Mode (functional) and data length
             target:     0x33: Functional Request 
             source:     0xF1: External Scan Tool   -->
-         <request prio="0b11000000" target="0x33" source="0xF1" />
+         <request format="0b11000000" target="0x33" source="0xF1" />
          
       <!--  Response Params:
-            prio:       0b10LLLLLL: Mode (physical) and data length -->
-         <response prio="0b10000000" target="0xF1" />
+            format:     0b10LLLLLL: Mode (physical) and data length -->
+         <response format="0b10000000" target="0xF1" />
       </address>
    </protocol>
    

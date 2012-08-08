@@ -104,33 +104,43 @@ class MessageData
 public:
     MessageData() : reqDataDelayMs(0) {}
 
+    // obd request message info
+    ByteList            reqHeaderBytes;
     ByteList            reqDataBytes;
+    uint                reqDataDelayMs;
+
+    // obd response message info
+    ByteList            expHeaderBytes;
+    ByteList            expHeaderMask;
     ByteList            expDataPrefix;
-    QList<ByteList>     listRawDataFrames;      // [list of raw data frames]
+    QString             expDataBytes;
 
-                                                    // 'raw' meaning including all received
-                                                    // bytes (header, prefix, etc)
+    // raw data frames -- each frame contains
+    // received bytes for a single frame in
+    // the format: "header bytes, data bytes"
 
-                                                    // each entry in the list represents a
-                                                    // separate data frame, which may originate
-                                                    // from different source addresses
+    // each entry in the list represents a
+    // separate data frame, which may originate
+    // from different source addresses
 
+    // raw data frames
+    // * each frame contains bytes received
+    //   for a single frame in the format
+    //   [header bytes, data bytes]
+    // * each entry in the list represents a
+    //   separate frame, which may originate
+    //   from different sources
+    QList<ByteList>     listRawDataFrames;
+
+    // cleaned device replies
+    // * after the raw data frames have been
+    //   processed, they are stored here
+    // * note that unlike listRawDataFrames,
+    //   this list has no concept of 'frames':
+    //   separate entries indicate responses
+    //   from different addresses
     QList<ByteList>     listHeaders;
-
-    QList<ByteList>     listCleanData;          // [list of cleaned data]
-
-                                                    // after multi-frame/multiple node responses
-                                                    // have been processed, they are stored in
-                                                    // this list (which does not contain header
-                                                    // or prefix bytes) for parsing
-
-                                                    // note that unlike listRawDataFrames, this
-                                                    // list has no 'frames' concept -- the
-                                                    // separate entries indicate responses from
-                                                    // different addresses
-
-    QString     expDataBytes;                       // explain 'N', '2N' stuff here
-    uint        reqDataDelayMs;
+    QList<ByteList>     listCleanData;
 };
 
 class MessageFrame
@@ -142,25 +152,24 @@ public:
     QString name;
     uint baudRate;
 
-    ByteList  reqHeaderBytes;
-    ByteList  expHeaderBytes;
-    ByteList  expHeaderMask;
+    // (ISO 15764) true if the request
+    // is a multiframe message; if false,
+    // each message in listMessageData
+    // will be sent as a single frame
+    bool multiFrameReq;
 
-    bool multiFrameReq;                             // true if the request is to be sent as
-                                                    // a multiframe message (CAN protocols only);
+    // list of message data
+    // * includes request/response bytes
+    //   for a single message
+    // * a list is used to account for some
+    //   parameters that spread their info
+    //   over multiple messages -- most will
+    //   only have one entry in this list
+    QList<MessageData>  listMessageData;
 
-                                                    // if false, each message in listMessageData
-                                                    // will be sent as a single frame
-
-    QList<MessageData>  listMessageData;            // [list of message data for this chain]
-
-                                                    // we use a list to account for special
-                                                    // parameters that spread their information
-                                                    // over multiple messages -- the majority
-                                                    // of parameters will only have one set
-                                                    // of MessageData
-
-    QString             parseScript;                // [script (js) to parse message bytes into data]
+    // javascript to parse message bytes into
+    // useful numerical or literal data
+    QString             parseScript;
 };
 
 

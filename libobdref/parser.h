@@ -60,7 +60,8 @@ public:
 
     QStringList GetLastKnownErrors();
 
-private:  
+private:
+    bool cleanRawData_Default(MessageFrame &msgFrame);
     bool cleanRawData_ISO_15765_4(MessageFrame &msgFrame);
 
     void dumpRawDataToDebugInfo(QList<ByteList> const &listRawDataFrames);

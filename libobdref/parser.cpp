@@ -114,18 +114,17 @@ namespace obdref
     // ========================================================================== //
 
     bool Parser::BuildMessageFrame(MessageFrame &msgFrame)
-    {
-        bool foundSpec = false;
-        bool foundProtocol = false;
-        bool foundAddress = false;
-        bool foundParams = false;
-        bool foundParameter = false;
+    {       
+        bool foundSpec          = false;
+        bool foundProtocol      = false;
+        bool foundAddress       = false;
+        bool foundParams        = false;
+        bool foundParameter     = false;
 
-        // save spec, protocol, address and param info
-        QString specName = msgFrame.spec;
-        QString protocolName = msgFrame.protocol;
-        QString addressName = msgFrame.address;
-        QString paramName = msgFrame.name;
+        QString specName        = msgFrame.spec;
+        QString protocolName    = msgFrame.protocol;
+        QString addressName     = msgFrame.address;
+        QString paramName       = msgFrame.name;
 
         pugi::xml_node nodeSpec = m_xmlDoc.child("spec");
         for(nodeSpec; nodeSpec; nodeSpec = nodeSpec.next_sibling("spec"))
@@ -149,65 +148,75 @@ namespace obdref
                             {
                                 foundAddress = true;
 
-                                // BUILD HEADER HERE
+                                // [build request message header]
+
+                                MessageData msgData;
+                                msgFrame.listMessageData.push_back(msgData);
 
                                 // special case 1: ISO 15765-4 (11-bit id)
-                                // store 11-bits in two bytes
+                                // store 11-bit header in two bytes
                                 if(protocolName == "ISO 15765-4 Standard")
-                                {
+                                {   // request header bytes
                                     pugi::xml_node nodeReq = nodeAddress.child("request");
                                     if(nodeReq)
                                     {
-                                        QString myHeader(nodeReq.attribute("identifier").value());
-                                        if(!myHeader.isEmpty())
+                                        QString hIdentifier(nodeReq.attribute("identifier").value());
+                                        if(!hIdentifier.isEmpty())
                                         {
                                             bool convOk = false;
-                                            uint headerVal = stringToUInt(convOk,myHeader);
+                                            uint headerVal = stringToUInt(convOk,hIdentifier);
                                             uint upperByte = (headerVal & 0xF00) >> 8;
                                             uint lowerByte = headerVal & 0xFF;
 
-                                            msgFrame.reqHeaderBytes.data.append(char(upperByte));
-                                            msgFrame.reqHeaderBytes.data.append(char(lowerByte));
+                                            ByteList &reqHeaderBytes =
+                                                    msgFrame.listMessageData[0].reqHeaderBytes;
+
+                                            reqHeaderBytes.data << char(upperByte);
+                                            reqHeaderBytes.data << char(lowerByte);
                                         }
                                         else
-                                        {   OBDREFDEBUG << "OBDREF: Error: Request Identifier Empty"; return false;   }
+                                        {
+                                            OBDREFDEBUG << "OBDREF: Error: ISO 15765-4 Std,"
+                                                        << "Request Identifier Empty";
+                                            return false;
+                                        }
                                     }
                                     else
-                                    {   OBDREFDEBUG << "OBDREF: Error: No Request Identifier"; return false;   }
-
+                                    {
+                                        OBDREFDEBUG << "OBDREF: Error: ISO 15765-4 Std,"
+                                                    << "No Request Header";
+                                        return false;
+                                    }
+                                    // response header bytes
                                     pugi::xml_node nodeResp = nodeAddress.child("response");
                                     if(nodeResp)
                                     {
-                                        QString myHeader(nodeResp.attribute("identifier").value());
-                                        if(!myHeader.isEmpty())
+                                        QString hIdentifier(nodeResp.attribute("identifier").value());
+                                        if(!hIdentifier.isEmpty())
                                         {
                                             bool convOk = false;
-                                            uint headerVal = stringToUInt(convOk,myHeader);
+                                            uint headerVal = stringToUInt(convOk,hIdentifier);
                                             uint upperByte = (headerVal & 0xF00) >> 8;
                                             uint lowerByte = headerVal & 0xFF;
 
-                                            msgFrame.expHeaderBytes.data.append(char(upperByte));
-                                            msgFrame.expHeaderBytes.data.append(char(lowerByte));
-                                            msgFrame.expHeaderMask.data << char(0xFF) << char(0xFF);
+                                            ByteList &expHeaderBytes =
+                                                    msgFrame.listMessageData[0].expHeaderBytes;
+
+                                            ByteList &expHeaderMask =
+                                                    msgFrame.listMessageData[0].expHeaderMask;
+
+                                            expHeaderBytes.data << char(upperByte);
+                                            expHeaderBytes.data << char(lowerByte);
+                                            expHeaderMask.data << char(0xFF) << char(0xFF);
                                         }
-                                        else
-                                        {   OBDREFDEBUG << "OBDREF: Error: Response Identifier Empty"; return false;   }
-                                    }
-                                    else
-                                    {   // todo: why is this here? shouldnt expHeaderBytes and
-                                        // expHeaderMask both be empty if no response tag is specd?
-//                                        msgFrame.expHeaderBytes.data << char(0xAB) << char(0xCD);
-                                        msgFrame.expHeaderMask.data << char(0x00) << char(0x00);
                                     }
                                 }
-
                                 // special case 2: ISO 15765-4 (29-bit id)
                                 // we have to include the special 'format' byte
-                                // that differentiates between physical and functional
-                                // addressing, so this header is made up of four bytes:
+                                // so this header is made up of four bytes:
                                 // [prio] [format] [target] [source]
                                 else if(protocolName == "ISO 15765-4 Extended")
-                                {
+                                {   // request header bytes
                                     pugi::xml_node nodeReq = nodeAddress.child("request");
                                     if(nodeReq)
                                     {
@@ -216,26 +225,46 @@ namespace obdref
                                         QString headerTarget(nodeReq.attribute("target").value());
                                         QString headerSource(nodeReq.attribute("source").value());
 
+                                        // all four bytes must be defined
+                                        if(headerPrio.isEmpty() || headerFormat.isEmpty() ||
+                                           headerTarget.isEmpty() || headerSource.isEmpty())   {
+                                            OBDREFDEBUG << "OBDREF: Error: ISO 15765-4 Ext,"
+                                                        << "Incomplete Request Header";
+                                            return false;
+                                        }
+
                                         bool convOk = false;
 
+                                        ByteList &reqHeaderBytes =
+                                                msgFrame.listMessageData[0].reqHeaderBytes;
+
                                         uint prioByte = stringToUInt(convOk,headerPrio);
-                                        msgFrame.reqHeaderBytes.data.append(char(prioByte));
+                                        reqHeaderBytes.data << char(prioByte);
 
                                         uint formatByte = stringToUInt(convOk,headerFormat);
-                                        msgFrame.reqHeaderBytes.data.append(char(formatByte));
+                                        reqHeaderBytes.data << char(formatByte);
 
                                         uint targetByte = stringToUInt(convOk,headerTarget);
-                                        msgFrame.reqHeaderBytes.data.append(char(targetByte));
+                                        reqHeaderBytes.data << char(targetByte);
 
                                         uint sourceByte = stringToUInt(convOk,headerSource);
-                                        msgFrame.reqHeaderBytes.data.append(char(sourceByte));
+                                        reqHeaderBytes.data << char(sourceByte);
                                     }
                                     else
-                                    {   OBDREFDEBUG << "OBDREF: Invalid Header request bytes";  return false;   }
-
+                                    {
+                                        OBDREFDEBUG << "OBDREF: Error: ISO 15765-4 Ext,"
+                                                    << "No Request Header";
+                                        return false;
+                                    }
+                                    // response header bytes
                                     pugi::xml_node nodeResp = nodeAddress.child("response");
                                     if(nodeResp)
                                     {
+                                        // note: regardless of which bytes are defined
+                                        // in the response tag, fill out a full header
+                                        // in expHeaderBytes and expHeaderMask so the
+                                        // expResponse byte ordering is correct
+
                                         QString headerPrio(nodeResp.attribute("prio").value());
                                         QString headerFormat(nodeResp.attribute("format").value());
                                         QString headerTarget(nodeResp.attribute("target").value());
@@ -243,28 +272,264 @@ namespace obdref
 
                                         bool convOk = false;
 
-                                        uint prioByte = stringToUInt(convOk,headerPrio);
-                                        msgFrame.expHeaderBytes.data.append(char(prioByte));
-                                        msgFrame.expHeaderMask.data << char(0xFF);
+                                        ByteList &expHeaderBytes =
+                                                msgFrame.listMessageData[0].expHeaderBytes;
 
-                                        uint formatByte = stringToUInt(convOk,headerFormat);
-                                        msgFrame.expHeaderBytes.data.append(char(formatByte));
-                                        msgFrame.expHeaderMask.data << char(0xFF);
+                                        ByteList &expHeaderMask =
+                                                msgFrame.listMessageData[0].expHeaderMask;
+
+                                        // priority byte
+                                        if(!headerPrio.isEmpty())   {
+                                            uint prioByte = stringToUInt(convOk,headerPrio);
+                                            expHeaderBytes.data << char(prioByte);
+                                            expHeaderMask.data << char(0xFF);
+                                        }
+                                        else   {
+                                            expHeaderBytes.data << char(0x00);
+                                            expHeaderMask.data << char(0x00);
+                                        }
+                                        // format byte
+                                        if(!headerFormat.isEmpty())   {
+                                            uint formatByte = stringToUInt(convOk,headerFormat);
+                                            expHeaderBytes.data << char(formatByte);
+                                            expHeaderMask.data << char(0xFF);
+                                        }
+                                        else   {
+                                            expHeaderBytes.data << char(0x00);
+                                            expHeaderMask.data << char(0x00);
+                                        }
+                                        // target byte
+                                        if(!headerTarget.isEmpty())   {
+                                            uint targetByte = stringToUInt(convOk,headerTarget);
+                                            expHeaderBytes.data << char(targetByte);
+                                            expHeaderMask.data << char(0xFF);
+                                        }
+                                        else   {
+                                            expHeaderBytes.data << char(0x00);
+                                            expHeaderMask.data << char(0x00);
+                                        }
+                                        // source byte
+                                        if(!headerSource.isEmpty())   {
+                                            uint sourceByte = stringToUInt(convOk,headerSource);
+                                            expHeaderBytes.data << (sourceByte);
+                                            expHeaderMask.data << char(0xFF);
+                                        }
+                                        else   {
+                                            expHeaderBytes.data << char(0x00);
+                                            expHeaderMask.data << char(0x00);
+                                        }
+                                    }
+                                }
+                                // special case 3: ISO 14230-4
+                                // this protocol has a variable header:
+                                // A - [format]
+                                // B - [format] [target] [source]
+                                // C - [format] [length]
+                                // D - [format] [target] [source] [length]
+                                // * with A and B, the data length is encoded
+                                //   in the six least significant bits of
+                                //   the format byte: 0b??LLLLLL
+                                // * with C and D, the data length is
+                                //   specified in its own byte and the
+                                //   six least significant bits in the
+                                //   format byte are zero'd: 0b??000000
+                                else if(protocolName == "ISO 14230-4")
+                                {   // request header bytes
+                                    pugi::xml_node nodeReq = nodeAddress.child("request");
+                                    if(nodeReq)
+                                    {
+                                        QString headerFormat(nodeReq.attribute("format").value());
+                                        QString headerTarget(nodeReq.attribute("target").value());
+                                        QString headerSource(nodeReq.attribute("source").value());
+                                        QString headerLength(nodeReq.attribute("length").value());
+
+                                        ByteList &reqHeaderBytes =
+                                                msgFrame.listMessageData[0].reqHeaderBytes;
+
+                                        bool convOk;
+
+                                        // format byte (mandatory)
+                                        if(!headerFormat.isEmpty())   {
+                                            uint formatByte = stringToUInt(convOk,headerFormat);
+                                            reqHeaderBytes.data << char(formatByte);
+                                        }
+                                        else   {
+                                            OBDREFDEBUG << "OBDREF: Error: ISO 14230-4,"
+                                                        << "Incomplete Request Header";
+                                            return false;
+                                        }
+                                        // target byte
+                                        if(!headerTarget.isEmpty())   {
+                                            uint targetByte = stringToUInt(convOk,headerTarget);
+                                            reqHeaderBytes.data << char(targetByte);
+                                        }
+                                        // source byte
+                                        if(!headerSource.isEmpty())   {
+                                            uint sourceByte = stringToUInt(convOk,headerSource);
+                                            reqHeaderBytes.data << char(sourceByte);
+                                        }
+                                        // length byte
+                                        if(!headerLength.isEmpty())   {
+                                            uint lengthByte = stringToUInt(convOk,headerLength);
+                                            reqHeaderBytes.data << char(lengthByte);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        OBDREFDEBUG << "OBDREF: Error: ISO 14230-4,"
+                                                    << "No Request Header";
+                                        return false;
+                                    }
+                                    // response header bytes
+                                    pugi::xml_node nodeResp = nodeAddress.child("response");
+                                    if(nodeResp)
+                                    {
+                                        // note: regardless of which bytes are defined
+                                        // in the response tag, fill out a full header
+                                        // in expHeaderBytes and expHeaderMask so the
+                                        // expResponse byte ordering is correct
+
+                                        QString headerFormat(nodeResp.attribute("format").value());
+                                        QString headerTarget(nodeResp.attribute("target").value());
+                                        QString headerSource(nodeResp.attribute("source").value());
+
+                                        bool convOk = false;
+
+                                        ByteList &expHeaderBytes =
+                                                msgFrame.listMessageData[0].expHeaderBytes;
+
+                                        ByteList &expHeaderMask =
+                                                msgFrame.listMessageData[0].expHeaderMask;
+
+                                        // format byte
+                                        if(!headerFormat.isEmpty())   {
+                                            uint formatByte = stringToUInt(convOk,headerFormat);
+                                            expHeaderBytes.data << char(formatByte);
+                                            expHeaderMask.data << char(0xC0);
+                                            // note: the mask for the formatByte is set to
+                                            // 0b11000000 (0xC0) to ignore the length bits
+                                        }
+                                        else   {
+                                            expHeaderBytes.data << char(0x00);
+                                            expHeaderMask.data << char(0x00);
+                                        }
+                                        // target byte
+                                        if(!headerTarget.isEmpty())   {
+                                            uint targetByte = stringToUInt(convOk,headerTarget);
+                                            expHeaderBytes.data << char(targetByte);
+                                            expHeaderMask.data << char(0xFF);
+                                        }
+                                        else   {
+                                            expHeaderBytes.data << char(0x00);
+                                            expHeaderMask.data << char(0x00);
+                                        }
+                                        // source byte
+                                        if(!headerSource.isEmpty())   {
+                                            uint sourceByte = stringToUInt(convOk,headerSource);
+                                            expHeaderBytes.data << char(sourceByte);
+                                            expHeaderMask.data << char(0xFF);
+                                        }
+                                        else   {
+                                            expHeaderBytes.data << char(0x00);
+                                            expHeaderMask.data << char(0x00);
+                                        }
+
+                                        // length byte is ignored for expResponse
+                                        expHeaderBytes.data << char(0x00);
+                                        expHeaderMask.data << char(0x00);
+                                    }
+                                }
+
+                                // default case:
+                                // ISO 9141-2, SAE J1850 VPW/PWM all
+                                // share the same obd message structure
+                                else
+                                {   // request header bytes
+                                    pugi::xml_node nodeReq = nodeAddress.child("request");
+                                    if(nodeReq)
+                                    {
+                                        QString headerPrio(nodeReq.attribute("prio").value());
+                                        QString headerTarget(nodeReq.attribute("target").value());
+                                        QString headerSource(nodeReq.attribute("source").value());
+
+                                        // all three bytes must be defined
+                                        if(headerPrio.isEmpty() || headerTarget.isEmpty() ||
+                                           headerSource.isEmpty())   {
+                                            OBDREFDEBUG << "OBDREF: Error: ISO 9141-2/SAE J1850,"
+                                                        << "Incomplete Request Header";
+                                            return false;
+                                        }
+
+                                        ByteList &reqHeaderBytes =
+                                                msgFrame.listMessageData[0].reqHeaderBytes;
+
+                                        bool convOk = false;
+
+                                        uint prioByte = stringToUInt(convOk,headerPrio);
+                                        reqHeaderBytes.data << char(prioByte);
 
                                         uint targetByte = stringToUInt(convOk,headerTarget);
-                                        msgFrame.expHeaderBytes.data.append(char(targetByte));
-                                        msgFrame.expHeaderMask.data << char(0xFF);
+                                        reqHeaderBytes.data << char(targetByte);
 
-                                        if(!headerSource.isEmpty())
-                                        {
-                                            uint sourceByte = stringToUInt(convOk,headerSource);
-                                            msgFrame.expHeaderBytes.data.append(char(sourceByte));
-                                            msgFrame.expHeaderMask.data << char(0xFF);
+                                        uint sourceByte = stringToUInt(convOk,headerSource);
+                                        reqHeaderBytes.data << char(sourceByte);
+                                    }
+                                    else
+                                    {
+                                        OBDREFDEBUG << "OBDREF: Error: ISO 9141-2/SAE J1850,"
+                                                    << "No Request Header";
+                                        return false;
+                                    }
+                                    // response header bytes
+                                    pugi::xml_node nodeResp = nodeAddress.child("response");
+                                    if(nodeResp)
+                                    {
+                                        // note: regardless of which bytes are defined
+                                        // in the response tag, fill out a full header
+                                        // in expHeaderBytes and expHeaderMask so the
+                                        // expResponse byte ordering is correct
+
+                                        QString headerPrio(nodeResp.attribute("prio").value());
+                                        QString headerTarget(nodeResp.attribute("target").value());
+                                        QString headerSource(nodeResp.attribute("source").value());
+
+                                        bool convOk = false;
+
+                                        ByteList &expHeaderBytes =
+                                                msgFrame.listMessageData[0].expHeaderBytes;
+
+                                        ByteList &expHeaderMask =
+                                                msgFrame.listMessageData[0].expHeaderMask;
+
+                                        // priority byte
+                                        if(!headerPrio.isEmpty())   {
+                                            uint prioByte = stringToUInt(convOk,headerPrio);
+                                            expHeaderBytes.data << char(prioByte);
+                                            expHeaderMask.data << char(0xFF);
                                         }
-                                        else
-                                        {
-                                            msgFrame.expHeaderBytes.data << char(0x00);
-                                            msgFrame.expHeaderMask.data << char(0x00);
+                                        else   {
+                                            expHeaderBytes.data << char(0x00);
+                                            expHeaderMask.data << char(0x00);
+                                        }
+                                        // target byte
+                                        if(!headerTarget.isEmpty())   {
+                                            uint targetByte = stringToUInt(convOk,headerTarget);
+                                            expHeaderBytes.data << char(targetByte);
+                                            expHeaderMask.data << char(0xFF);
+                                        }
+                                        else   {
+                                            expHeaderBytes.data << char(0x00);
+                                            expHeaderMask.data << char(0x00);
+                                        }
+                                        // source byte
+                                        if(!headerSource.isEmpty())   {
+                                            uint sourceByte = stringToUInt(convOk,headerSource);
+                                            expHeaderBytes.data << char(sourceByte);
+                                            expHeaderMask.data << char(0xFF);
+                                        }
+                                        else   {
+                                            expHeaderBytes.data << char(0x00);
+                                            expHeaderMask.data << char(0x00);
                                         }
                                     }
                                 }
@@ -292,7 +557,6 @@ namespace obdref
                                 foundParameter = true;
 
                                 // BUILD DATA BYTES HERE
-                                // TODO ISO14230 special case
                                 bool convOk = false; int n=0; int t=0;
 
                                 // we can have multiple request/response data stored
@@ -588,8 +852,26 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
+    bool Parser::cleanRawData_Default(MessageFrame &msgFrame)
+    {
+//        for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
+//        {
+//            QList<ByteList> listUniqueHeaders;
+//            QList<QList<ByteList> > listMappedDataFrames;
+//            QList<ByteList> const &listRawDataFrames =
+//                    msgFrame.listMessageData.at(i).listRawDataFrames;
+
+//            size_t numHeaderBytes;
+//        }
+    }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
     bool Parser::cleanRawData_ISO_15765_4(MessageFrame &msgFrame)
     {
+
+        /*
         for(int i=0; i < msgFrame.listMessageData.size(); i++)
         {
             QList<ByteList> const &listRawDataFrames =
@@ -811,6 +1093,8 @@ namespace obdref
         }
 
         return true;
+
+        */
     }
 
     // ========================================================================== //
@@ -1059,8 +1343,6 @@ namespace obdref
         // if str contains '0bXXXXX' -> parse as binary
         // if str contains '0xXXXXX' -> parse as hex
         // else parse as dec
-
-        // TODO: use maps! takes less time than conversion!
 
         bool conv;
         QString myString(parseStr);
