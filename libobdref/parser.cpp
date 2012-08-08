@@ -322,10 +322,10 @@ namespace obdref
                                 }
                                 // special case 3: ISO 14230-4
                                 // this protocol has a variable header:
-                                // A - [format]
-                                // B - [format] [target] [source]
-                                // C - [format] [length]
-                                // D - [format] [target] [source] [length]
+                                // A [format]
+                                // B [format] [target] [source]
+                                // C [format] [length]
+                                // D [format] [target] [source] [length]
                                 // * with A and B, the data length is encoded
                                 //   in the six least significant bits of
                                 //   the format byte: 0b??LLLLLL
@@ -343,31 +343,44 @@ namespace obdref
                                         QString headerSource(nodeReq.attribute("source").value());
                                         QString headerLength(nodeReq.attribute("length").value());
 
+                                        // check to ensure given header bytes are valid
+                                        bool validHeader = false;
+                                        if(!headerFormat.isEmpty())   {
+                                            // A or C
+                                            if(headerTarget.isEmpty() &&
+                                               headerSource.isEmpty())   {
+                                                validHeader = true;
+                                            }
+                                            // B or D
+                                            else if(!headerTarget.isEmpty() &&
+                                                    !headerSource.isEmpty())   {
+                                                validHeader = true;
+                                            }
+                                        }
+
+                                        if(!validHeader)   {
+                                            OBDREFDEBUG << "OBDREF: Error: ISO 14230-4,"
+                                                        << "Incomplete Request Header";
+                                            return false;
+                                        }
+
                                         ByteList &reqHeaderBytes =
                                                 msgFrame.listMessageData[0].reqHeaderBytes;
 
                                         bool convOk;
 
                                         // format byte (mandatory)
-                                        if(!headerFormat.isEmpty())   {
-                                            uint formatByte = stringToUInt(convOk,headerFormat);
-                                            reqHeaderBytes.data << char(formatByte);
-                                        }
-                                        else   {
-                                            OBDREFDEBUG << "OBDREF: Error: ISO 14230-4,"
-                                                        << "Incomplete Request Header";
-                                            return false;
-                                        }
+                                        uint formatByte = stringToUInt(convOk,headerFormat);
+                                        reqHeaderBytes.data << char(formatByte);
+
                                         // target byte
-                                        if(!headerTarget.isEmpty())   {
-                                            uint targetByte = stringToUInt(convOk,headerTarget);
-                                            reqHeaderBytes.data << char(targetByte);
-                                        }
+                                        uint targetByte = stringToUInt(convOk,headerTarget);
+                                        reqHeaderBytes.data << char(targetByte);
+
                                         // source byte
-                                        if(!headerSource.isEmpty())   {
-                                            uint sourceByte = stringToUInt(convOk,headerSource);
-                                            reqHeaderBytes.data << char(sourceByte);
-                                        }
+                                        uint sourceByte = stringToUInt(convOk,headerSource);
+                                        reqHeaderBytes.data << char(sourceByte);
+
                                         // length byte
                                         if(!headerLength.isEmpty())   {
                                             uint lengthByte = stringToUInt(convOk,headerLength);
@@ -556,7 +569,8 @@ namespace obdref
                             {
                                 foundParameter = true;
 
-                                // BUILD DATA BYTES HERE
+                                // [build request message data]
+
                                 bool convOk = false; int n=0; int t=0;
 
                                 // we can have multiple request/response data stored
@@ -575,63 +589,74 @@ namespace obdref
 
                                 while(1)
                                 {
-                                    QString respPrefixName, respBytesName, reqName, reqDelayName;
+                                    QString respPrefixName,respBytesName,
+                                            reqDelayName,reqName;
+
                                     if(n == 0)
                                     {
-                                        respPrefixName = QString("response.prefix");
-                                        respBytesName = QString("response.bytes");
-                                        reqDelayName = QString("request.delay");
-                                        reqName = QString("request");
+                                        respPrefixName  = QString("response.prefix");
+                                        respBytesName   = QString("response.bytes");
+                                        reqDelayName    = QString("request.delay");
+                                        reqName         = QString("request");
                                     }
                                     else
                                     {
-                                        respPrefixName = QString("response")+QString::number(n,10)+QString(".prefix");
-                                        respBytesName = QString("response")+QString::number(n,10)+QString(".bytes");
-                                        reqDelayName = QString("request")+QString::number(n,10)+QString(".delay");
-                                        reqName = QString("request")+QString::number(n,10);
+                                        respPrefixName  = QString("response")+QString::number(n,10)+QString(".prefix");
+                                        respBytesName   = QString("response")+QString::number(n,10)+QString(".bytes");
+                                        reqDelayName    = QString("request")+QString::number(n,10)+QString(".delay");
+                                        reqName         = QString("request")+QString::number(n,10);
                                     }
 
-                                    std::string respPrefixAttrStr = respPrefixName.toStdString();
-                                    std::string respBytesAttrStr = respBytesName.toStdString();
-                                    std::string reqDelayAttrStr = reqDelayName.toStdString();
-                                    std::string reqAttrStr = reqName.toStdString();
+                                    std::string respPrefixAttrStr   = respPrefixName.toStdString();
+                                    std::string respBytesAttrStr    = respBytesName.toStdString();
+                                    std::string reqDelayAttrStr     = reqDelayName.toStdString();
+                                    std::string reqAttrStr          = reqName.toStdString();
 
-                                    if(nodeParameter.attribute(respPrefixAttrStr.c_str()))      // [responseN.prefix]
+                                    // [responseN.prefix]
+                                    if(nodeParameter.attribute(respPrefixAttrStr.c_str()))
                                     {
-                                        MessageData myMsgData;
+                                        MessageData * msgData;
+                                        if(n == 0 || n == 1)   {
+                                            // we already have a single MessageData
+                                            // element in msgFrame's listMessageData
+                                            // from adding a set of header bytes
+                                            msgData = &(msgFrame.listMessageData[0]);
+                                        }
+                                        else   {
+                                            // add to listMessageData as necessary
+                                            MessageData mData;
+                                            msgFrame.listMessageData << mData;
+
+                                            size_t listSize = msgFrame.listMessageData.size();
+                                            msgData = &(msgFrame.listMessageData[listSize-1]);
+                                        }
 
                                         QString respPrefix(nodeParameter.attribute(respPrefixAttrStr.c_str()).value());
                                         QStringList listRespPrefix = respPrefix.split(" ");
-                                        for(int i=0; i < listRespPrefix.size(); i++)
-                                        {
+                                        for(int i=0; i < listRespPrefix.size(); i++)   {
                                             uint dataByte = stringToUInt(convOk,listRespPrefix.at(i));
-                                            myMsgData.expDataPrefix.data.append(char(dataByte));
+                                            msgData->expDataPrefix.data << char(dataByte);
                                         }
 
-                                        if(nodeParameter.attribute(respBytesAttrStr.c_str()))   // [responseN.bytes]
-                                        {
+                                        // [responseN.bytes]
+                                        if(nodeParameter.attribute(respBytesAttrStr.c_str()))   {
                                             QString respBytes(nodeParameter.attribute(respBytesAttrStr.c_str()).value());
-                                            myMsgData.expDataBytes = respBytes;
+                                            msgData->expDataBytes = respBytes;
                                         }
-
-                                        if(nodeParameter.attribute(reqDelayAttrStr.c_str()))    // [requestN.delay]
-                                        {
+                                        // [requestN.delay]
+                                        if(nodeParameter.attribute(reqDelayAttrStr.c_str()))   {
                                             QString reqDelay(nodeParameter.attribute(reqDelayAttrStr.c_str()).value());
-                                            myMsgData.reqDataDelayMs = stringToUInt(convOk,reqDelay);
+                                            msgData->reqDataDelayMs = stringToUInt(convOk,reqDelay);
                                         }
-
-                                        if(nodeParameter.attribute(reqAttrStr.c_str()))         // [requestN]
-                                        {
+                                        // [requestN]
+                                        if(nodeParameter.attribute(reqAttrStr.c_str()))   {
                                             QString reqData(nodeParameter.attribute(reqAttrStr.c_str()).value());
                                             QStringList listReqData = reqData.split(" ");
-                                            for(int i=0; i < listReqData.size(); i++)
-                                            {
+                                            for(int i=0; i < listReqData.size(); i++)   {
                                                 uint dataByte = stringToUInt(convOk,listReqData.at(i));
-                                                myMsgData.reqDataBytes.data.append(char(dataByte));
+                                                msgData->reqDataBytes.data << char(dataByte);
                                             }
                                         }
-
-                                        msgFrame.listMessageData.append(myMsgData);
                                     }
                                     else
                                     {   t++;  if(t > 1) { break; }   }
@@ -647,12 +672,10 @@ namespace obdref
                                     return false;
                                 }
 
-                                // todo get multiframe true/false
+                                // ISO 15765-4:
+                                // we need to prepend the data bytes with a PCI
+                                // byte specifying frame order and data length
                                 msgFrame.multiFrameReq = false;
-
-                                // if we're using a CAN protocol, we need to prepend the
-                                // data bytes with a PCI byte specifying the frame order
-                                // and number of data bytes
                                 if(protocolName.contains("ISO 15765-4"))
                                 {
                                     if(msgFrame.multiFrameReq)
@@ -666,13 +689,56 @@ namespace obdref
                                         // lower 4 bits gives the number of bytes in payload
                                         for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
                                         {
-                                            ByteList &reqDataBytes = msgFrame.listMessageData[i].reqDataBytes;
+                                            ByteList &reqDataBytes =
+                                                    msgFrame.listMessageData[i].reqDataBytes;
+
                                             ubyte pciByte = reqDataBytes.data.size();
                                             reqDataBytes.data.prepend(pciByte);
                                         }
                                     }
                                 }
 
+                                // ISO 14230-4:
+                                // we need to add data length info to the header
+                                if(protocolName.contains("ISO 14230"))
+                                {
+                                    // data length value can be from from 1-255,
+                                    // includes all databytes, excludes checksum
+                                    for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
+                                    {
+                                        MessageData &msgData = msgFrame.listMessageData[i];
+                                        ubyte hSize = msgData.reqHeaderBytes.data.size();
+                                        ubyte dSize = msgData.reqDataBytes.data.size();
+
+                                        if(dSize > 255)   {
+                                            OBDREFDEBUG << "OBDREF: Error: ISO 14230-4,"
+                                                        << " Invalid Data Length";
+                                            return false;
+                                        }
+
+                                        // if the header is two or four bytes
+                                        // add data length to the last byte
+                                        if(hSize % 2 == 0)   {
+                                            msgData.reqHeaderBytes.data[hSize-1] = dSize;
+                                        }
+
+                                        // else if the header is one or three bytes
+                                        else   {
+                                            if(dSize > 63)   {
+                                                // add data length to six least significant
+                                                // bits of the first (format) byte
+                                                ubyte formatByte = msgData.reqHeaderBytes.data[0];
+                                                formatByte = formatByte | dSize;
+                                            }
+                                            else    {
+                                                // or append a length byte if its > 63 bytes
+                                                msgData.reqHeaderBytes.data << dSize;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // save parse code
                                 QString parseCode;
                                 pugi::xml_node nodeScript = nodeParameter.child("script");
                                 if(nodeScript.attribute("protocols"))
@@ -684,7 +750,6 @@ namespace obdref
                                 else
                                 {   parseCode = QString(nodeParameter.child_value("script"));   }
 
-                                // save parse code
                                 if(parseCode.isEmpty())
                                 {
                                     OBDREFDEBUG << "OBDREF: Error: No parse info found for "
@@ -709,22 +774,22 @@ namespace obdref
         else if(!foundProtocol)
         {
             OBDREFDEBUG << "OBDREF: Error: Could not find protocol "
-                      << protocolName << "\n";
+                        << protocolName << "\n";
         }
         else if(!foundAddress)
         {
             OBDREFDEBUG << "OBDREF: Error: Could not find address "
-                      << addressName << "\n";
+                        << addressName << "\n";
         }
         else if(!foundParams)
         {
             OBDREFDEBUG << "OBDREF: Error: Could not find group "
-                      << addressName << "\n";
+                        << addressName << "\n";
         }
         else if(!foundParameter)
         {
             OBDREFDEBUG << "OBDREF: Error: Could not find parameter "
-                      << paramName << "\n";
+                        << paramName << "\n";
         }
 
         return false;
