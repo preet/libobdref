@@ -462,7 +462,6 @@
       
       <parameter name="Fuel Pressure"
          request="0x01 0x0A" response.prefix="0x41 0x0A" response.bytes="1">        
-         <parse expr="[0]*3" units="kPa (gauge)" min="0" max="765" />
          <script>
             <![CDATA[
             var fuelPr = new NumericalDataObj();
@@ -886,7 +885,6 @@
       
       <parameter name="Auxiliary Input Status"
          request="0x01 0x1E" response.prefix="0x41 0x1E" response.bytes="1">
-         <parse expr="[0][0]" true="Power Take Off Active" />
          <script>
             <![CDATA[
             if(BIT(0,0))
@@ -1266,8 +1264,6 @@
             
       <parameter name="O2S1_WR_lambda(1): Equivalence Ratio, Current"
          request="0x01 0x34" response.prefix="0x41 0x34" response.bytes="4">
-         <parse expr="(([0]*256)+[1])/32768" units="ratio" min="0" max="2" />
-         <parse expr="(([2]*256)+[3])/256 - 128" units="mA" min="-128" max="128" />
          <script>
             <![CDATA[
             var ratio = new NumericalDataObj();
@@ -1719,7 +1715,6 @@
       
       <parameter name="Time Run with MIL On"
          request="0x01 0x4D" response.prefix="0x41 0x4D" response.bytes="2">
-         <parse expr="([0]*256)+[1]" units="minutes" min="0" max="65535" />
          <script>
             <![CDATA[
                var milTime = new NumericalDataObj();
@@ -1836,7 +1831,6 @@
       
       <parameter name="Ethanol Fuel %"
          request="0x01 0x52" response.prefix="0x41 0x52" response.bytes="1">
-         <parse expr="[0]*100/255" units="%" min="0" max="100" />
          <script>
             <![CDATA[
             var ethFuel = new NumericalDataObj();
@@ -1851,7 +1845,6 @@
       
       <parameter name="Absolute Evaporative System Vapour Pressure"
          request="0x01 0x53" response.prefix="0x41 0x53" response.bytes="2">
-         <parse expr="(([0]*256)+[1])*0.005" units="kPa" min="0" max="327.675" />
          <script>
             <![CDATA[
             var numData = new NumericalDataObj();
@@ -1895,7 +1888,6 @@
       
       <parameter name="Short Term Secondary Oxygen Sensor Fuel Trim - Bank 1 [and Bank 3]"
          request="0x01 0x55" response.prefix="0x41 0x55" response.bytes="N">
-         <parse expr="([0]-128)*100/128" units="%" min="-100" max="99.22" />
          <script>
             <![CDATA[
             var fuelTrim = new NumericalDataObj();
@@ -2022,7 +2014,6 @@
       
       <parameter name="Engine Fuel Rate" 
          request="0x01 0x5E" response.prefix="0x41 0x5E" response.bytes="2">
-         <parse expr="(([0]*256)+[1])*0.05" units="L/h" min="0" max="3212.75" />
          <script>
             <![CDATA[
             var fuelRate = new NumericalDataObj();
@@ -2049,21 +2040,20 @@
             saveNumericalData(engSpd);
             ]]>
          </script>
-      </parameter>      
+      </parameter>   
+   
       <!-- END MODE $01 PIDs -->
       
       <!-- START MODE $02 PIDs -->
       <parameter name="Freeze Frame Diagnostic Trouble Codes"
          request="0x02 0x02 0x00" response.prefix="0x42 0x02 0x00">
          <!--  0x02 0x02 0x00 returns the DTC which caused the freeze frame data
-               available in Mode $02 to be saved. Freeze frame 0x00 is set the
+               available in Mode $02 to be saved. Freeze frame 0x00 is the
                generic frame set by default - any other frames set are
                manufacturer specific, so we request 0x00.
                
                Note: If nothing is returned, it may indicate that no freeze
                      frame data is available -->
-                     
-         <parse expr="!([0] || [1])" true="No Freeze Frame Data Available" />
          <script protocols="ISO 15765-4 Standard, ISO 15765-4 Extended">
             <![CDATA[
             if(!(BYTE(0) || BYTE(1)))

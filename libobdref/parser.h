@@ -62,6 +62,7 @@ public:
 
 private:
     bool cleanRawData_Default(MessageFrame &msgFrame);
+    bool cleanRawData_ISO_14230_4(MessageFrame &msgFrame);
     bool cleanRawData_ISO_15765_4(MessageFrame &msgFrame);
 
     void dumpRawDataToDebugInfo(QList<ByteList> const &listRawDataFrames);
@@ -83,7 +84,7 @@ private:
     bool convTextFileToQStr(QString const &filePath,
                             QString & fileDataAsStr);
 
-    QMap<ubyte,QByteArray> m_mapValToHexByte;   // TODO, conv to QHash
+    QMap<ubyte,QByteArray> m_mapValToHexByte;
     QMap<QByteArray,ubyte> m_mapHexByteToVal;
 
     // v8 vars

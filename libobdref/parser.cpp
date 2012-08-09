@@ -672,6 +672,16 @@ namespace obdref
                                     return false;
                                 }
 
+                                // copy over header data from first message in list
+                                // to other entries; only relevant for multi-frame
+                                MessageData const &firstMsg = msgFrame.listMessageData[0];
+                                for(size_t i=1; i < msgFrame.listMessageData.size(); i++)   {
+                                    MessageData &nextMsg = msgFrame.listMessageData[i];
+                                    nextMsg.reqHeaderBytes = firstMsg.reqHeaderBytes;
+                                    nextMsg.expHeaderBytes = firstMsg.expHeaderBytes;
+                                    nextMsg.expHeaderMask = firstMsg.expHeaderMask;
+                                }
+
                                 // ISO 15765-4:
                                 // we need to prepend the data bytes with a PCI
                                 // byte specifying frame order and data length
@@ -725,14 +735,14 @@ namespace obdref
                                         // else if the header is one or three bytes
                                         else   {
                                             if(dSize > 63)   {
+                                                // or append a length byte if its > 63 bytes
+                                                msgData.reqHeaderBytes.data << dSize;
+                                            }
+                                            else    {
                                                 // add data length to six least significant
                                                 // bits of the first (format) byte
                                                 ubyte formatByte = msgData.reqHeaderBytes.data[0];
-                                                formatByte = formatByte | dSize;
-                                            }
-                                            else    {
-                                                // or append a length byte if its > 63 bytes
-                                                msgData.reqHeaderBytes.data << dSize;
+                                                msgData.reqHeaderBytes.data[0] = formatByte | dSize;
                                             }
                                         }
                                     }
@@ -928,6 +938,146 @@ namespace obdref
 
 //            size_t numHeaderBytes;
 //        }
+    }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
+    bool Parser::cleanRawData_ISO_14230_4(MessageFrame &msgFrame)
+    {
+        for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
+        {
+            QList<ByteList> &listRawDataFrames =
+                    msgFrame.listMessageData[i].listRawDataFrames;
+
+            ByteList &msgDataExpHeaderBytes =
+                    msgFrame.listMessageData[i].expHeaderBytes;
+
+            ByteList &msgDataExpHeaderMask =
+                    msgFrame.listMessageData[i].expHeaderMask;
+
+            ByteList const &msgDataExpPrefix =
+                    msgFrame.listMessageData.at(i).expDataPrefix;
+
+            for(size_t j=0; j < listRawDataFrames.size(); j++)
+            {
+                ByteList &rawFrame = listRawDataFrames[j];
+
+                // first we need to determine the number of bytes
+                // in the header since there are four header types:
+                // A [format]
+                // B [format] [target] [source]
+                // C [format] [length]
+                // D [format] [target] [source] [length]
+
+                // we know that the header format is C or D if the six
+                // least significant bits of the format byte are 0
+                uint numHeaderBytes = 0;
+                ubyte hFormatMask = 0x3F;   // 0b00111111
+                ubyte dataLength = rawFrame.data.at(0) & hFormatMask;
+
+                if(dataLength > 0)
+                {   // frame is A or B
+                    numHeaderBytes = rawFrame.data.size() - dataLength;
+                }
+                else
+                {   // frame is C or D
+                    // ambiguous so guess and check each type
+                    dataLength = rawFrame.data.at(3);
+                    if(dataLength + 4 == rawFrame.data.size())   {
+                        numHeaderBytes = 4;     // frame D
+                    }
+                    else   {
+                        dataLength = rawFrame.data.at(1);
+                        numHeaderBytes = 2;     // frame C
+                    }
+                }
+
+                // split raw data into header/data bytes
+                ByteList headerBytes,dataBytes;
+                for(size_t k=0; k < rawFrame.data.size(); k++)   {
+                    if(k < numHeaderBytes)   {   headerBytes.data << rawFrame.data.at(k);   }
+                    else                     {   dataBytes.data << rawFrame.data.at(k);   }
+                }
+
+                // todo
+                // checking expected header bytes with a mask is
+                // time consuming -- we should have a flag in
+                // MessageData set in BuildMessage() that allows
+                // us to skip this part entirely
+
+                // create expHeaderBytes and expHeaderMask to match
+                // the correct numHeaderBytes (when building the
+                // message, we pad expHeader[] to assume the largest
+                // num of header bytes to preserve byte order)
+                ByteList expHeaderBytes,expHeaderMask;
+                expHeaderBytes.data << msgDataExpHeaderBytes.data.at(0);
+                expHeaderMask.data  << msgDataExpHeaderMask.data.at(0);
+
+                switch(numHeaderBytes)   {
+                    case 1:   {   // A
+                        break;
+                    }
+                    case 2:   {   // C
+                        expHeaderBytes.data << msgDataExpHeaderBytes.data.at(3);
+                        expHeaderMask.data  << msgDataExpHeaderMask.data.at(3);
+                        break;
+                    }
+                    case 3:   {   // B
+                        expHeaderBytes.data << msgDataExpHeaderBytes.data.at(1)
+                                            << msgDataExpHeaderBytes.data.at(2);
+                        expHeaderMask.data  << msgDataExpHeaderMask.data.at(1)
+                                            << msgDataExpHeaderMask.data.at(2);
+                        break;
+                    }
+                    case 4:   {   // D
+                        expHeaderBytes.data << msgDataExpHeaderBytes.data.at(1)
+                                            << msgDataExpHeaderBytes.data.at(2)
+                                            << msgDataExpHeaderBytes.data.at(3);
+                        expHeaderMask.data  << msgDataExpHeaderMask.data.at(1)
+                                            << msgDataExpHeaderMask.data.at(2)
+                                            << msgDataExpHeaderMask.data.at(3);
+                        break;
+                    }
+                }
+
+                // check for expected header bytes
+                bool headerBytesMatch = true;
+                for(size_t k=0; k < numHeaderBytes; k++)
+                {
+                    ubyte byteTest = headerBytes.data.at(k) &
+                                     expHeaderMask.data.at(k);
+
+                    ubyte byteMask = expHeaderBytes.data.at(k) &
+                                     expHeaderMask.data.at(k);
+
+                    if(byteMask != byteTest)   {
+                        headerBytesMatch = false;
+                        break;
+                    }
+                }
+
+                if(!headerBytesMatch)
+                {   continue;   }
+
+                // check for expected data prefix bytes
+                bool dataPrefixMatch = false;
+                for(size_t k=0; k < msgDataExpPrefix.data.size(); k++)
+                {
+                    if(msgDataExpPrefix.data.at(k) != dataBytes.data.at(k))   {
+                        dataPrefixMatch = false;
+                        break;
+                    }
+                }
+
+                if(!dataPrefixMatch)
+                {   continue;   }
+
+                // save data
+                msgFrame.listMessageData[i].listHeaders << headerBytes;
+                msgFrame.listMessageData[i].listCleanData << dataBytes;
+            }
+        }
     }
 
     // ========================================================================== //
