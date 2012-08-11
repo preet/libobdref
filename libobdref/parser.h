@@ -64,8 +64,13 @@ private:
     bool cleanRawData_Default(MessageFrame &msgFrame);
     bool cleanRawData_ISO_14230_4(MessageFrame &msgFrame);
     bool cleanRawData_ISO_15765_4(MessageFrame &msgFrame);
+    void groupDataByHeader(QList<ByteList> &listHeaders,
+                           QList<ByteList> &listDataBytes);
 
-    void dumpRawDataToDebugInfo(QList<ByteList> const &listRawDataFrames);
+
+    void dumpRawDataToDebugInfo(QList<ByteList> const &listRawData);
+
+
 
     bool parseSinglePartResponse(MessageFrame const &msgFrame,
                                  QList<Data> &listDataResults);

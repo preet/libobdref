@@ -31,40 +31,7 @@ namespace obdref
 {
 
 typedef unsigned char ubyte;
-
-class ByteList
-{
-public:
-    QList<ubyte> data;
-
-    bool operator < (ByteList const &a) const
-    {
-        int valA=0;  int valB=0;
-
-        for(int i=0; i < a.data.size(); i++)
-        {   valA += a.data.at(i) * int(pow(256, a.data.size()-(i+1)));   }
-
-        for(int i=0; i < data.size(); i++)
-        {   valB += data.at(i) * int(pow(256, data.size()-(i+1)));   }
-
-        return (valA < valB);
-    }
-
-    bool operator == (ByteList const &a) const
-    {
-        if(a.data.size() == data.size())
-        {
-            for(int i=0; i < a.data.size(); i++)
-            {
-                if(a.data.at(i) != data.at(i))
-                {   return false;   }
-            }
-            return true;
-        }
-        return false;
-    }
-};
-
+typedef QList<ubyte> ByteList;
 
 class LiteralData
 {

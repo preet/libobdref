@@ -171,8 +171,8 @@ namespace obdref
                                             ByteList &reqHeaderBytes =
                                                     msgFrame.listMessageData[0].reqHeaderBytes;
 
-                                            reqHeaderBytes.data << char(upperByte);
-                                            reqHeaderBytes.data << char(lowerByte);
+                                            reqHeaderBytes << ubyte(upperByte);
+                                            reqHeaderBytes << ubyte(lowerByte);
                                         }
                                         else
                                         {
@@ -191,6 +191,12 @@ namespace obdref
                                     pugi::xml_node nodeResp = nodeAddress.child("response");
                                     if(nodeResp)
                                     {
+                                        ByteList &expHeaderBytes =
+                                                msgFrame.listMessageData[0].expHeaderBytes;
+
+                                        ByteList &expHeaderMask =
+                                                msgFrame.listMessageData[0].expHeaderMask;
+
                                         QString hIdentifier(nodeResp.attribute("identifier").value());
                                         if(!hIdentifier.isEmpty())
                                         {
@@ -199,15 +205,12 @@ namespace obdref
                                             uint upperByte = (headerVal & 0xF00) >> 8;
                                             uint lowerByte = headerVal & 0xFF;
 
-                                            ByteList &expHeaderBytes =
-                                                    msgFrame.listMessageData[0].expHeaderBytes;
-
-                                            ByteList &expHeaderMask =
-                                                    msgFrame.listMessageData[0].expHeaderMask;
-
-                                            expHeaderBytes.data << char(upperByte);
-                                            expHeaderBytes.data << char(lowerByte);
-                                            expHeaderMask.data << char(0xFF) << char(0xFF);
+                                            expHeaderBytes << ubyte(upperByte) << ubyte(lowerByte);
+                                            expHeaderMask  << ubyte(0xFF) << ubyte(0xFF);
+                                        }
+                                        else   {
+                                            expHeaderBytes << ubyte(0x00) << ubyte(0x00);
+                                            expHeaderMask  << ubyte(0x00) << ubyte(0x00);
                                         }
                                     }
                                 }
@@ -239,16 +242,16 @@ namespace obdref
                                                 msgFrame.listMessageData[0].reqHeaderBytes;
 
                                         uint prioByte = stringToUInt(convOk,headerPrio);
-                                        reqHeaderBytes.data << char(prioByte);
+                                        reqHeaderBytes << char(prioByte);
 
                                         uint formatByte = stringToUInt(convOk,headerFormat);
-                                        reqHeaderBytes.data << char(formatByte);
+                                        reqHeaderBytes << char(formatByte);
 
                                         uint targetByte = stringToUInt(convOk,headerTarget);
-                                        reqHeaderBytes.data << char(targetByte);
+                                        reqHeaderBytes << char(targetByte);
 
                                         uint sourceByte = stringToUInt(convOk,headerSource);
-                                        reqHeaderBytes.data << char(sourceByte);
+                                        reqHeaderBytes << char(sourceByte);
                                     }
                                     else
                                     {
@@ -281,42 +284,42 @@ namespace obdref
                                         // priority byte
                                         if(!headerPrio.isEmpty())   {
                                             uint prioByte = stringToUInt(convOk,headerPrio);
-                                            expHeaderBytes.data << char(prioByte);
-                                            expHeaderMask.data << char(0xFF);
+                                            expHeaderBytes << char(prioByte);
+                                            expHeaderMask << char(0xFF);
                                         }
                                         else   {
-                                            expHeaderBytes.data << char(0x00);
-                                            expHeaderMask.data << char(0x00);
+                                            expHeaderBytes << char(0x00);
+                                            expHeaderMask << char(0x00);
                                         }
                                         // format byte
                                         if(!headerFormat.isEmpty())   {
                                             uint formatByte = stringToUInt(convOk,headerFormat);
-                                            expHeaderBytes.data << char(formatByte);
-                                            expHeaderMask.data << char(0xFF);
+                                            expHeaderBytes << char(formatByte);
+                                            expHeaderMask << char(0xFF);
                                         }
                                         else   {
-                                            expHeaderBytes.data << char(0x00);
-                                            expHeaderMask.data << char(0x00);
+                                            expHeaderBytes << char(0x00);
+                                            expHeaderMask << char(0x00);
                                         }
                                         // target byte
                                         if(!headerTarget.isEmpty())   {
                                             uint targetByte = stringToUInt(convOk,headerTarget);
-                                            expHeaderBytes.data << char(targetByte);
-                                            expHeaderMask.data << char(0xFF);
+                                            expHeaderBytes << char(targetByte);
+                                            expHeaderMask << char(0xFF);
                                         }
                                         else   {
-                                            expHeaderBytes.data << char(0x00);
-                                            expHeaderMask.data << char(0x00);
+                                            expHeaderBytes << char(0x00);
+                                            expHeaderMask << char(0x00);
                                         }
                                         // source byte
                                         if(!headerSource.isEmpty())   {
                                             uint sourceByte = stringToUInt(convOk,headerSource);
-                                            expHeaderBytes.data << (sourceByte);
-                                            expHeaderMask.data << char(0xFF);
+                                            expHeaderBytes << (sourceByte);
+                                            expHeaderMask << char(0xFF);
                                         }
                                         else   {
-                                            expHeaderBytes.data << char(0x00);
-                                            expHeaderMask.data << char(0x00);
+                                            expHeaderBytes << char(0x00);
+                                            expHeaderMask << char(0x00);
                                         }
                                     }
                                 }
@@ -371,20 +374,20 @@ namespace obdref
 
                                         // format byte (mandatory)
                                         uint formatByte = stringToUInt(convOk,headerFormat);
-                                        reqHeaderBytes.data << char(formatByte);
+                                        reqHeaderBytes << char(formatByte);
 
                                         // target byte
                                         uint targetByte = stringToUInt(convOk,headerTarget);
-                                        reqHeaderBytes.data << char(targetByte);
+                                        reqHeaderBytes << char(targetByte);
 
                                         // source byte
                                         uint sourceByte = stringToUInt(convOk,headerSource);
-                                        reqHeaderBytes.data << char(sourceByte);
+                                        reqHeaderBytes << char(sourceByte);
 
                                         // length byte
                                         if(!headerLength.isEmpty())   {
                                             uint lengthByte = stringToUInt(convOk,headerLength);
-                                            reqHeaderBytes.data << char(lengthByte);
+                                            reqHeaderBytes << char(lengthByte);
                                         }
                                     }
                                     else
@@ -417,39 +420,39 @@ namespace obdref
                                         // format byte
                                         if(!headerFormat.isEmpty())   {
                                             uint formatByte = stringToUInt(convOk,headerFormat);
-                                            expHeaderBytes.data << char(formatByte);
-                                            expHeaderMask.data << char(0xC0);
+                                            expHeaderBytes << char(formatByte);
+                                            expHeaderMask << char(0xC0);
                                             // note: the mask for the formatByte is set to
                                             // 0b11000000 (0xC0) to ignore the length bits
                                         }
                                         else   {
-                                            expHeaderBytes.data << char(0x00);
-                                            expHeaderMask.data << char(0x00);
+                                            expHeaderBytes << char(0x00);
+                                            expHeaderMask << char(0x00);
                                         }
                                         // target byte
                                         if(!headerTarget.isEmpty())   {
                                             uint targetByte = stringToUInt(convOk,headerTarget);
-                                            expHeaderBytes.data << char(targetByte);
-                                            expHeaderMask.data << char(0xFF);
+                                            expHeaderBytes << char(targetByte);
+                                            expHeaderMask << char(0xFF);
                                         }
                                         else   {
-                                            expHeaderBytes.data << char(0x00);
-                                            expHeaderMask.data << char(0x00);
+                                            expHeaderBytes << char(0x00);
+                                            expHeaderMask << char(0x00);
                                         }
                                         // source byte
                                         if(!headerSource.isEmpty())   {
                                             uint sourceByte = stringToUInt(convOk,headerSource);
-                                            expHeaderBytes.data << char(sourceByte);
-                                            expHeaderMask.data << char(0xFF);
+                                            expHeaderBytes << char(sourceByte);
+                                            expHeaderMask << char(0xFF);
                                         }
                                         else   {
-                                            expHeaderBytes.data << char(0x00);
-                                            expHeaderMask.data << char(0x00);
+                                            expHeaderBytes << char(0x00);
+                                            expHeaderMask << char(0x00);
                                         }
 
                                         // length byte is ignored for expResponse
-                                        expHeaderBytes.data << char(0x00);
-                                        expHeaderMask.data << char(0x00);
+                                        expHeaderBytes << char(0x00);
+                                        expHeaderMask << char(0x00);
                                     }
                                 }
 
@@ -479,13 +482,13 @@ namespace obdref
                                         bool convOk = false;
 
                                         uint prioByte = stringToUInt(convOk,headerPrio);
-                                        reqHeaderBytes.data << char(prioByte);
+                                        reqHeaderBytes << char(prioByte);
 
                                         uint targetByte = stringToUInt(convOk,headerTarget);
-                                        reqHeaderBytes.data << char(targetByte);
+                                        reqHeaderBytes << char(targetByte);
 
                                         uint sourceByte = stringToUInt(convOk,headerSource);
-                                        reqHeaderBytes.data << char(sourceByte);
+                                        reqHeaderBytes << char(sourceByte);
                                     }
                                     else
                                     {
@@ -517,32 +520,32 @@ namespace obdref
                                         // priority byte
                                         if(!headerPrio.isEmpty())   {
                                             uint prioByte = stringToUInt(convOk,headerPrio);
-                                            expHeaderBytes.data << char(prioByte);
-                                            expHeaderMask.data << char(0xFF);
+                                            expHeaderBytes << char(prioByte);
+                                            expHeaderMask << char(0xFF);
                                         }
                                         else   {
-                                            expHeaderBytes.data << char(0x00);
-                                            expHeaderMask.data << char(0x00);
+                                            expHeaderBytes << char(0x00);
+                                            expHeaderMask << char(0x00);
                                         }
                                         // target byte
                                         if(!headerTarget.isEmpty())   {
                                             uint targetByte = stringToUInt(convOk,headerTarget);
-                                            expHeaderBytes.data << char(targetByte);
-                                            expHeaderMask.data << char(0xFF);
+                                            expHeaderBytes << char(targetByte);
+                                            expHeaderMask << char(0xFF);
                                         }
                                         else   {
-                                            expHeaderBytes.data << char(0x00);
-                                            expHeaderMask.data << char(0x00);
+                                            expHeaderBytes << char(0x00);
+                                            expHeaderMask << char(0x00);
                                         }
                                         // source byte
                                         if(!headerSource.isEmpty())   {
                                             uint sourceByte = stringToUInt(convOk,headerSource);
-                                            expHeaderBytes.data << char(sourceByte);
-                                            expHeaderMask.data << char(0xFF);
+                                            expHeaderBytes << char(sourceByte);
+                                            expHeaderMask << char(0xFF);
                                         }
                                         else   {
-                                            expHeaderBytes.data << char(0x00);
-                                            expHeaderMask.data << char(0x00);
+                                            expHeaderBytes << char(0x00);
+                                            expHeaderMask << char(0x00);
                                         }
                                     }
                                 }
@@ -635,7 +638,7 @@ namespace obdref
                                         QStringList listRespPrefix = respPrefix.split(" ");
                                         for(int i=0; i < listRespPrefix.size(); i++)   {
                                             uint dataByte = stringToUInt(convOk,listRespPrefix.at(i));
-                                            msgData->expDataPrefix.data << char(dataByte);
+                                            msgData->expDataPrefix << char(dataByte);
                                         }
 
                                         // [responseN.bytes]
@@ -654,7 +657,7 @@ namespace obdref
                                             QStringList listReqData = reqData.split(" ");
                                             for(int i=0; i < listReqData.size(); i++)   {
                                                 uint dataByte = stringToUInt(convOk,listReqData.at(i));
-                                                msgData->reqDataBytes.data << char(dataByte);
+                                                msgData->reqDataBytes << char(dataByte);
                                             }
                                         }
                                     }
@@ -702,8 +705,8 @@ namespace obdref
                                             ByteList &reqDataBytes =
                                                     msgFrame.listMessageData[i].reqDataBytes;
 
-                                            ubyte pciByte = reqDataBytes.data.size();
-                                            reqDataBytes.data.prepend(pciByte);
+                                            ubyte pciByte = reqDataBytes.size();
+                                            reqDataBytes.prepend(pciByte);
                                         }
                                     }
                                 }
@@ -717,8 +720,8 @@ namespace obdref
                                     for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
                                     {
                                         MessageData &msgData = msgFrame.listMessageData[i];
-                                        ubyte hSize = msgData.reqHeaderBytes.data.size();
-                                        ubyte dSize = msgData.reqDataBytes.data.size();
+                                        ubyte hSize = msgData.reqHeaderBytes.size();
+                                        ubyte dSize = msgData.reqDataBytes.size();
 
                                         if(dSize > 255)   {
                                             OBDREFDEBUG << "OBDREF: Error: ISO 14230-4,"
@@ -729,20 +732,20 @@ namespace obdref
                                         // if the header is two or four bytes
                                         // add data length to the last byte
                                         if(hSize % 2 == 0)   {
-                                            msgData.reqHeaderBytes.data[hSize-1] = dSize;
+                                            msgData.reqHeaderBytes[hSize-1] = dSize;
                                         }
 
                                         // else if the header is one or three bytes
                                         else   {
                                             if(dSize > 63)   {
                                                 // or append a length byte if its > 63 bytes
-                                                msgData.reqHeaderBytes.data << dSize;
+                                                msgData.reqHeaderBytes << dSize;
                                             }
                                             else    {
                                                 // add data length to six least significant
                                                 // bits of the first (format) byte
-                                                ubyte formatByte = msgData.reqHeaderBytes.data[0];
-                                                msgData.reqHeaderBytes.data[0] = formatByte | dSize;
+                                                ubyte formatByte = msgData.reqHeaderBytes[0];
+                                                msgData.reqHeaderBytes[0] = formatByte | dSize;
                                             }
                                         }
                                     }
@@ -822,6 +825,8 @@ namespace obdref
 
         if(msgFrame.protocol.contains("ISO 15765-4"))
         {   formatOk = cleanRawData_ISO_15765_4(msgFrame);   }
+        else if(msgFrame.protocol == "ISO 14230-4")
+        {   formatOk = cleanRawData_ISO_14230_4(msgFrame);   }
         else
         {   // TODO
         }     
@@ -962,6 +967,11 @@ namespace obdref
             for(size_t j=0; j < listRawDataFrames.size(); j++)
             {
                 ByteList &rawFrame = listRawDataFrames[j];
+                if(rawFrame.size() > 259)   {
+                    // message length can't exceed
+                    // 4 header bytes + 255 data bytes
+                    continue;
+                }
 
                 // first we need to determine the number of bytes
                 // in the header since there are four header types:
@@ -974,30 +984,30 @@ namespace obdref
                 // least significant bits of the format byte are 0
                 uint numHeaderBytes = 0;
                 ubyte hFormatMask = 0x3F;   // 0b00111111
-                ubyte dataLength = rawFrame.data.at(0) & hFormatMask;
+                ubyte dataLength = rawFrame.at(0) & hFormatMask;
 
                 if(dataLength > 0)
                 {   // frame is A or B
-                    numHeaderBytes = rawFrame.data.size() - dataLength;
+                    numHeaderBytes = rawFrame.size() - dataLength;
                 }
                 else
                 {   // frame is C or D
                     // ambiguous so guess and check each type
-                    dataLength = rawFrame.data.at(3);
-                    if(dataLength + 4 == rawFrame.data.size())   {
+                    dataLength = rawFrame.at(3);
+                    if(dataLength + 4 == rawFrame.size())   {
                         numHeaderBytes = 4;     // frame D
                     }
                     else   {
-                        dataLength = rawFrame.data.at(1);
+                        dataLength = rawFrame.at(1);
                         numHeaderBytes = 2;     // frame C
                     }
                 }
 
                 // split raw data into header/data bytes
                 ByteList headerBytes,dataBytes;
-                for(size_t k=0; k < rawFrame.data.size(); k++)   {
-                    if(k < numHeaderBytes)   {   headerBytes.data << rawFrame.data.at(k);   }
-                    else                     {   dataBytes.data << rawFrame.data.at(k);   }
+                for(size_t k=0; k < rawFrame.size(); k++)   {
+                    if(k < numHeaderBytes)   {   headerBytes << rawFrame.at(k);   }
+                    else                     {   dataBytes << rawFrame.at(k);   }
                 }
 
                 // todo
@@ -1011,32 +1021,32 @@ namespace obdref
                 // message, we pad expHeader[] to assume the largest
                 // num of header bytes to preserve byte order)
                 ByteList expHeaderBytes,expHeaderMask;
-                expHeaderBytes.data << msgDataExpHeaderBytes.data.at(0);
-                expHeaderMask.data  << msgDataExpHeaderMask.data.at(0);
+                expHeaderBytes << msgDataExpHeaderBytes.at(0);
+                expHeaderMask  << msgDataExpHeaderMask.at(0);
 
                 switch(numHeaderBytes)   {
                     case 1:   {   // A
                         break;
                     }
                     case 2:   {   // C
-                        expHeaderBytes.data << msgDataExpHeaderBytes.data.at(3);
-                        expHeaderMask.data  << msgDataExpHeaderMask.data.at(3);
+                        expHeaderBytes << msgDataExpHeaderBytes.at(3);
+                        expHeaderMask  << msgDataExpHeaderMask.at(3);
                         break;
                     }
                     case 3:   {   // B
-                        expHeaderBytes.data << msgDataExpHeaderBytes.data.at(1)
-                                            << msgDataExpHeaderBytes.data.at(2);
-                        expHeaderMask.data  << msgDataExpHeaderMask.data.at(1)
-                                            << msgDataExpHeaderMask.data.at(2);
+                        expHeaderBytes << msgDataExpHeaderBytes.at(1)
+                                       << msgDataExpHeaderBytes.at(2);
+                        expHeaderMask  << msgDataExpHeaderMask.at(1)
+                                       << msgDataExpHeaderMask.at(2);
                         break;
                     }
                     case 4:   {   // D
-                        expHeaderBytes.data << msgDataExpHeaderBytes.data.at(1)
-                                            << msgDataExpHeaderBytes.data.at(2)
-                                            << msgDataExpHeaderBytes.data.at(3);
-                        expHeaderMask.data  << msgDataExpHeaderMask.data.at(1)
-                                            << msgDataExpHeaderMask.data.at(2)
-                                            << msgDataExpHeaderMask.data.at(3);
+                        expHeaderBytes << msgDataExpHeaderBytes.at(1)
+                                       << msgDataExpHeaderBytes.at(2)
+                                       << msgDataExpHeaderBytes.at(3);
+                        expHeaderMask  << msgDataExpHeaderMask.at(1)
+                                       << msgDataExpHeaderMask.at(2)
+                                       << msgDataExpHeaderMask.at(3);
                         break;
                     }
                 }
@@ -1045,11 +1055,11 @@ namespace obdref
                 bool headerBytesMatch = true;
                 for(size_t k=0; k < numHeaderBytes; k++)
                 {
-                    ubyte byteTest = headerBytes.data.at(k) &
-                                     expHeaderMask.data.at(k);
+                    ubyte byteTest = headerBytes.at(k) &
+                                     expHeaderMask.at(k);
 
-                    ubyte byteMask = expHeaderBytes.data.at(k) &
-                                     expHeaderMask.data.at(k);
+                    ubyte byteMask = expHeaderBytes.at(k) &
+                                     expHeaderMask.at(k);
 
                     if(byteMask != byteTest)   {
                         headerBytesMatch = false;
@@ -1061,10 +1071,10 @@ namespace obdref
                 {   continue;   }
 
                 // check for expected data prefix bytes
-                bool dataPrefixMatch = false;
-                for(size_t k=0; k < msgDataExpPrefix.data.size(); k++)
+                bool dataPrefixMatch = true;
+                for(size_t k=0; k < msgDataExpPrefix.size(); k++)
                 {
-                    if(msgDataExpPrefix.data.at(k) != dataBytes.data.at(k))   {
+                    if(msgDataExpPrefix.at(k) != dataBytes.at(k))   {
                         dataPrefixMatch = false;
                         break;
                     }
@@ -1077,7 +1087,22 @@ namespace obdref
                 msgFrame.listMessageData[i].listHeaders << headerBytes;
                 msgFrame.listMessageData[i].listCleanData << dataBytes;
             }
+
+            // merge nonunique listHeaders and cat
+            // corresponding listCleanData entries
+
+            if(listRawDataFrames.size() > 1)   {
+
+                QList<ByteList> &listHeaders =
+                    msgFrame.listMessageData[i].listHeaders;
+
+                QList<ByteList> &listCleanData =
+                    msgFrame.listMessageData[i].listCleanData;
+
+                groupDataByHeader(listHeaders,listCleanData);
+            }
         }
+        return true;
     }
 
     // ========================================================================== //
@@ -1085,243 +1110,214 @@ namespace obdref
 
     bool Parser::cleanRawData_ISO_15765_4(MessageFrame &msgFrame)
     {
-
-        /*
-        for(int i=0; i < msgFrame.listMessageData.size(); i++)
+        for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
         {
-            QList<ByteList> const &listRawDataFrames =
-                    msgFrame.listMessageData.at(i).listRawDataFrames;
+            QList<ByteList> &listRawDataFrames =
+                    msgFrame.listMessageData[i].listRawDataFrames;
 
-            QList<ByteList> listUniqueHeaders;
-            QList<QList<ByteList> > listMappedDataFrames;
+            ByteList const &expHeaderBytes =
+                    msgFrame.listMessageData[i].expHeaderBytes;
 
-            int numHeaderBytes;
+            ByteList const &expHeaderMask =
+                    msgFrame.listMessageData[i].expHeaderMask;
+
+            ByteList const &expDataPrefix =
+                    msgFrame.listMessageData[i].expDataPrefix;
+
+            ubyte numHeaderBytes;
             if(msgFrame.protocol.contains("Standard"))
             {   numHeaderBytes = 2;   }
             else
             {   numHeaderBytes = 4;   }
 
-            for(int j=0; j < listRawDataFrames.size(); j++)
+            for(size_t j=0; j < listRawDataFrames.size(); j++)
             {
-                // separate into header/data bytes
-                ByteList headerBytes,dataBytes;
+                ByteList &rawFrame = listRawDataFrames[j];
 
-                for(int k=0; k < listRawDataFrames.at(j).data.size(); k++)
-                {
-                    if(k < numHeaderBytes)   {   headerBytes.data << listRawDataFrames.at(j).data.at(k);   }
-                    else                     {   dataBytes.data << listRawDataFrames.at(j).data.at(k);   }
+                // split raw data into header/data bytes
+                ByteList headerBytes,dataBytes;
+                for(size_t k=0; k < rawFrame.size(); k++)   {
+                    if(k < numHeaderBytes)   {   headerBytes << rawFrame.at(k);   }
+                    else                     {   dataBytes << rawFrame.at(k);   }
                 }
 
-                // check if expected header bytes exist / match
+                // check for expected header bytes
                 bool headerBytesMatch = true;
-                if(msgFrame.expHeaderBytes.data.size() > 0)
+                for(size_t k=0; k < numHeaderBytes; k++)
                 {
-                    for(int k=0; k < headerBytes.data.size(); k++)
-                    {   // expHeaderMask byte of 0xFF means we expect a match
-                        if(msgFrame.expHeaderMask.data.at(k) == 0xFF &&
-                                (msgFrame.expHeaderBytes.data.at(k) != headerBytes.data.at(k)))
-                        {   headerBytesMatch = false;   }
+                    ubyte byteTest = headerBytes.at(k) &
+                                     expHeaderMask.at(k);
+
+                    ubyte byteMask = expHeaderBytes.at(k) &
+                                     expHeaderMask.at(k);
+
+                    if(byteMask != byteTest)   {
+                        headerBytesMatch = false;
+                        break;
                     }
                 }
 
                 if(!headerBytesMatch)
                 {   continue;   }
 
-                // save dataBytes based on frame type (pci byte)
-                if((dataBytes.data.at(0) & 0xF0) == 0)              // single frame
+                // check for expected data prefix bytes
+                // note: have to take pci byte(s) into account
+                bool dataPrefixMatch = true;
+                ubyte pciOffset = (dataBytes[0] == 1) ? 2 : 1;
+                for(size_t k=0; k < expDataPrefix.size(); k++)
                 {
-                    if(listUniqueHeaders.contains(headerBytes))
-                    {
-                        OBDREFDEBUG << "OBDREF: Error: Found multiple frame "
-                                    << "response types from single address:\n";
-                        dumpRawDataToDebugInfo(listRawDataFrames);
-                        return false;
-                    }
-                    else
-                    {
-                        QList<ByteList> listDataBytes;
-                        listMappedDataFrames << (listDataBytes << dataBytes);
-                        listUniqueHeaders << headerBytes;
+                    if(expDataPrefix.at(k) != dataBytes.at(k+pciOffset))   {
+                        dataPrefixMatch = false;
+                        break;
                     }
                 }
-                else if((dataBytes.data.at(0) & 0xF0) == 0x10)
-                {                                                   // multi frame [first]
-                    int headerIdx = listUniqueHeaders.indexOf(headerBytes);
-                    if(headerIdx > -1)
-                    {
-                        if(((listMappedDataFrames.at(headerIdx).at(0).data.at(0) & 0xF0) == 0))
-                        {
-                            OBDREFDEBUG << "OBDREF: Error: Found multiple frame "
-                                        << "response types from single address:\n";
-                            dumpRawDataToDebugInfo(listRawDataFrames);
-                            return false;
-                        }
-                        else
-                        {
-                            for(int k=0; k < listMappedDataFrames.at(headerIdx).size(); k++)
-                            {
-                                if((listMappedDataFrames.at(headerIdx).at(k).data.at(0) & 0xF0) == 0x10)
-                                {
-                                    OBDREFDEBUG << "OBDREF: Error: Found multiple frame "
-                                                << "response types from single address:\n";
-                                    dumpRawDataToDebugInfo(listRawDataFrames);
-                                    return false;
-                                }
-                            }
-                            listMappedDataFrames[headerIdx] << dataBytes;
-                        }
-                    }
-                    else
-                    {
-                        QList<ByteList> listDataBytes;
-                        listMappedDataFrames << (listDataBytes << dataBytes);
-                        listUniqueHeaders << headerBytes;
-                    }
-                }
-                else if((dataBytes.data.at(0) & 0xF0) == 0x20)
-                {                                                   // multi frame [consecutive]
-                    int headerIdx = listUniqueHeaders.indexOf(headerBytes);
-                    if(headerIdx > -1)
-                    {
-                        if((listMappedDataFrames.at(headerIdx).at(0).data.at(0) & 0xF0) == 0)
-                        {
-                            OBDREFDEBUG << "OBDREF: Error: Found mixed single/multi-frame "
-                                        << "response from single address:\n";
-                            dumpRawDataToDebugInfo(listRawDataFrames);
-                            return false;
-                        }
-                        else
-                        {   listMappedDataFrames[headerIdx] << dataBytes;   }
-                    }
-                    else
-                    {
-                        QList<ByteList> listDataBytes;
-                        listMappedDataFrames << (listDataBytes << dataBytes);
-                        listUniqueHeaders << headerBytes;
-                    }
-                }
+
+                if(!dataPrefixMatch)
+                {   continue;   }
+
+                // save data
+                msgFrame.listMessageData[i].listHeaders << headerBytes;
+                msgFrame.listMessageData[i].listCleanData << dataBytes;
             }
 
-            if(listUniqueHeaders.size() == 0)
-            {
-                OBDREFDEBUG << "OBDREF: Error: No valid data frames found: \n";
-                dumpRawDataToDebugInfo(listRawDataFrames);
-                return false;
-            }
+            if(listRawDataFrames.size() == 1)   {
 
-            // sort and merge data under each header
-            QList<ByteList> listCatDataBytes;                       // concatenated dataBytes
-            for(int j=0; j < listUniqueHeaders.size(); j++)
-            {
-                if(listMappedDataFrames.at(j).size() == 1)          // single frame
-                {
-                    if((listMappedDataFrames.at(j).at(0).data.at(0) & 0xF0) != 0x00)
-                    {
-                        OBDREFDEBUG << "OBDREF: Error: Single frame response,"
-                                    << "but incorrect PCI byte: \n";
-                        dumpRawDataToDebugInfo(listRawDataFrames);
-                        return false;
-                    }
-                    listMappedDataFrames[j][0].data.removeAt(0);
-                    listCatDataBytes << listMappedDataFrames.at(j).at(0);
-                    listMappedDataFrames[j].removeAt(0);
-                }
-                else
-                {                                                   // multi frame
-                    ByteList orderedDataBytes; int frameNum = 0;
-                    while(listMappedDataFrames.at(j).size() > 0)
-                    {
-                        if(frameNum == 0)       // first frame
-                        {
-                            for(int k=0; k < listMappedDataFrames.at(j).size(); k++)
-                            {
-                                if((listMappedDataFrames.at(j).at(k).data.at(0) & 0xF0) == 0x10)
-                                {
-                                    listMappedDataFrames[j][k].data.removeAt(0);
-                                    listMappedDataFrames[j][k].data.removeAt(0);
-                                    orderedDataBytes.data.append(listMappedDataFrames.at(j).at(k).data);
-                                    listMappedDataFrames[j].removeAt(k);
-                                    break;
-                                }
-                            }
-                        }
-                        else                    // consecutive frames
-                        {
-                            ubyte cfFirstByte = 0x20 + (frameNum & 0x0F);
-                            for(int k=0; k < listMappedDataFrames.at(j).size(); k++)
-                            {
-                                if(listMappedDataFrames.at(j).at(k).data.at(0) == cfFirstByte)
-                                {
-                                    listMappedDataFrames[j][k].data.removeAt(0);
-                                    orderedDataBytes.data.append(listMappedDataFrames.at(j).at(k).data);
-                                    listMappedDataFrames[j].removeAt(k);
-                                    break;
-                                }
-                            }
-                        }
-                        frameNum++;
-                    }
-                    // save ordered dataBytes
-                    listCatDataBytes << orderedDataBytes;
-                }
-            }
+                // with only one frame, ensure we have
+                // a single frame pci byte
 
-            // check dataBytes against expected prefix
-            for(int j=0; j < listUniqueHeaders.size(); j++)
-            {
-                bool prefixOk = true;
-                for(int k=0; k < msgFrame.listMessageData.at(i).expDataPrefix.data.size(); k++)
-                {
-                    if(listCatDataBytes.at(j).data.at(k) !=
-                            msgFrame.listMessageData.at(i).expDataPrefix.data.at(k))
-                    {   prefixOk = false;   break;   }
-                }
+                ByteList &dataBytes =
+                    msgFrame.listMessageData[i].listCleanData[0];
 
-                if(prefixOk)
-                {
-                    for(int k=0; k < msgFrame.listMessageData.at(i).expDataPrefix.data.size(); k++)
-                    {   listCatDataBytes[j].data.removeAt(0);   }    // remove prefix bytes
-
-                    msgFrame.listMessageData[i].listCleanData << listCatDataBytes.at(j);
-                    msgFrame.listMessageData[i].listHeaders << listUniqueHeaders.at(j);
-                }
-            }
-
-            //debug
-//            for(int j=0; j < msgFrame.listMessageData[i].listHeaders.size(); j++)
-//            {
-//                qDebug() << msgFrame.listMessageData[i].listHeaders.at(j).data << "|"
-//                         << msgFrame.listMessageData[i].listCleanData.at(j).data;
-//            }
-
-            if(listCatDataBytes.size() > 0)
-            {
-                if(msgFrame.listMessageData.at(i).listCleanData.size() == 0)
-                {
-                    OBDREFDEBUG << "OBDREF: Error: No frames with correct prefix: \n";
-                    dumpRawDataToDebugInfo(listRawDataFrames);
-                    return false;
+                ubyte pciByte = dataBytes.takeAt(0);
+                if((pciByte & 0xF0 != 0))   {
+                    OBDREFDEBUG << "OBDREF: Error: Parse ISO 15765,"
+                                   "invalid PCI byte for single frame";
                 }
             }
             else
-            {   return false;   }
+            {
+                QList<ByteList> &listHeaderFields =
+                    msgFrame.listMessageData[i].listHeaders;
+
+                QList<ByteList> &listDataFields =
+                    msgFrame.listMessageData[i].listCleanData;
+
+                // [single frame]
+                QList<ByteList> listSFHeaders;
+                QList<ByteList> listSFDataBytes;
+                for(size_t j=0; j < listSFHeaders.size(); j++)   {
+                    // check pci byte is sf
+                    if(listHeaderFields[j][0] & 0xF0 == 0)   {
+                        listSFHeaders << listHeaderFields[j];
+                        listSFDataBytes << listDataFields[j];
+                        listHeaderFields.removeAt(j);
+                        listDataFields.removeAll(j);
+                    }
+                }
+                //
+                groupDataByHeader(listSFHeaders,listSFDataBytes);
+
+                // [multi frame]
+                // map all messages to unique headers
+                QList<ByteList>         listUnqHeaderFields;
+                QList<QList<ByteList> >  listListDataFields;
+
+                for(size_t j=0; j < listHeaderFields.size(); j++)
+                {
+                    QList<ByteList> listMappedDataFields;
+                    listMappedDataFields << listDataFields[j];
+                    listUnqHeaderFields << listHeaderFields[j];
+
+                    for(size_t k=j+1; k < listHeaderFields.size(); k++)   {
+                        if(listHeaderFields[j] == listHeaderFields[k])   {
+                            listMappedDataFields << listDataFields[k];
+                        }
+                    }
+                    listListDataFields << listMappedDataFields;
+                }
+
+                // sort databytes mapped by header according
+                // to ISO 15765-4 pci byte order for multi-frame
+                for(size_t j=0; j < listUnqHeaderFields.size(); j++)
+                {
+                    QList<ByteList> &listDataFields = listListDataFields[j];
+                    for(size_t k=0; k < listDataFields.size(); k++)
+                    {
+                        ubyte pciMask = (k == 0) ? 0xF0 : 0xFF;
+                        ubyte pciByte = (k == 0) ? 0x10 : 0x20;
+                        pciByte += (k % 0x10);      // cycle 0-F
+
+                        // reorganize list of data fields using pciByte
+                        // ISO 15765-4 MF pci byte order is:
+                        // [first frame]        0x1D 0xDD where DDD == data length
+                        // [consecutive frame]  0x21,0x22... 0x2F,0x20, (repeat)
+
+                        for(size_t m=k; m < listDataFields.size(); m++)
+                        {
+                            if((listDataFields[m][0] & pciMask) == pciByte)   {
+                                if(m != k)   {
+                                    // move idx 'm' to idx 'k'
+                                    listDataFields.move(m,k);
+                                    // note: can optimize: directly copy
+                                    // data to catDataBytes instead of
+                                    // reorganizing this list,etc
+                                }
+                                break;
+                            }
+                        }
+
+                        // remove pciByte from dataBytes
+                        listDataFields[k].removeAt(0);
+                        if(k == 0)   {
+                            // if [first frame], remove the
+                            // data length byte as well
+                            listDataFields[k].removeAt(0);
+                        }
+                    }
+
+                    ByteList catDataBytes;
+                    for(size_t k=0; k < listDataFields.size(); k++)
+                    {   catDataBytes << listDataFields[k];   }
+
+                    // so now copy everything back to msgFrame
+                }
+            }
         }
-
-        return true;
-
-        */
     }
 
     // ========================================================================== //
     // ========================================================================== //
 
-    void Parser::dumpRawDataToDebugInfo(const QList<ByteList> &listRawDataFrames)
+    void Parser::groupDataByHeader(QList<ByteList> &listHeaders,
+                                   QList<ByteList> &listDataBytes)
     {
-        for(int k=0; k < listRawDataFrames.size(); k++)
+        // merge nonunique listHeaders and cat
+        // corresponding listDataBytes entries
+
+        for(size_t i=0; i < listHeaders.size(); i++)
+        {
+            for(size_t j=i+1; j < listHeaders.size(); j++)
+            {
+                if(listHeaders[i] == listHeaders[j])
+                {   // merge headerBytes and cat dataBytes
+                    listDataBytes[i] << listDataBytes[j];
+                    listHeaders.removeAt(j);
+                    listDataBytes.removeAt(j);
+                }
+            }
+        }
+    }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
+    void Parser::dumpRawDataToDebugInfo(const QList<ByteList> &listRawData)
+    {
+        for(int k=0; k < listRawData.size(); k++)
         {
             OBDREFDEBUG << "OBDREF: Raw Data Frame " << k << ": ";
-            for(int l=0; l < listRawDataFrames.at(k).data.size(); l++)
-            {   OBDREFDEBUG << m_mapValToHexByte.value(listRawDataFrames.at(k).data.at(l)) << " ";   }
+            for(int l=0; l < listRawData[k].size(); l++)
+            {   OBDREFDEBUG << m_mapValToHexByte.value(listRawData[k][l]) << " ";   }
             OBDREFDEBUG << "\n";
         }
     }
@@ -1332,23 +1328,35 @@ namespace obdref
     bool Parser::parseSinglePartResponse(const MessageFrame &msgFrame,
                                          QList<Data> &listDataResults)
     {
-        // a single part response may have responses from different addresses
-        // but is interpreted as one response message per parameter per address
-        for(int i=0; i < msgFrame.listMessageData.at(0).listCleanData.size(); i++)
-        {
-            obdref::Data myData;
-            ByteList const & headerBytes = msgFrame.listMessageData.at(0).listHeaders.at(i);
-            ByteList const & dataBytes = msgFrame.listMessageData.at(0).listCleanData.at(i);
+        // [single part message]
 
-            v8::HandleScope handleScope;
+        // * typical response type
+        // * a single part message is identified by having
+        //   only one request message in the MessageFrame
+        // * we interpret multiple device responses as
+        //   individual responses to that single request
+        //   from different sources
+
+        for(int i=0; i < msgFrame.listMessageData.at(0).listCleanData.size(); i++)
+        {           
+            ByteList const & headerBytes =
+                    msgFrame.listMessageData.at(0).listHeaders.at(i);
+
+            ByteList const & dataBytes =
+                    msgFrame.listMessageData.at(0).listCleanData.at(i);
+
+            obdref::Data myData;
 
             // fill out response meta data
-            for(int j=0; j < headerBytes.data.size(); j++)
-            {   myData.srcAddress.append(QString::number(int(headerBytes.data.at(j)),16));   }
-
+            for(size_t j=0; j < headerBytes.size(); j++)   {
+                myData.srcAddress.append(QString::number(int(headerBytes[j]),16));
+            }
             myData.paramName = msgFrame.name;
             myData.srcName = msgFrame.address;
             myData.srcAddress = myData.srcAddress.toUpper();
+
+            // create scope for local handles
+            v8::HandleScope handleScope;
 
             // clear existing databytes in js context
             v8::Local<v8::Value> val_clearDataBytes;
@@ -1374,9 +1382,9 @@ namespace obdref
             method_clearNumData->Call(m_v8_listNumData,0,NULL);
 
             // copy over databytes to js context
-            v8::Local<v8::Array> dataByteArray = v8::Array::New(dataBytes.data.size());
-            for(int j=0; j < dataBytes.data.size(); j++)
-            {   dataByteArray->Set(j,v8::Integer::New(int(dataBytes.data.at(j))));   }
+            v8::Local<v8::Array> dataByteArray = v8::Array::New(dataBytes.size());
+            for(int j=0; j < dataBytes.size(); j++)
+            {   dataByteArray->Set(j,v8::Integer::New(int(dataBytes.at(j))));   }
 
             v8::Local<v8::Value> val_appendDataBytes;
             val_appendDataBytes = m_v8_listDataBytes->Get(v8::String::New("appendDataBytes"));
@@ -1404,6 +1412,12 @@ namespace obdref
     bool Parser::parseMultiPartResponse(const MessageFrame &msgFrame,
                                         QList<Data> &listDataResults)
     {
+        // [multi part request]
+        // * a multi part message is identified by having
+        //   multiple request messages in the MessageFrame
+        // * we interpret multiple device responses as
+        //   forming a single response from a single source
+
         // a multi part response is limited to receiving responses
         // from only one address
         for(int i=0; i < msgFrame.listMessageData.size(); i++)
@@ -1435,8 +1449,8 @@ namespace obdref
         obdref::Data myData;
         ByteList const & headerBytes = msgFrame.listMessageData.at(0).listHeaders.at(0);
 
-        for(int j=0; j < headerBytes.data.size(); j++)
-        {   myData.srcAddress.append(QString::number(int(headerBytes.data.at(j)),16));   }
+        for(int j=0; j < headerBytes.size(); j++)
+        {   myData.srcAddress.append(QString::number(int(headerBytes.at(j)),16));   }
 
         myData.paramName = msgFrame.name;
         myData.srcAddress = myData.srcAddress.toUpper();
@@ -1471,9 +1485,9 @@ namespace obdref
             ByteList const & dataBytes = msgFrame.listMessageData.at(i).listCleanData.at(0);
 
             // copy over databytes to js context
-            v8::Local<v8::Array> dataByteArray = v8::Array::New(dataBytes.data.size());
-            for(int j=0; j < dataBytes.data.size(); j++)
-            {   dataByteArray->Set(j,v8::Integer::New(int(dataBytes.data.at(j))));   }
+            v8::Local<v8::Array> dataByteArray = v8::Array::New(dataBytes.size());
+            for(int j=0; j < dataBytes.size(); j++)
+            {   dataByteArray->Set(j,v8::Integer::New(int(dataBytes.at(j))));   }
 
             v8::Local<v8::Value> val_appendDataBytes;
             val_appendDataBytes = m_v8_listDataBytes->Get(v8::String::New("appendDataBytes"));
