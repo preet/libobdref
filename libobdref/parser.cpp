@@ -831,18 +831,19 @@ namespace obdref
         {   // TODO
         }     
 
-        if(!formatOk)
-        {
-            OBDREFDEBUG << "OBDREF: Error: Could not clean "
+        if(!formatOk)   {
+            OBDREFDEBUG << "OBDREF: Error: Could not clean"
                         << "raw data using spec'd format\n";
             return false;
         }
 
-        // determine if we have a single or multi-part response
-        if(msgFrame.listMessageData.size() > 1)
-        {   parseMultiPartResponse(msgFrame,listData);   }
-        else
-        {   parseSinglePartResponse(msgFrame,listData);   }
+        bool parseOk = false;
+        parseOk = parseResponse(msgFrame,listData);
+
+        if(!parseOk)   {
+            OBDREFDEBUG << "OBDREF: Error: Could not parse message";
+            return false;
+        }
 
         return true;
     }
@@ -950,6 +951,7 @@ namespace obdref
 
     bool Parser::cleanRawData_ISO_14230_4(MessageFrame &msgFrame)
     {
+        bool hasData = false;
         for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
         {
             QList<ByteList> &listRawDataFrames =
@@ -962,7 +964,7 @@ namespace obdref
                     msgFrame.listMessageData[i].expHeaderMask;
 
             ByteList const &msgDataExpPrefix =
-                    msgFrame.listMessageData.at(i).expDataPrefix;
+                    msgFrame.listMessageData[i].expDataPrefix;
 
             for(size_t j=0; j < listRawDataFrames.size(); j++)
             {
@@ -970,6 +972,8 @@ namespace obdref
                 if(rawFrame.size() > 259)   {
                     // message length can't exceed
                     // 4 header bytes + 255 data bytes
+                    OBDREFDEBUG << "OBDREF: Error: ISO 14230-4 "
+                                   "Message exceeds 259 bytes";
                     continue;
                 }
 
@@ -1010,65 +1014,67 @@ namespace obdref
                     else                     {   dataBytes << rawFrame.at(k);   }
                 }
 
-                // todo
-                // checking expected header bytes with a mask is
-                // time consuming -- we should have a flag in
-                // MessageData set in BuildMessage() that allows
-                // us to skip this part entirely
-
-                // create expHeaderBytes and expHeaderMask to match
-                // the correct numHeaderBytes (when building the
-                // message, we pad expHeader[] to assume the largest
-                // num of header bytes to preserve byte order)
-                ByteList expHeaderBytes,expHeaderMask;
-                expHeaderBytes << msgDataExpHeaderBytes.at(0);
-                expHeaderMask  << msgDataExpHeaderMask.at(0);
-
-                switch(numHeaderBytes)   {
-                    case 1:   {   // A
-                        break;
-                    }
-                    case 2:   {   // C
-                        expHeaderBytes << msgDataExpHeaderBytes.at(3);
-                        expHeaderMask  << msgDataExpHeaderMask.at(3);
-                        break;
-                    }
-                    case 3:   {   // B
-                        expHeaderBytes << msgDataExpHeaderBytes.at(1)
-                                       << msgDataExpHeaderBytes.at(2);
-                        expHeaderMask  << msgDataExpHeaderMask.at(1)
-                                       << msgDataExpHeaderMask.at(2);
-                        break;
-                    }
-                    case 4:   {   // D
-                        expHeaderBytes << msgDataExpHeaderBytes.at(1)
-                                       << msgDataExpHeaderBytes.at(2)
-                                       << msgDataExpHeaderBytes.at(3);
-                        expHeaderMask  << msgDataExpHeaderMask.at(1)
-                                       << msgDataExpHeaderMask.at(2)
-                                       << msgDataExpHeaderMask.at(3);
-                        break;
-                    }
-                }
-
-                // check for expected header bytes
-                bool headerBytesMatch = true;
-                for(size_t k=0; k < numHeaderBytes; k++)
+                // filter with expHeaderBytes if required
+                if(msgDataExpHeaderBytes.size() > 0)
                 {
-                    ubyte byteTest = headerBytes.at(k) &
-                                     expHeaderMask.at(k);
+                    // create expHeaderBytes and expHeaderMask to match
+                    // the correct numHeaderBytes (when building the
+                    // message, we pad expHeader[] to assume the largest
+                    // num of header bytes to preserve byte order)
+                    ByteList expHeaderBytes,expHeaderMask;
+                    expHeaderBytes << msgDataExpHeaderBytes.at(0);
+                    expHeaderMask  << msgDataExpHeaderMask.at(0);
 
-                    ubyte byteMask = expHeaderBytes.at(k) &
-                                     expHeaderMask.at(k);
+                    switch(numHeaderBytes)   {
+                        case 1:   {   // A
+                            break;
+                        }
+                        case 2:   {   // C
+                            expHeaderBytes << msgDataExpHeaderBytes.at(3);
+                            expHeaderMask  << msgDataExpHeaderMask.at(3);
+                            break;
+                        }
+                        case 3:   {   // B
+                            expHeaderBytes << msgDataExpHeaderBytes.at(1)
+                                           << msgDataExpHeaderBytes.at(2);
+                            expHeaderMask  << msgDataExpHeaderMask.at(1)
+                                           << msgDataExpHeaderMask.at(2);
+                            break;
+                        }
+                        case 4:   {   // D
+                            expHeaderBytes << msgDataExpHeaderBytes.at(1)
+                                           << msgDataExpHeaderBytes.at(2)
+                                           << msgDataExpHeaderBytes.at(3);
+                            expHeaderMask  << msgDataExpHeaderMask.at(1)
+                                           << msgDataExpHeaderMask.at(2)
+                                           << msgDataExpHeaderMask.at(3);
+                            break;
+                        }
+                    }
 
-                    if(byteMask != byteTest)   {
-                        headerBytesMatch = false;
-                        break;
+                    // check for expected header bytes
+                    bool headerBytesMatch = true;
+                    for(size_t k=0; k < numHeaderBytes; k++)
+                    {
+                        ubyte byteTest = headerBytes.at(k) &
+                                         expHeaderMask.at(k);
+
+                        ubyte byteMask = expHeaderBytes.at(k) &
+                                         expHeaderMask.at(k);
+
+                        if(byteMask != byteTest)   {
+                            headerBytesMatch = false;
+                            break;
+                        }
+                    }
+
+                    if(!headerBytesMatch)
+                    {
+                        OBDREFDEBUG << "OBDREF: Warn: ISO 14230-4, "
+                                       "header bytes mismatch";
+                        continue;
                     }
                 }
-
-                if(!headerBytesMatch)
-                {   continue;   }
 
                 // check for expected data prefix bytes
                 bool dataPrefixMatch = true;
@@ -1081,7 +1087,16 @@ namespace obdref
                 }
 
                 if(!dataPrefixMatch)
-                {   continue;   }
+                {
+                    OBDREFDEBUG << "OBDREF: Warn: ISO 14230-4, "
+                                   "data prefix mismatch";
+                    continue;
+                }
+
+                // remove data prefix bytes
+                for(size_t k=0; k < msgDataExpPrefix.size(); k++)   {
+                    dataBytes.removeAt(0);
+                }
 
                 // save data
                 msgFrame.listMessageData[i].listHeaders << headerBytes;
@@ -1101,7 +1116,18 @@ namespace obdref
 
                 groupDataByHeader(listHeaders,listCleanData);
             }
+
+            if(msgFrame.listMessageData[i].listHeaders.size() > 0)
+            {   hasData = true;   }
         }
+        if(!hasData)
+        {
+            OBDREFDEBUG << "OBDREF: Error: ISO 14230-4, "
+                           "empty message data after cleaning";
+            return false;
+        }
+
+        printCleanedData(msgFrame);
         return true;
     }
 
@@ -1141,24 +1167,27 @@ namespace obdref
                     else                     {   dataBytes << rawFrame.at(k);   }
                 }
 
-                // check for expected header bytes
-                bool headerBytesMatch = true;
-                for(size_t k=0; k < numHeaderBytes; k++)
+                // check for expHeaderBytes if required
+                if(expHeaderBytes.size() > 0)
                 {
-                    ubyte byteTest = headerBytes.at(k) &
-                                     expHeaderMask.at(k);
+                    bool headerBytesMatch = true;
+                    for(size_t k=0; k < numHeaderBytes; k++)
+                    {
+                        ubyte byteTest = headerBytes.at(k) &
+                                         expHeaderMask.at(k);
 
-                    ubyte byteMask = expHeaderBytes.at(k) &
-                                     expHeaderMask.at(k);
+                        ubyte byteMask = expHeaderBytes.at(k) &
+                                         expHeaderMask.at(k);
 
-                    if(byteMask != byteTest)   {
-                        headerBytesMatch = false;
-                        break;
+                        if(byteMask != byteTest)   {
+                            headerBytesMatch = false;
+                            break;
+                        }
                     }
-                }
 
-                if(!headerBytesMatch)
-                {   continue;   }
+                    if(!headerBytesMatch)
+                    {   continue;   }
+                }
 
                 // check for expected data prefix bytes
                 // note: have to take pci byte(s) into account
@@ -1196,6 +1225,11 @@ namespace obdref
             }
             else
             {
+                // with multiple frames, we only accept
+                // one frame type per header; so both a
+                // SF and MF message from a single source
+                // is not allowed
+
                 QList<ByteList> &listHeaderFields =
                     msgFrame.listMessageData[i].listHeaders;
 
@@ -1211,7 +1245,7 @@ namespace obdref
                         listSFHeaders << listHeaderFields[j];
                         listSFDataBytes << listDataFields[j];
                         listHeaderFields.removeAt(j);
-                        listDataFields.removeAll(j);
+                        listDataFields.removeAt(j);
                     }
                 }
                 //
@@ -1238,6 +1272,8 @@ namespace obdref
 
                 // sort databytes mapped by header according
                 // to ISO 15765-4 pci byte order for multi-frame
+                QList<ByteList> listMFHeaders;
+                QList<ByteList> listMFDataBytes;
                 for(size_t j=0; j < listUnqHeaderFields.size(); j++)
                 {
                     QList<ByteList> &listDataFields = listListDataFields[j];
@@ -1279,9 +1315,110 @@ namespace obdref
                     for(size_t k=0; k < listDataFields.size(); k++)
                     {   catDataBytes << listDataFields[k];   }
 
-                    // so now copy everything back to msgFrame
+                    // save
+                    listMFHeaders << listUnqHeaderFields[j];
+                    listMFDataBytes << catDataBytes;
                 }
+
+                // copy over reformated data to msgFrame
+                listHeaderFields.clear();
+                listDataFields.clear();
+
+                listHeaderFields << listMFHeaders << listSFHeaders;
+                listDataFields << listMFDataBytes << listSFDataBytes;
             }
+        }
+    }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
+    bool Parser::parseResponse(const MessageFrame &msgFrame,
+                               QList<Data> &listData,
+                               ParseMode parseMode)
+    {
+        // todo: support multi-part message frames
+        MessageData const &msgData = msgFrame.listMessageData[0];
+
+        if(parseMode == PER_RESP_DATA)
+        {   // PER_RESP_DATA:
+
+            // * default parse mode -- the parse script is run
+            //   once for each entry in MessageData.listCleanData
+
+            // * the data is accessed using "BYTE(N)" in js where N
+            //   is the Nth data byte in a listCleanData entry
+
+            for(size_t i=0; i < msgData.listHeaders.size(); i++)
+            {
+                ByteList const &headerBytes = msgData.listHeaders[i];
+                ByteList const &dataBytes = msgData.listCleanData[i];
+
+                obdref::Data myData;
+
+                // fill out meta data
+                for(size_t j=0; j < headerBytes.size(); j++)   {
+                    QString bStr = QString::number(int(headerBytes[j]),16);
+                    myData.srcAddress.append(bStr);
+                }
+
+                myData.paramName    = msgFrame.name;
+                myData.srcName      = msgFrame.address;
+                myData.srcAddress   = myData.srcAddress.toUpper();
+
+
+                // create v8 local scope handle
+                v8::HandleScope handleScope;
+
+                // clear existing databytes in js context
+                v8::Local<v8::Value> val_clearDataBytes;
+                val_clearDataBytes = m_v8_listDataBytes->Get(v8::String::New("clearDataBytes"));
+
+                v8::Local<v8::Function> method_clearDataBytes;
+                method_clearDataBytes = v8::Local<v8::Function>::Cast(val_clearDataBytes);
+                method_clearDataBytes->Call(m_v8_listDataBytes,0,NULL);
+
+                // clear existing lit and num data lists
+                v8::Local<v8::Value> val_clearLitData;
+                val_clearLitData = m_v8_listLitData->Get(v8::String::New("clearData"));
+
+                v8::Local<v8::Function> method_clearLitData;
+                method_clearLitData = v8::Local<v8::Function>::Cast(val_clearLitData);
+                method_clearLitData->Call(m_v8_listLitData,0,NULL);
+
+                v8::Local<v8::Value> val_clearNumData;
+                val_clearNumData = m_v8_listNumData->Get(v8::String::New("clearData"));
+
+                v8::Local<v8::Function> method_clearNumData;
+                method_clearNumData = v8::Local<v8::Function>::Cast(val_clearNumData);
+                method_clearNumData->Call(m_v8_listNumData,0,NULL);
+
+                // copy over databytes to js context
+                v8::Local<v8::Array> dataByteArray = v8::Array::New(dataBytes.size());
+                for(int j=0; j < dataBytes.size(); j++)
+                {   dataByteArray->Set(j,v8::Integer::New(int(dataBytes.at(j))));   }
+
+                v8::Local<v8::Value> val_appendDataBytes;
+                val_appendDataBytes = m_v8_listDataBytes->Get(v8::String::New("appendDataBytes"));
+
+                v8::Local<v8::Value> args_appendDataBytes[] = { dataByteArray };
+                v8::Local<v8::Function> method_appendDataBytes;
+                method_appendDataBytes = v8::Local<v8::Function>::Cast(val_appendDataBytes);
+                method_appendDataBytes->Call(m_v8_listDataBytes,1,args_appendDataBytes);
+
+                // evaluate the data
+                v8::Local<v8::String> scriptString;
+                v8::Local<v8::Script> scriptSource;
+                scriptString = v8::String::New(msgFrame.parseScript.toLocal8Bit().data());
+                scriptSource = v8::Script::Compile(scriptString);
+                scriptSource->Run();
+
+                // save evaluation results
+                this->saveNumAndLitData(myData);
+                listData.append(myData);
+            }
+
+            return true;
         }
     }
 
@@ -1311,6 +1448,28 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
+    void Parser::printCleanedData(MessageFrame &msgFrame)
+    {
+        OBDREFDEBUG << "OBDREF: Info: Cleaned Data:";
+        for(size_t i=0; i < msgFrame.listMessageData.size(); i++)   {
+            OBDREFDEBUG << "OBDREF: Info: Message " << i;
+
+            QList<ByteList> const &listHeaders =
+                msgFrame.listMessageData[i].listHeaders;
+
+            QList<ByteList> const &listDataBytes =
+                msgFrame.listMessageData[i].listCleanData;
+
+            for(size_t j=0; j < listHeaders.size(); j++)   {
+                OBDREFDEBUG <<listHeaders[j]
+                            << "|" << listDataBytes[j];
+            }
+        }
+    }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
     void Parser::dumpRawDataToDebugInfo(const QList<ByteList> &listRawData)
     {
         for(int k=0; k < listRawData.size(); k++)
@@ -1320,196 +1479,6 @@ namespace obdref
             {   OBDREFDEBUG << m_mapValToHexByte.value(listRawData[k][l]) << " ";   }
             OBDREFDEBUG << "\n";
         }
-    }
-
-    // ========================================================================== //
-    // ========================================================================== //
-
-    bool Parser::parseSinglePartResponse(const MessageFrame &msgFrame,
-                                         QList<Data> &listDataResults)
-    {
-        // [single part message]
-
-        // * typical response type
-        // * a single part message is identified by having
-        //   only one request message in the MessageFrame
-        // * we interpret multiple device responses as
-        //   individual responses to that single request
-        //   from different sources
-
-        for(int i=0; i < msgFrame.listMessageData.at(0).listCleanData.size(); i++)
-        {           
-            ByteList const & headerBytes =
-                    msgFrame.listMessageData.at(0).listHeaders.at(i);
-
-            ByteList const & dataBytes =
-                    msgFrame.listMessageData.at(0).listCleanData.at(i);
-
-            obdref::Data myData;
-
-            // fill out response meta data
-            for(size_t j=0; j < headerBytes.size(); j++)   {
-                myData.srcAddress.append(QString::number(int(headerBytes[j]),16));
-            }
-            myData.paramName = msgFrame.name;
-            myData.srcName = msgFrame.address;
-            myData.srcAddress = myData.srcAddress.toUpper();
-
-            // create scope for local handles
-            v8::HandleScope handleScope;
-
-            // clear existing databytes in js context
-            v8::Local<v8::Value> val_clearDataBytes;
-            val_clearDataBytes = m_v8_listDataBytes->Get(v8::String::New("clearDataBytes"));
-
-            v8::Local<v8::Function> method_clearDataBytes;
-            method_clearDataBytes = v8::Local<v8::Function>::Cast(val_clearDataBytes);
-            method_clearDataBytes->Call(m_v8_listDataBytes,0,NULL);
-
-            // clear existing lit and num data lists
-            v8::Local<v8::Value> val_clearLitData;
-            val_clearLitData = m_v8_listLitData->Get(v8::String::New("clearData"));
-
-            v8::Local<v8::Function> method_clearLitData;
-            method_clearLitData = v8::Local<v8::Function>::Cast(val_clearLitData);
-            method_clearLitData->Call(m_v8_listLitData,0,NULL);
-
-            v8::Local<v8::Value> val_clearNumData;
-            val_clearNumData = m_v8_listNumData->Get(v8::String::New("clearData"));
-
-            v8::Local<v8::Function> method_clearNumData;
-            method_clearNumData = v8::Local<v8::Function>::Cast(val_clearNumData);
-            method_clearNumData->Call(m_v8_listNumData,0,NULL);
-
-            // copy over databytes to js context
-            v8::Local<v8::Array> dataByteArray = v8::Array::New(dataBytes.size());
-            for(int j=0; j < dataBytes.size(); j++)
-            {   dataByteArray->Set(j,v8::Integer::New(int(dataBytes.at(j))));   }
-
-            v8::Local<v8::Value> val_appendDataBytes;
-            val_appendDataBytes = m_v8_listDataBytes->Get(v8::String::New("appendDataBytes"));
-
-            v8::Local<v8::Value> args_appendDataBytes[] = { dataByteArray };
-            v8::Local<v8::Function> method_appendDataBytes;
-            method_appendDataBytes = v8::Local<v8::Function>::Cast(val_appendDataBytes);
-            method_appendDataBytes->Call(m_v8_listDataBytes,1,args_appendDataBytes);
-
-            // evaluate the data
-            v8::Local<v8::String> scriptString;
-            v8::Local<v8::Script> scriptSource;
-            scriptString = v8::String::New(msgFrame.parseScript.toLocal8Bit().data());
-            scriptSource = v8::Script::Compile(scriptString);
-            scriptSource->Run();
-
-            // save evaluation results
-            this->saveNumAndLitData(myData);
-            listDataResults.append(myData);
-        }
-
-        return true;
-    }
-
-    bool Parser::parseMultiPartResponse(const MessageFrame &msgFrame,
-                                        QList<Data> &listDataResults)
-    {
-        // [multi part request]
-        // * a multi part message is identified by having
-        //   multiple request messages in the MessageFrame
-        // * we interpret multiple device responses as
-        //   forming a single response from a single source
-
-        // a multi part response is limited to receiving responses
-        // from only one address
-        for(int i=0; i < msgFrame.listMessageData.size(); i++)
-        {
-            if(msgFrame.listMessageData.at(i).listCleanData.size() > 1)
-            {
-                OBDREFDEBUG << "OBDREF: Error: Frame has multi-part message but "
-                            << "received responses from multiple addresses "
-                            << "(only one address allowed for multi-part "
-                            << "messages)";
-                return false;
-            }
-        }
-
-        // check to make sure all parts of the response come from
-        // the same address
-        for(int i=1; i < msgFrame.listMessageData.size(); i++)
-        {
-            if(!(msgFrame.listMessageData.at(i).listHeaders.at(0) ==
-                    msgFrame.listMessageData.at(i-1).listHeaders.at(0)))
-            {
-                OBDREFDEBUG << "OBDREF: Error: Expected all parts of "
-                            << "multi-part message to originate from "
-                            << "same address";
-                return false;
-            }
-        }
-
-        obdref::Data myData;
-        ByteList const & headerBytes = msgFrame.listMessageData.at(0).listHeaders.at(0);
-
-        for(int j=0; j < headerBytes.size(); j++)
-        {   myData.srcAddress.append(QString::number(int(headerBytes.at(j)),16));   }
-
-        myData.paramName = msgFrame.name;
-        myData.srcAddress = myData.srcAddress.toUpper();
-
-        v8::HandleScope handleScope;
-
-        // clear existing databytes in js context
-        v8::Local<v8::Value> val_clearDataBytes;
-        val_clearDataBytes = m_v8_listDataBytes->Get(v8::String::New("clearDataBytes"));
-
-        v8::Local<v8::Function> method_clearDataBytes;
-        method_clearDataBytes = v8::Local<v8::Function>::Cast(val_clearDataBytes);
-        method_clearDataBytes->Call(m_v8_listDataBytes,0,NULL);
-
-        // clear existing lit and num data lists
-        v8::Local<v8::Value> val_clearLitData;
-        val_clearLitData = m_v8_listLitData->Get(v8::String::New("clearData"));
-
-        v8::Local<v8::Function> method_clearLitData;
-        method_clearLitData = v8::Local<v8::Function>::Cast(val_clearLitData);
-        method_clearLitData->Call(m_v8_listLitData,0,NULL);
-
-        v8::Local<v8::Value> val_clearNumData;
-        val_clearNumData = m_v8_listNumData->Get(v8::String::New("clearData"));
-
-        v8::Local<v8::Function> method_clearNumData;
-        method_clearNumData = v8::Local<v8::Function>::Cast(val_clearNumData);
-        method_clearNumData->Call(m_v8_listNumData,0,NULL);
-
-        for(int i=0; i < msgFrame.listMessageData.size(); i++)
-        {
-            ByteList const & dataBytes = msgFrame.listMessageData.at(i).listCleanData.at(0);
-
-            // copy over databytes to js context
-            v8::Local<v8::Array> dataByteArray = v8::Array::New(dataBytes.size());
-            for(int j=0; j < dataBytes.size(); j++)
-            {   dataByteArray->Set(j,v8::Integer::New(int(dataBytes.at(j))));   }
-
-            v8::Local<v8::Value> val_appendDataBytes;
-            val_appendDataBytes = m_v8_listDataBytes->Get(v8::String::New("appendDataBytes"));
-
-            v8::Local<v8::Value> args_appendDataBytes[] = { dataByteArray };
-            v8::Local<v8::Function> method_appendDataBytes;
-            method_appendDataBytes = v8::Local<v8::Function>::Cast(val_appendDataBytes);
-            method_appendDataBytes->Call(m_v8_listDataBytes,1,args_appendDataBytes);
-        }
-
-        // evaluate the data
-        v8::Local<v8::String> scriptString;
-        v8::Local<v8::Script> scriptSource;
-        scriptString = v8::String::New(msgFrame.parseScript.toLocal8Bit().data());
-        scriptSource = v8::Script::Compile(scriptString);
-        scriptSource->Run();
-
-        // save evaluation results
-        this->saveNumAndLitData(myData);
-        listDataResults.append(myData);
-
-        return true;
     }
 
     // ========================================================================== //
@@ -1675,5 +1644,206 @@ namespace obdref
 
         fileDataAsStr = QString::fromStdString(contentAsString);
         return true;
+    }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
+    bool Parser::parseSinglePartResponse(const MessageFrame &msgFrame,
+                                         QList<Data> &listDataResults)
+    {
+        return false;
+        /*
+
+        // DEPRECATED
+        // [single part message]
+
+        // * typical response type
+        // * a single part message is identified by having
+        //   only one request message in the MessageFrame
+        // * we interpret multiple device responses as
+        //   individual responses to that single request
+        //   from different sources
+
+        for(int i=0; i < msgFrame.listMessageData.at(0).listCleanData.size(); i++)
+        {
+            ByteList const & headerBytes =
+                    msgFrame.listMessageData.at(0).listHeaders.at(i);
+
+            ByteList const & dataBytes =
+                    msgFrame.listMessageData.at(0).listCleanData.at(i);
+
+            obdref::Data myData;
+
+            // fill out response meta data
+            for(size_t j=0; j < headerBytes.size(); j++)   {
+                myData.srcAddress.append(QString::number(int(headerBytes[j]),16));
+            }
+            myData.paramName = msgFrame.name;
+            myData.srcName = msgFrame.address;
+            myData.srcAddress = myData.srcAddress.toUpper();
+
+            // create scope for local handles
+            v8::HandleScope handleScope;
+
+            // clear existing databytes in js context
+            v8::Local<v8::Value> val_clearDataBytes;
+            val_clearDataBytes = m_v8_listDataBytes->Get(v8::String::New("clearDataBytes"));
+
+            v8::Local<v8::Function> method_clearDataBytes;
+            method_clearDataBytes = v8::Local<v8::Function>::Cast(val_clearDataBytes);
+            method_clearDataBytes->Call(m_v8_listDataBytes,0,NULL);
+
+            // clear existing lit and num data lists
+            v8::Local<v8::Value> val_clearLitData;
+            val_clearLitData = m_v8_listLitData->Get(v8::String::New("clearData"));
+
+            v8::Local<v8::Function> method_clearLitData;
+            method_clearLitData = v8::Local<v8::Function>::Cast(val_clearLitData);
+            method_clearLitData->Call(m_v8_listLitData,0,NULL);
+
+            v8::Local<v8::Value> val_clearNumData;
+            val_clearNumData = m_v8_listNumData->Get(v8::String::New("clearData"));
+
+            v8::Local<v8::Function> method_clearNumData;
+            method_clearNumData = v8::Local<v8::Function>::Cast(val_clearNumData);
+            method_clearNumData->Call(m_v8_listNumData,0,NULL);
+
+            // copy over databytes to js context
+            v8::Local<v8::Array> dataByteArray = v8::Array::New(dataBytes.size());
+            for(int j=0; j < dataBytes.size(); j++)
+            {   dataByteArray->Set(j,v8::Integer::New(int(dataBytes.at(j))));   }
+
+            v8::Local<v8::Value> val_appendDataBytes;
+            val_appendDataBytes = m_v8_listDataBytes->Get(v8::String::New("appendDataBytes"));
+
+            v8::Local<v8::Value> args_appendDataBytes[] = { dataByteArray };
+            v8::Local<v8::Function> method_appendDataBytes;
+            method_appendDataBytes = v8::Local<v8::Function>::Cast(val_appendDataBytes);
+            method_appendDataBytes->Call(m_v8_listDataBytes,1,args_appendDataBytes);
+
+            // evaluate the data
+            v8::Local<v8::String> scriptString;
+            v8::Local<v8::Script> scriptSource;
+            scriptString = v8::String::New(msgFrame.parseScript.toLocal8Bit().data());
+            scriptSource = v8::Script::Compile(scriptString);
+            scriptSource->Run();
+
+            // save evaluation results
+            this->saveNumAndLitData(myData);
+            listDataResults.append(myData);
+        }
+
+        return true;
+        */
+    }
+
+    bool Parser::parseMultiPartResponse(const MessageFrame &msgFrame,
+                                        QList<Data> &listDataResults)
+    {
+        return false;
+        /*
+
+        // DEPRECATED
+        // [multi part request]
+        // * a multi part message is identified by having
+        //   multiple request messages in the MessageFrame
+        // * we interpret multiple device responses as
+        //   forming a single response from a single source
+
+        // a multi part response is limited to receiving responses
+        // from only one address
+        for(int i=0; i < msgFrame.listMessageData.size(); i++)
+        {
+            if(msgFrame.listMessageData.at(i).listCleanData.size() > 1)
+            {
+                OBDREFDEBUG << "OBDREF: Error: Frame has multi-part message but "
+                            << "received responses from multiple addresses "
+                            << "(only one address allowed for multi-part "
+                            << "messages)";
+                return false;
+            }
+        }
+
+        // check to make sure all parts of the response come from
+        // the same address
+        for(int i=1; i < msgFrame.listMessageData.size(); i++)
+        {
+            if(!(msgFrame.listMessageData.at(i).listHeaders.at(0) ==
+                    msgFrame.listMessageData.at(i-1).listHeaders.at(0)))
+            {
+                OBDREFDEBUG << "OBDREF: Error: Expected all parts of "
+                            << "multi-part message to originate from "
+                            << "same address";
+                return false;
+            }
+        }
+
+        obdref::Data myData;
+        ByteList const & headerBytes = msgFrame.listMessageData.at(0).listHeaders.at(0);
+
+        for(int j=0; j < headerBytes.size(); j++)
+        {   myData.srcAddress.append(QString::number(int(headerBytes.at(j)),16));   }
+
+        myData.paramName = msgFrame.name;
+        myData.srcAddress = myData.srcAddress.toUpper();
+
+        v8::HandleScope handleScope;
+
+        // clear existing databytes in js context
+        v8::Local<v8::Value> val_clearDataBytes;
+        val_clearDataBytes = m_v8_listDataBytes->Get(v8::String::New("clearDataBytes"));
+
+        v8::Local<v8::Function> method_clearDataBytes;
+        method_clearDataBytes = v8::Local<v8::Function>::Cast(val_clearDataBytes);
+        method_clearDataBytes->Call(m_v8_listDataBytes,0,NULL);
+
+        // clear existing lit and num data lists
+        v8::Local<v8::Value> val_clearLitData;
+        val_clearLitData = m_v8_listLitData->Get(v8::String::New("clearData"));
+
+        v8::Local<v8::Function> method_clearLitData;
+        method_clearLitData = v8::Local<v8::Function>::Cast(val_clearLitData);
+        method_clearLitData->Call(m_v8_listLitData,0,NULL);
+
+        v8::Local<v8::Value> val_clearNumData;
+        val_clearNumData = m_v8_listNumData->Get(v8::String::New("clearData"));
+
+        v8::Local<v8::Function> method_clearNumData;
+        method_clearNumData = v8::Local<v8::Function>::Cast(val_clearNumData);
+        method_clearNumData->Call(m_v8_listNumData,0,NULL);
+
+        for(int i=0; i < msgFrame.listMessageData.size(); i++)
+        {
+            ByteList const & dataBytes = msgFrame.listMessageData.at(i).listCleanData.at(0);
+
+            // copy over databytes to js context
+            v8::Local<v8::Array> dataByteArray = v8::Array::New(dataBytes.size());
+            for(int j=0; j < dataBytes.size(); j++)
+            {   dataByteArray->Set(j,v8::Integer::New(int(dataBytes.at(j))));   }
+
+            v8::Local<v8::Value> val_appendDataBytes;
+            val_appendDataBytes = m_v8_listDataBytes->Get(v8::String::New("appendDataBytes"));
+
+            v8::Local<v8::Value> args_appendDataBytes[] = { dataByteArray };
+            v8::Local<v8::Function> method_appendDataBytes;
+            method_appendDataBytes = v8::Local<v8::Function>::Cast(val_appendDataBytes);
+            method_appendDataBytes->Call(m_v8_listDataBytes,1,args_appendDataBytes);
+        }
+
+        // evaluate the data
+        v8::Local<v8::String> scriptString;
+        v8::Local<v8::Script> scriptSource;
+        scriptString = v8::String::New(msgFrame.parseScript.toLocal8Bit().data());
+        scriptSource = v8::Script::Compile(scriptString);
+        scriptSource->Run();
+
+        // save evaluation results
+        this->saveNumAndLitData(myData);
+        listDataResults.append(myData);
+
+        return true;
+
+        */
     }
 }

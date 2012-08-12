@@ -42,6 +42,12 @@
 namespace obdref
 {
 
+enum ParseMode
+{
+    PER_RESP_DATA,
+    PER_MESSAGE
+};
+
 class Parser
 {
 
@@ -64,8 +70,14 @@ private:
     bool cleanRawData_Default(MessageFrame &msgFrame);
     bool cleanRawData_ISO_14230_4(MessageFrame &msgFrame);
     bool cleanRawData_ISO_15765_4(MessageFrame &msgFrame);
+    bool parseResponse(MessageFrame const &msgFrame,
+                       QList<Data> &listData,
+                       ParseMode parseMode=PER_RESP_DATA);
+
     void groupDataByHeader(QList<ByteList> &listHeaders,
                            QList<ByteList> &listDataBytes);
+
+    void printCleanedData(MessageFrame &msgFrame);
 
 
     void dumpRawDataToDebugInfo(QList<ByteList> const &listRawData);

@@ -2025,29 +2025,11 @@
             ]]>
          </script>
       </parameter>
-      
-      <!--
-      <parameter name="SSM Engine Speed"
-         request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
-         request2="0xA8 0x00 0x00 0x00 0x0F" response2.prefix="0xE8" response2.bytes="1" 
-         request2.delay="100">
-         <script>
-            <![CDATA[
-            var engSpd = new NumericalDataObj();
-            engSpd.units = "rpm";
-            engSpd.min = 0;
-            engSpd.max = 16384;
-            engSpd.value = ((DATA(0).BYTE(0)*256) + DATA(1).BYTE(0))/4;
-            saveNumericalData(engSpd);
-            ]]>
-         </script>
-      </parameter> 
-      -->
    
       <!-- END MODE $01 PIDs -->
       
       <!-- START MODE $02 PIDs -->
-      <parameter name="Freeze Frame Diagnostic Trouble Codes"
+      <parameter name="Freeze Frame Diagnostic Trouble Code"
          request="0x02 0x02 0x00" response.prefix="0x42 0x02 0x00">
          <!--  0x02 0x02 0x00 returns the DTC which caused the freeze frame data
                available in Mode $02 to be saved. Freeze frame 0x00 is the
@@ -2056,7 +2038,7 @@
                
                Note: If nothing is returned, it may indicate that no freeze
                      frame data is available -->
-         <script protocols="ISO 15765-4 Standard, ISO 15765-4 Extended">
+         <script>
             <![CDATA[
             if(!(BYTE(0) || BYTE(1)))
             {
@@ -2067,8 +2049,54 @@
             }
             else
             {
+               var dtcData = new LiteralDataObj();
+               dtcData.property = "Diagnostic Trouble Code";
+               dtcData.value = true;
+                  
+               // DTC character 1
+               if((BYTE(0) >> 6) == 0)          {   dtcData.valueIfTrue = "P";   }                  
+               else if((BYTE(0) >> 6) == 1)     {   dtcData.valueIfTrue = "C";   }                  
+               else if((BYTE(0) >> 6) == 2)     {   dtcData.valueIfTrue = "B";   }                  
+               else if((BYTE(0) >> 6) == 3)     {   dtcData.valueIfTrue = "U";   }
+                  
+               dtcData.valueIfTrue += ((BYTE(0) >> 4) & 0x03).toString(16);  // DTC character 2
+               dtcData.valueIfTrue += (BYTE(0) & 0x0F).toString(16);         // DTC character 3
+               dtcData.valueIfTrue += (BYTE(1) >> 4).toString(16);           // DTC character 4
+               dtcData.valueIfTrue += (BYTE(1) & 0x0F).toString(16);         // DTC character 5
+               dtcData.valueIfTrue = dtcData.valueIfTrue.toUpperCase();
+               saveLiteralData(dtcData);
+            }
+            ]]>         
+         </script>
+      </parameter>
+      <!-- END MODE $02 PIDs --> 
+      
+      <!-- START MODE $03 -->
+      <parameter name="Request Stored Diagnostic Trouble Codes"
+         request="0x03" response.prefix="0x43">
+
+         <!--  Mode $03 is to request stored DTCs. The vehicle returns 2*N bytes excluding
+               the response prefix, with each set of 2 bytes specifying a single DTC.
+               If no DTCs are stored, the vehicle might respond with (0x00 0x00) for each
+               possible DTC that would fit into a frame (3 DTCs, 6 bytes all 0x00 in a
+               single standard OBD frame), or the vehicle may not respond at all. -->
+
+         <script protocols="SAE J1850 JPW, SAE J1850 PWM, ISO 9141-2, ISO 14230-4">
+            <![CDATA[
+            if((BYTE(0) == 0) && (BYTE(1) == 0))
+            {
+               var dtcData = new LiteralDataObj();
+               dtcData.valueIfTrue = "No DTCs Stored";
+               dtcData.value = true;
+               saveLiteralData(dtcData);
+            }
+            else
+            {
                for(var i=0; i < LENGTH(); i+=2)
                {  
+                  if((BYTE(i) == 0) && (BYTE(i+1) == 0))
+                  {   break;   }
+
                   var dtcData = new LiteralDataObj();
                   dtcData.property = "Diagnostic Trouble Code";
                   dtcData.value = true;
@@ -2089,22 +2117,12 @@
             }
             ]]>
          </script>
-      </parameter>
-      <!-- END MODE $02 PIDs --> 
-      
-      <!-- START MODE $03 -->
-      <parameter name="Request Stored Diagnostic Trouble Codes"
-         request="0x03" response.prefix="0x43">
-
-         <!--  Mode $03 is to request stored DTCs. The vehicle returns 2*N bytes excluding
-               the response prefix, with each set of 2 bytes specifying a single DTC.
-               If no DTCs are stored, the vehicle might respond with (0x00 0x00) for each
-               possible DTC that would fit into a frame (3 DTCs, 6 bytes all 0x00 in a
-               single standard OBD frame), or the vehicle may not respond at all. -->
                
          <script protocols="ISO 15765-4 Standard, ISO 15765-4 Extended">
             <![CDATA[
-            if(!(BYTE(0) || BYTE(1)))
+            // for ISO 15765-4, the first byte indicates 
+            // the number of DTCs stored
+            if(BYTE(0) == 0)
             {
                var dtcData = new LiteralDataObj();
                dtcData.valueIfTrue = "No DTCs Stored";
@@ -2113,8 +2131,11 @@
             }
             else
             {
-               for(var i=0; i < LENGTH(); i+=2)
+               for(var i=1; i < LENGTH(); i+=2)
                {  
+                  if((BYTE(i) == 0) && (BYTE(i+1) == 0))
+                  {   break;   }   // no more DTCs
+
                   var dtcData = new LiteralDataObj();
                   dtcData.property = "Diagnostic Trouble Code";
                   dtcData.value = true;
