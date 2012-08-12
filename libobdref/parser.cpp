@@ -1126,8 +1126,6 @@ namespace obdref
                            "empty message data after cleaning";
             return false;
         }
-
-        printCleanedData(msgFrame);
         return true;
     }
 
@@ -1136,6 +1134,7 @@ namespace obdref
 
     bool Parser::cleanRawData_ISO_15765_4(MessageFrame &msgFrame)
     {
+        bool hasData = false;
         for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
         {
             QList<ByteList> &listRawDataFrames =
@@ -1186,7 +1185,11 @@ namespace obdref
                     }
 
                     if(!headerBytesMatch)
-                    {   continue;   }
+                    {
+                        OBDREFDEBUG << "OBDREF: Warn: ISO 15765-4, "
+                                       "header bytes mismatch";
+                        continue;
+                    }
                 }
 
                 // check for expected data prefix bytes
@@ -1202,7 +1205,11 @@ namespace obdref
                 }
 
                 if(!dataPrefixMatch)
-                {   continue;   }
+                {
+                    OBDREFDEBUG << "OBDREF: Warn: ISO 15765-4, "
+                                   "data prefix mismatch";
+                    continue;
+                }
 
                 // save data
                 msgFrame.listMessageData[i].listHeaders << headerBytes;
@@ -1218,10 +1225,15 @@ namespace obdref
                     msgFrame.listMessageData[i].listCleanData[0];
 
                 ubyte pciByte = dataBytes.takeAt(0);
-                if((pciByte & 0xF0 != 0))   {
-                    OBDREFDEBUG << "OBDREF: Error: Parse ISO 15765,"
+                if((pciByte & 0xF0) != 0)   {
+                    OBDREFDEBUG << "OBDREF: Error: ISO 15765, "
                                    "invalid PCI byte for single frame";
+                    return false;
                 }
+
+                // remove data prefix bytes
+                for(size_t j=0; j < expDataPrefix.size(); j++)
+                {   dataBytes.removeFirst();   }
             }
             else
             {
@@ -1242,13 +1254,17 @@ namespace obdref
                 for(size_t j=0; j < listSFHeaders.size(); j++)   {
                     // check pci byte is sf
                     if(listHeaderFields[j][0] & 0xF0 == 0)   {
+                        // remove data prefix bytes
+                        for(size_t k=0; k < expDataPrefix.size(); k++)
+                        {   listHeaderFields[j].removeFirst();   }
+
+                        // save copy and remove original
                         listSFHeaders << listHeaderFields[j];
                         listSFDataBytes << listDataFields[j];
                         listHeaderFields.removeAt(j);
                         listDataFields.removeAt(j);
                     }
                 }
-                //
                 groupDataByHeader(listSFHeaders,listSFDataBytes);
 
                 // [multi frame]
@@ -1303,12 +1319,16 @@ namespace obdref
                         }
 
                         // remove pciByte from dataBytes
-                        listDataFields[k].removeAt(0);
+                        listDataFields[k].removeFirst();
                         if(k == 0)   {
                             // if [first frame], remove the
                             // data length byte as well
-                            listDataFields[k].removeAt(0);
+                            listDataFields[k].removeFirst();
                         }
+
+                        // remove data prefix bytes
+                        for(size_t m=0; m < expDataPrefix.size(); m++)
+                        {   listDataFields[k].removeFirst();   }
                     }
 
                     ByteList catDataBytes;
@@ -1327,7 +1347,19 @@ namespace obdref
                 listHeaderFields << listMFHeaders << listSFHeaders;
                 listDataFields << listMFDataBytes << listSFDataBytes;
             }
+
+            if(msgFrame.listMessageData[i].listHeaders.size() > 0)
+            {   hasData = true;   }
         }
+
+        if(!hasData)
+        {
+            OBDREFDEBUG << "OBDREF: Error: ISO 15765-4, "
+                           "empty message data after cleaning";
+            return false;
+        }
+        printCleanedData(msgFrame);
+        return true;
     }
 
     // ========================================================================== //
