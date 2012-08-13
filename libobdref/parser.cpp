@@ -1195,7 +1195,7 @@ namespace obdref
                 // check for expected data prefix bytes
                 // note: have to take pci byte(s) into account
                 bool dataPrefixMatch = true;
-                ubyte pciOffset = (dataBytes[0] == 1) ? 2 : 1;
+                ubyte pciOffset = ((dataBytes[0] >> 4) == 1) ? 2 : 1;
                 for(size_t k=0; k < expDataPrefix.size(); k++)
                 {
                     if(expDataPrefix.at(k) != dataBytes.at(k+pciOffset))   {
@@ -1225,7 +1225,7 @@ namespace obdref
                     msgFrame.listMessageData[i].listCleanData[0];
 
                 ubyte pciByte = dataBytes.takeAt(0);
-                if((pciByte & 0xF0) != 0)   {
+                if((pciByte >> 4) != 0)   {
                     OBDREFDEBUG << "OBDREF: Error: ISO 15765, "
                                    "invalid PCI byte for single frame";
                     return false;
@@ -1237,11 +1237,6 @@ namespace obdref
             }
             else
             {
-                // with multiple frames, we only accept
-                // one frame type per header; so both a
-                // SF and MF message from a single source
-                // is not allowed
-
                 QList<ByteList> &listHeaderFields =
                     msgFrame.listMessageData[i].listHeaders;
 
@@ -1251,12 +1246,14 @@ namespace obdref
                 // [single frame]
                 QList<ByteList> listSFHeaders;
                 QList<ByteList> listSFDataBytes;
-                for(size_t j=0; j < listSFHeaders.size(); j++)   {
+                for(size_t j=0; j < listHeaderFields.size(); j++)   {
                     // check pci byte is sf
-                    if(listHeaderFields[j][0] & 0xF0 == 0)   {
+                    ubyte pciByte = listDataFields[j][0];
+                    if((pciByte >> 4) == 0)   {
+
                         // remove data prefix bytes
                         for(size_t k=0; k < expDataPrefix.size(); k++)
-                        {   listHeaderFields[j].removeFirst();   }
+                        {   listDataFields[j].removeFirst();   }
 
                         // save copy and remove original
                         listSFHeaders << listHeaderFields[j];
@@ -1275,12 +1272,16 @@ namespace obdref
                 for(size_t j=0; j < listHeaderFields.size(); j++)
                 {
                     QList<ByteList> listMappedDataFields;
-                    listMappedDataFields << listDataFields[j];
-                    listUnqHeaderFields << listHeaderFields[j];
 
-                    for(size_t k=j+1; k < listHeaderFields.size(); k++)   {
-                        if(listHeaderFields[j] == listHeaderFields[k])   {
-                            listMappedDataFields << listDataFields[k];
+                    listUnqHeaderFields << listHeaderFields.takeAt(j);
+                    listMappedDataFields << listDataFields.takeAt(j);
+                    j--;
+
+                    for(size_t k=0; k < listHeaderFields.size(); k++)   {
+                        if(listUnqHeaderFields.last() == listHeaderFields[k])   {
+                            listMappedDataFields << listDataFields.takeAt(k);
+                            listHeaderFields.removeAt(k);
+                            k--;
                         }
                     }
                     listListDataFields << listMappedDataFields;
@@ -1344,8 +1345,11 @@ namespace obdref
                 listHeaderFields.clear();
                 listDataFields.clear();
 
-                listHeaderFields << listMFHeaders << listSFHeaders;
-                listDataFields << listMFDataBytes << listSFDataBytes;
+                listHeaderFields << listSFHeaders;
+                listDataFields << listSFDataBytes;
+
+                listHeaderFields << listMFHeaders;
+                listDataFields << listMFDataBytes;
             }
 
             if(msgFrame.listMessageData[i].listHeaders.size() > 0)
