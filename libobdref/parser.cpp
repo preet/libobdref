@@ -1251,6 +1251,9 @@ namespace obdref
                     ubyte pciByte = listDataFields[j][0];
                     if((pciByte >> 4) == 0)   {
 
+                        // remove pci byte
+                        listDataFields[j].removeFirst();
+
                         // remove data prefix bytes
                         for(size_t k=0; k < expDataPrefix.size(); k++)
                         {   listDataFields[j].removeFirst();   }
@@ -1260,9 +1263,11 @@ namespace obdref
                         listSFDataBytes << listDataFields[j];
                         listHeaderFields.removeAt(j);
                         listDataFields.removeAt(j);
+                        j--;
                     }
                 }
                 groupDataByHeader(listSFHeaders,listSFDataBytes);
+
 
                 // [multi frame]
                 // map all messages to unique headers
@@ -1345,11 +1350,11 @@ namespace obdref
                 listHeaderFields.clear();
                 listDataFields.clear();
 
-                listHeaderFields << listSFHeaders;
-                listDataFields << listSFDataBytes;
-
                 listHeaderFields << listMFHeaders;
                 listDataFields << listMFDataBytes;
+
+                listHeaderFields << listSFHeaders;
+                listDataFields << listSFDataBytes;
             }
 
             if(msgFrame.listMessageData[i].listHeaders.size() > 0)
