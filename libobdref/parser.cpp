@@ -821,15 +821,17 @@ namespace obdref
         }
 
         // clean up response data based on protocol type
-        bool formatOk = false;
+        bool formatOk = false;  
 
-        if(msgFrame.protocol.contains("ISO 15765-4"))
-        {   formatOk = cleanRawData_ISO_15765_4(msgFrame);   }
-        else if(msgFrame.protocol == "ISO 14230-4")
-        {   formatOk = cleanRawData_ISO_14230_4(msgFrame);   }
-        else
-        {   // TODO
-        }     
+        if(msgFrame.protocol.contains("ISO 15765-4"))   {
+            formatOk = cleanRawData_ISO_15765_4(msgFrame);
+        }
+        else if(msgFrame.protocol == "ISO 14230-4")   {
+            formatOk = cleanRawData_ISO_14230_4(msgFrame);
+        }
+        else   {
+            formatOk = cleanRawData_Legacy(msgFrame);
+        }
 
         if(!formatOk)   {
             OBDREFDEBUG << "OBDREF: Error: Could not clean"
@@ -933,17 +935,107 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    bool Parser::cleanRawData_Default(MessageFrame &msgFrame)
+    bool Parser::cleanRawData_Legacy(MessageFrame &msgFrame)
     {
-//        for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
-//        {
-//            QList<ByteList> listUniqueHeaders;
-//            QList<QList<ByteList> > listMappedDataFrames;
-//            QList<ByteList> const &listRawDataFrames =
-//                    msgFrame.listMessageData.at(i).listRawDataFrames;
+        bool hasData = false;
+        for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
+        {
+            QList<ByteList> &listRawDataFrames =
+                    msgFrame.listMessageData[i].listRawDataFrames;
 
-//            size_t numHeaderBytes;
-//        }
+            ByteList &expHeaderBytes =
+                    msgFrame.listMessageData[i].expHeaderBytes;
+
+            ByteList &expHeaderMask =
+                    msgFrame.listMessageData[i].expHeaderMask;
+
+            ByteList const &expDataPrefix =
+                    msgFrame.listMessageData[i].expDataPrefix;
+
+            for(size_t j=0; j < listRawDataFrames.size(); j++)
+            {
+                ByteList &rawFrame = listRawDataFrames[j];
+                size_t numHeaderBytes = 3;
+
+                // split raw data into header/data bytes
+                ByteList headerBytes,dataBytes;
+                for(size_t k=0; k < rawFrame.size(); k++)   {
+                    if(k < numHeaderBytes)   {   headerBytes << rawFrame.at(k);   }
+                    else                     {   dataBytes << rawFrame.at(k);   }
+                }
+
+                // check for expHeaderBytes if required
+                if(expHeaderBytes.size() > 0)
+                {
+                    bool headerBytesMatch = true;
+                    for(size_t k=0; k < numHeaderBytes; k++)
+                    {
+                        ubyte byteTest = headerBytes.at(k) &
+                                         expHeaderMask.at(k);
+
+                        ubyte byteMask = expHeaderBytes.at(k) &
+                                         expHeaderMask.at(k);
+
+                        if(byteMask != byteTest)   {
+                            headerBytesMatch = false;
+                            break;
+                        }
+                    }
+
+                    if(!headerBytesMatch)
+                    {
+                        OBDREFDEBUG << "OBDREF: Warn: SAE J1850/ISO 9141-2, "
+                                       "header bytes mismatch";
+                        continue;
+                    }
+                }
+
+                // check for expected data prefix bytes
+                bool dataPrefixMatch = true;
+                for(size_t k=0; k < expDataPrefix.size(); k++)
+                {
+                    if(expDataPrefix.at(k) != dataBytes.at(k))   {
+                        dataPrefixMatch = false;
+                        break;
+                    }
+                }
+
+                if(!dataPrefixMatch)
+                {
+                    OBDREFDEBUG << "OBDREF: Warn: SAE J1850/ISO 9141-2, "
+                                   "data prefix mismatch";
+                    continue;
+                }
+
+                // remove data prefix bytes
+                for(size_t k=0; k < expDataPrefix.size(); k++)   {
+                    dataBytes.removeAt(0);
+                }
+
+                // save data
+                msgFrame.listMessageData[i].listHeaders << headerBytes;
+                msgFrame.listMessageData[i].listCleanData << dataBytes;
+            }
+
+            // merge nonunique listHeaders and cat
+            // corresponding listCleanData entries
+            if(listRawDataFrames.size() > 1)
+            {
+                groupDataByHeader(msgFrame.listMessageData[i].listHeaders,
+                                  msgFrame.listMessageData[i].listCleanData);
+            }
+
+            if(msgFrame.listMessageData[i].listHeaders.size() > 0)
+            {   hasData = true;   }
+        }
+        if(!hasData)
+        {
+            OBDREFDEBUG << "OBDREF: Error: SAE J1850/ISO 9141-2, "
+                           "empty message data after cleaning";
+            return false;
+        }
+        printCleanedData(msgFrame);
+        return true;
     }
 
     // ========================================================================== //
@@ -1367,7 +1459,6 @@ namespace obdref
                            "empty message data after cleaning";
             return false;
         }
-        printCleanedData(msgFrame);
         return true;
     }
 
@@ -1481,9 +1572,13 @@ namespace obdref
                     listDataBytes[i] << listDataBytes[j];
                     listHeaders.removeAt(j);
                     listDataBytes.removeAt(j);
+                    j--;
                 }
             }
         }
+
+
+
     }
 
     // ========================================================================== //

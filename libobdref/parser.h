@@ -67,7 +67,7 @@ public:
     QStringList GetLastKnownErrors();
 
 private:
-    bool cleanRawData_Default(MessageFrame &msgFrame);
+    bool cleanRawData_Legacy(MessageFrame &msgFrame);
     bool cleanRawData_ISO_14230_4(MessageFrame &msgFrame);
     bool cleanRawData_ISO_15765_4(MessageFrame &msgFrame);
     bool parseResponse(MessageFrame const &msgFrame,
