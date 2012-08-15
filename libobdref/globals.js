@@ -21,6 +21,10 @@
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// ================================================================ //
+// WARNING: Don't edit this file unless you know what're doing! 
+// ================================================================ //
+
 function LiteralDataObj()
 {
     this.value = false;

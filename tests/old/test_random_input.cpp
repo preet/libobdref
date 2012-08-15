@@ -83,13 +83,19 @@ int main(int argc, char* argv[])
             PrintErrors(myParser);
             return -1;
         }
+
+        // debug
+        qDebug() << "================================================";
+        qDebug() << myMsg.spec << "," << myMsg.name;
+        qDebug() << myMsg.reqHeaderBytes.data << "|" << myMsg.listMessageData[0].reqDataBytes.data;
+
         gettimeofday(&t2,NULL);
         timeToBuildMsg += (t2.tv_sec - t1.tv_sec) * 1000.0 * 1000.0;
         timeToBuildMsg += (t2.tv_usec - t1.tv_usec);
 
         // generate some random data to pretend we
         // have an actual device response
-        GetSingleFramedResponseFromTarget(myMsg);
+        GetSingleFramedResponseFromRandom(myMsg);
 
         // parse message frame
         gettimeofday(&t1,NULL);
@@ -108,7 +114,7 @@ int main(int argc, char* argv[])
         timeToParseMsg += (t2.tv_usec - t1.tv_usec);
 
         // print out data
-        PrintData(listData);
+//        PrintData(listData);
     }
 
     // print out time taken

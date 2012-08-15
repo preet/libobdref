@@ -15,9 +15,9 @@ HEADERS += \
 
 LIBS += -lv8
 
-H_INSTALLPATH = /home/preet/Dev/build/obdref/obdref
-L_INSTALLPATH = /home/preet/Dev/build/obdref
-DEFINES += H_INSTALLPATH=\\\"/home/preet/Dev/build/obdref/obdref\\\"
+H_INSTALLPATH = $${OUT_PWD}/obdref
+L_INSTALLPATH = $${OUT_PWD}/
+DEFINES += H_INSTALLPATH=\\\"$${H_INSTALLPATH}\\\"
 
 headerfiles.path = $${H_INSTALLPATH}
 headerfiles.files = parser.h \
@@ -28,5 +28,4 @@ pheaderfiles.path = $${H_INSTALLPATH}/pugixml
 pheaderfiles.files = pugixml/pugixml.hpp \
                      pugixml/pugiconfig.hpp
 							
-target.path = $${L_INSTALLPATH}
-INSTALLS += headerfiles pheaderfiles target
+INSTALLS += headerfiles pheaderfiles

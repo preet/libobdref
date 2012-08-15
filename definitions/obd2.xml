@@ -17,7 +17,6 @@
       http://www.peak-system.com/produktcd/Pdf/English/PCAN-GPRS_Link_UserMan_eng.pdf
       http://www.drewtech.com/support/obd2/message.html
       https://www.msu.edu/~guentche/guentchev/OBD-II/int-obdii.html
-      
       -->
 
 <spec name="SAEJ1979" desc="OBDII Standard PIDs">
@@ -40,7 +39,8 @@
       <!--  Response Params:
             prio:       0x41: Default OBD Response Priority
             target:     0x6B: Functional Response -->
-         <response prio="0x41" target="0x6B" />       
+
+         <response prio="0x41" target="0x6B" /> 
       </address>
    </protocol>
    

@@ -5,5 +5,5 @@ QT += core
 SOURCES += test_random_input.cpp
 
 # obdref lib
-INCLUDEPATH += /home/preet/Documents/obdref
-LIBS += -L/home/preet/Documents/obdref -lobdref -lv8
+INCLUDEPATH += /home/preet/Dev/build/obdref
+LIBS += -L/home/preet/Dev/build/obdref -lobdref -lv8

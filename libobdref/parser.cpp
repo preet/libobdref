@@ -51,12 +51,12 @@ namespace obdref
         {   initOk = true;   }
         else
         {
-            OBDREFDEBUG << "XML [" << filePath << "] errors!\n";
+            OBDREFDEBUG << "OBDREF: Error: XML [" << filePath << "] errors!\n";
 
-            OBDREFDEBUG << "OBDREF: Error Desc: "
+            OBDREFDEBUG << "OBDREF: Error: "
                         << QString::fromStdString(xmlParseResult.description()) << "\n";
 
-            OBDREFDEBUG << "OBDREF: Error Offset Char: "
+            OBDREFDEBUG << "OBDREF: Error: Offset Char: "
                         << qint64(xmlParseResult.offset) << "\n";
 
             initOk = false;
@@ -811,7 +811,8 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    bool Parser::ParseMessageFrame(MessageFrame &msgFrame, QList<obdref::Data> &listData)
+    bool Parser::ParseMessageFrame(MessageFrame &msgFrame,
+                                   QList<obdref::Data> &listData)
     {
         if(msgFrame.parseScript.isEmpty())
         {
@@ -1034,7 +1035,6 @@ namespace obdref
                            "empty message data after cleaning";
             return false;
         }
-        printCleanedData(msgFrame);
         return true;
     }
 
@@ -1465,6 +1465,66 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
+    void Parser::groupDataByHeader(QList<ByteList> &listHeaders,
+                                   QList<ByteList> &listDataBytes)
+    {
+        // merge nonunique listHeaders and cat
+        // corresponding listDataBytes entries
+
+        for(size_t i=0; i < listHeaders.size(); i++)
+        {
+            for(size_t j=i+1; j < listHeaders.size(); j++)
+            {
+                if(listHeaders[i] == listHeaders[j])
+                {   // merge headerBytes and cat dataBytes
+                    listDataBytes[i] << listDataBytes[j];
+                    listHeaders.removeAt(j);
+                    listDataBytes.removeAt(j);
+                    j--;
+                }
+            }
+        }
+    }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
+    void Parser::printCleanedData(MessageFrame &msgFrame)
+    {
+        OBDREFDEBUG << "OBDREF: Info: Cleaned Data:";
+        for(size_t i=0; i < msgFrame.listMessageData.size(); i++)   {
+            OBDREFDEBUG << "OBDREF: Info: Message " << i;
+
+            QList<ByteList> const &listHeaders =
+                msgFrame.listMessageData[i].listHeaders;
+
+            QList<ByteList> const &listDataBytes =
+                msgFrame.listMessageData[i].listCleanData;
+
+            for(size_t j=0; j < listHeaders.size(); j++)   {
+                OBDREFDEBUG <<listHeaders[j]
+                            << "|" << listDataBytes[j];
+            }
+        }
+    }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
+    void Parser::printRawData(const QList<ByteList> &listRawData)
+    {
+        for(int k=0; k < listRawData.size(); k++)
+        {
+            OBDREFDEBUG << "OBDREF: Raw Data Frame " << k << ": ";
+            for(int l=0; l < listRawData[k].size(); l++)
+            {   OBDREFDEBUG << m_mapValToHexByte.value(listRawData[k][l]) << " ";   }
+            OBDREFDEBUG << "\n";
+        }
+    }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
     bool Parser::parseResponse(const MessageFrame &msgFrame,
                                QList<Data> &listData,
                                ParseMode parseMode)
@@ -1557,69 +1617,6 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    void Parser::groupDataByHeader(QList<ByteList> &listHeaders,
-                                   QList<ByteList> &listDataBytes)
-    {
-        // merge nonunique listHeaders and cat
-        // corresponding listDataBytes entries
-
-        for(size_t i=0; i < listHeaders.size(); i++)
-        {
-            for(size_t j=i+1; j < listHeaders.size(); j++)
-            {
-                if(listHeaders[i] == listHeaders[j])
-                {   // merge headerBytes and cat dataBytes
-                    listDataBytes[i] << listDataBytes[j];
-                    listHeaders.removeAt(j);
-                    listDataBytes.removeAt(j);
-                    j--;
-                }
-            }
-        }
-
-
-
-    }
-
-    // ========================================================================== //
-    // ========================================================================== //
-
-    void Parser::printCleanedData(MessageFrame &msgFrame)
-    {
-        OBDREFDEBUG << "OBDREF: Info: Cleaned Data:";
-        for(size_t i=0; i < msgFrame.listMessageData.size(); i++)   {
-            OBDREFDEBUG << "OBDREF: Info: Message " << i;
-
-            QList<ByteList> const &listHeaders =
-                msgFrame.listMessageData[i].listHeaders;
-
-            QList<ByteList> const &listDataBytes =
-                msgFrame.listMessageData[i].listCleanData;
-
-            for(size_t j=0; j < listHeaders.size(); j++)   {
-                OBDREFDEBUG <<listHeaders[j]
-                            << "|" << listDataBytes[j];
-            }
-        }
-    }
-
-    // ========================================================================== //
-    // ========================================================================== //
-
-    void Parser::dumpRawDataToDebugInfo(const QList<ByteList> &listRawData)
-    {
-        for(int k=0; k < listRawData.size(); k++)
-        {
-            OBDREFDEBUG << "OBDREF: Raw Data Frame " << k << ": ";
-            for(int l=0; l < listRawData[k].size(); l++)
-            {   OBDREFDEBUG << m_mapValToHexByte.value(listRawData[k][l]) << " ";   }
-            OBDREFDEBUG << "\n";
-        }
-    }
-
-    // ========================================================================== //
-    // ========================================================================== //
-
     void Parser::saveNumAndLitData(Data &myData)
     {
         // saves numerical and literal data from js context
@@ -1671,6 +1668,39 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
+    void Parser::stringToBaseDec(QString &parseExpr)
+    {
+        // replaces binary and hex notation numbers
+        // with their decimal equivalents
+
+        // look for binary numbers (starting with 0b)
+        QRegExp rx; bool convOk = false;
+
+        int pos=0;
+        rx.setPattern("(0b[0-1]+)+");
+        while ((pos = rx.indexIn(parseExpr, pos)) != -1)
+        {
+            uint decVal = stringToUInt(convOk,rx.cap(1));
+            QString decStr = QString::number(decVal,10);
+            parseExpr.replace(pos,rx.cap(1).size(),decStr);
+            pos += decStr.length();
+        }
+
+        // look for binary numbers (starting with 0x)
+        pos = 0;
+        rx.setPattern("(0x[0123456789ABCDEF]+)+");
+        while ((pos = rx.indexIn(parseExpr, pos)) != -1)
+        {
+            uint decVal = stringToUInt(convOk,rx.cap(1));
+            QString decStr = QString::number(decVal,10);
+            parseExpr.replace(pos,rx.cap(1).size(),decStr);
+            pos += decStr.length();
+        }
+    }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
     uint Parser::stringToUInt(bool &convOk, const QString &parseStr)
     {
         // expect ONE token representing a number
@@ -1712,39 +1742,6 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    void Parser::convToDecEquivExpression(QString &parseExpr)
-    {
-        // replaces binary and hex notation numbers
-        // with their decimal equivalents
-
-        // look for binary numbers (starting with 0b)
-        QRegExp rx; bool convOk = false;
-
-        int pos=0;
-        rx.setPattern("(0b[0-1]+)+");
-        while ((pos = rx.indexIn(parseExpr, pos)) != -1)
-        {
-            uint decVal = stringToUInt(convOk,rx.cap(1));
-            QString decStr = QString::number(decVal,10);
-            parseExpr.replace(pos,rx.cap(1).size(),decStr);
-            pos += decStr.length();
-        }
-
-        // look for binary numbers (starting with 0x)
-        pos = 0;
-        rx.setPattern("(0x[0123456789ABCDEF]+)+");
-        while ((pos = rx.indexIn(parseExpr, pos)) != -1)
-        {
-            uint decVal = stringToUInt(convOk,rx.cap(1));
-            QString decStr = QString::number(decVal,10);
-            parseExpr.replace(pos,rx.cap(1).size(),decStr);
-            pos += decStr.length();
-        }
-    }
-
-    // ========================================================================== //
-    // ========================================================================== //
-
     QTextStream & Parser::getErrorStream()
     {
         return m_lkErrors;
@@ -1774,7 +1771,8 @@ namespace obdref
         }
         else
         {
-            OBDREFDEBUG << "OBDREF: Could not open file: " << filePath << "\n";
+            OBDREFDEBUG << "OBDREF: Could not open file: "
+                        << filePath << "\n";
             return false;
         }
 
@@ -1785,12 +1783,10 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
+    /*
     bool Parser::parseSinglePartResponse(const MessageFrame &msgFrame,
                                          QList<Data> &listDataResults)
     {
-        return false;
-        /*
-
         // DEPRECATED
         // [single part message]
 
@@ -1871,15 +1867,11 @@ namespace obdref
         }
 
         return true;
-        */
     }
 
     bool Parser::parseMultiPartResponse(const MessageFrame &msgFrame,
                                         QList<Data> &listDataResults)
     {
-        return false;
-        /*
-
         // DEPRECATED
         // [multi part request]
         // * a multi part message is identified by having
@@ -1979,7 +1971,6 @@ namespace obdref
         listDataResults.append(myData);
 
         return true;
-
-        */
     }
+    */
 }
