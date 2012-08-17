@@ -80,7 +80,8 @@ public:
     ByteList            expHeaderBytes;
     ByteList            expHeaderMask;
     ByteList            expDataPrefix;
-    QString             expDataBytes;
+    QString             expDataBytes;   // todo change name to
+                                        // expNumDataBytes?
 
     // raw data frames -- each frame contains
     // received bytes for a single frame in

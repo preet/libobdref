@@ -489,7 +489,8 @@
       </parameter>
 
       <parameter name="Engine RPM"
-         request="0x01 0x0C" response.prefix="0x41 0x0C" response.bytes="2">
+         request="0x01 0x0C" 
+         response.prefix="0x41 0x0C" response.bytes="2">
          <script>
             <![CDATA[
             var engSpd = new NumericalDataObj();

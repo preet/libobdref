@@ -30,6 +30,7 @@ void GetMFResponseFromTarget(obdref::MessageFrame &myMsg);
 void GetMFResponseFromRandom(obdref::MessageFrame &myMsg);
 
 void PrintErrors(obdref::Parser &myParser);
+void PrintMessage(obdref::MessageFrame &msgFrame);
 void PrintData(QList<obdref::Data> &listData);
 void PrintReqResp(const obdref::MessageFrame &msgFrame);
 
@@ -53,49 +54,63 @@ int main(int argc, char* argv[])
     }
     qDebug() << "OBDREF: Successfully read in XML Defs and JS globals!";
 
-    // get a list of default parameters
-    QStringList myParamList
-        = myParser.GetParameterNames("SAEJ1979",
-                                     "ISO 15765-4 Standard",
-                                     "Default");
 
-    for(size_t i=0; i < myParamList.size(); i++)
-    {
-        QList<obdref::Data> listData;
+    // create message frame
+    obdref::MessageFrame myMsg;
+    myMsg.spec = "SAEJ1979";
+    myMsg.protocol = "ISO 15765-4 Standard";
+    myMsg.address = "Default";
+    myMsg.name = "Engine RPM";
+    myMsg.iso15765_addPciByte = false;
 
-        // create message frame
-        obdref::MessageFrame myMsg;
-        myMsg.spec = "SAEJ1979";
-        myMsg.protocol = "ISO 15765-4 Standard";
-        myMsg.address = "Default";
-        myMsg.name = myParamList.at(i);
+    opOk = myParser.BuildMessageFrame(myMsg);
+    if(!opOk)   {
+        PrintErrors(myParser);
+        return -1;
+    }
 
-        // build a message frame
-        opOk = myParser.BuildMessageFrame(myMsg);
-        if(!opOk)   {
-            PrintErrors(myParser);
-            return -1;
-        }
+    PrintMessage(myMsg);
 
-        qDebug() << "!!!!" << myMsg.listMessageData[0].reqHeaderBytes
-                 << "|" << myMsg.listMessageData[0].reqDataBytes;
+//    // get a list of default parameters
+//    QStringList myParamList
+//        = myParser.GetParameterNames("SAEJ1979",
+//                                     "ISO 15765-4 Standard",
+//                                     "Default");
 
-        // simulate vehicle response
-        GetMFResponseFromRandom(myMsg);
-        GetSFResponseFromRandom(myMsg);
-        GetMFResponseFromTarget(myMsg);
+//    for(size_t i=0; i < myParamList.size(); i++)
+//    {
+//        QList<obdref::Data> listData;
+
+//        // create message frame
+//        obdref::MessageFrame myMsg;
+//        myMsg.spec = "SAEJ1979";
+//        myMsg.protocol = "ISO 15765-4 Standard";
+//        myMsg.address = "Default";
+//        myMsg.name = myParamList.at(i);
+
+//        // build a message frame
+//        opOk = myParser.BuildMessageFrame(myMsg);
+//        if(!opOk)   {
+//            PrintErrors(myParser);
+//            return -1;
+//        }
+
+//        // simulate vehicle response
+//        GetMFResponseFromRandom(myMsg);
+//        GetSFResponseFromRandom(myMsg);
+//        GetMFResponseFromTarget(myMsg);
 //        PrintReqResp(myMsg);
 
-        // parse message frame
-        opOk = myParser.ParseMessageFrame(myMsg,listData);
-        if(!opOk)   {
-            PrintErrors(myParser);
-            return -1;
-        }
+//        // parse message frame
+//        opOk = myParser.ParseMessageFrame(myMsg,listData);
+//        if(!opOk)   {
+//            PrintErrors(myParser);
+//            return -1;
+//        }
 
-        // print out data
+//        // print out data
 //        PrintData(listData);
-    }
+//    }
 
     return 0;
 }
@@ -270,7 +285,7 @@ void PrintReqResp(obdref::MessageFrame const &msgFrame)
         qDebug() << "--------------------------------------------";
         qDebug() << "Parameter" << msgFrame.name;
         qDebug() << "Request:"  << msgFrame.listMessageData[i].reqHeaderBytes
-                                << msgFrame.listMessageData[i].reqDataBytes;
+                                << msgFrame.listMessageData[i].listReqDataBytes[0];
         qDebug() << "Response:";
 
         QList<obdref::ByteList> const &listRawData =
@@ -282,6 +297,38 @@ void PrintReqResp(obdref::MessageFrame const &msgFrame)
         qDebug() << "--------------------------------------------";
     }
     qDebug() << "================================================";
+}
+
+void PrintMessage(obdref::MessageFrame &msgFrame)
+{
+    qDebug() << "================================================";
+    qDebug() << "[Specification]: " << msgFrame.spec;
+    qDebug() << "[Protocol]: " << msgFrame.protocol;
+    qDebug() << "[Address]: " << msgFrame.address;
+    qDebug() << "[Name]: " << msgFrame.name;
+
+    if(msgFrame.spec.contains("15765"))   {
+        qDebug() << "ISO 15765: Add PCI Bytes?"
+                 << msgFrame.iso15765_addPciByte;
+
+        qDebug() << "ISO 15765: Split into frames?"
+                 << msgFrame.iso15765_splitReqIntoFrames;
+    }
+
+    for(size_t i=0; i < msgFrame.listMessageData.size(); i++)   {
+        obdref::MessageData &msgData = msgFrame.listMessageData[i];
+        qDebug() << "--------------------------------------------";
+        qDebug() << "[Request Header Bytes]: " << msgData.reqHeaderBytes;
+        qDebug() << "[List Request Data Bytes]";
+        for(size_t j=0; j < msgData.listReqDataBytes.size(); j++)   {
+            qDebug() << "   [" << j << "]: " << msgData.listReqDataBytes[j];
+        }
+        qDebug() << "[Request Delay]: " << msgData.reqDataDelayMs;
+        qDebug() << "[Expected Header Bytes]: " << msgData.expHeaderBytes;
+        qDebug() << "[Expected Header Mask]: " << msgData.expHeaderMask;
+        qDebug() << "[Expected Data Prefix]: " << msgData.expDataPrefix;
+        qDebug() << "[Expected Number of Data Bytes]: " << msgData.expDataBytes;
+    }
 }
 
 void PrintData(QList<obdref::Data> &listData)

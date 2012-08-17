@@ -697,6 +697,8 @@ namespace obdref
 
                                         uint payloadSize = listReqDataBytes[0].size();
 
+                                        qDebug() << "! payloadSize" << payloadSize;
+
                                         if(msgFrame.iso15765_splitReqIntoFrames &&
                                                 (payloadSize > 7))
                                         {
@@ -704,17 +706,17 @@ namespace obdref
 
                                             // first frame
                                             ubyte idxFrame = 0;
-                                            ubyte idxBeg = 5;   // FF hold 6 data bytes
-
+                                            ubyte idxBeg = 6;   // FF hold 6 data bytes
+                                            uint frameLength;
                                             // truncate FF and copy to subsequent frame
                                             listReqDataBytes << emptyByteList;
-                                            for(size_t j=idxBeg; j < listReqDataBytes[idxFrame].size(); j++)   {
+                                            while(listReqDataBytes[idxFrame].size() > idxBeg)   {
                                                 ubyte dataByte = listReqDataBytes[idxFrame].takeAt(idxBeg);
                                                 listReqDataBytes[idxFrame+1] << dataByte;
                                             }
 
                                             idxFrame++;
-                                            idxBeg = 6;         // CF hold 7 data bytes
+                                            idxBeg = 7;         // CF hold 7 data bytes
 
                                             // consecutive frames
                                             while(1)   {
@@ -725,7 +727,8 @@ namespace obdref
 
                                                 // truncate CF and copy to subsequent frame
                                                 listReqDataBytes << emptyByteList;
-                                                for(size_t j=idxBeg; j < listReqDataBytes[idxFrame].size(); j++)   {
+                                                frameLength = listReqDataBytes[idxFrame].size();
+                                                while(listReqDataBytes[idxFrame].size() > idxBeg)   {
                                                     ubyte dataByte = listReqDataBytes[idxFrame].takeAt(idxBeg);
                                                     listReqDataBytes[idxFrame+1] << dataByte;
                                                 }

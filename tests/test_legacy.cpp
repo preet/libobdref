@@ -150,7 +150,7 @@ void PrintReqResp(obdref::MessageFrame const &msgFrame)
         qDebug() << "--------------------------------------------";
         qDebug() << "Parameter" << msgFrame.name;
         qDebug() << "Request:"  << msgFrame.listMessageData[i].reqHeaderBytes
-                                << msgFrame.listMessageData[i].reqDataBytes;
+                 << msgFrame.listMessageData[i].listReqDataBytes[0];
         qDebug() << "Response:";
 
         QList<obdref::ByteList> const &listRawData =
