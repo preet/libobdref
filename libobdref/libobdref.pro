@@ -21,7 +21,7 @@ DEFINES += H_INSTALLPATH=\\\"$${H_INSTALLPATH}\\\"
 
 headerfiles.path = $${H_INSTALLPATH}
 headerfiles.files = parser.h \
-                    message.hpp \
+                    message.h \
                     globals.js
 
 pheaderfiles.path = $${H_INSTALLPATH}/pugixml

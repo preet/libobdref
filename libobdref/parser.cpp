@@ -573,7 +573,6 @@ namespace obdref
                                 foundParameter = true;
 
                                 // [build request message data]
-
                                 bool convOk = false; int n=0; int t=0;
 
                                 // we can have multiple request/response data stored
@@ -624,6 +623,9 @@ namespace obdref
                                             // element in msgFrame's listMessageData
                                             // from adding a set of header bytes
                                             msgData = &(msgFrame.listMessageData[0]);
+
+                                            ByteList reqDataBytes;
+                                            msgData->listReqDataBytes << reqDataBytes;
                                         }
                                         else   {
                                             // add to listMessageData as necessary
@@ -657,7 +659,7 @@ namespace obdref
                                             QStringList listReqData = reqData.split(" ");
                                             for(int i=0; i < listReqData.size(); i++)   {
                                                 uint dataByte = stringToUInt(convOk,listReqData.at(i));
-                                                msgData->reqDataBytes << char(dataByte);
+                                                msgData->listReqDataBytes[0] << char(dataByte);
                                             }
                                         }
                                     }
@@ -686,27 +688,79 @@ namespace obdref
                                 }
 
                                 // ISO 15765-4:
-                                // we need to prepend the data bytes with a PCI
-                                // byte specifying frame order and data length
-                                msgFrame.multiFrameReq = false;
                                 if(protocolName.contains("ISO 15765-4"))
                                 {
-                                    if(msgFrame.multiFrameReq)
-                                    {   // todo
-                                        // set pci byte up for multiframe request
+                                    for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
+                                    {
+                                        QList<ByteList> &listReqDataBytes =
+                                                msgFrame.listMessageData[i].listReqDataBytes;
 
-                                    }
-                                    else
-                                    {   // single frame request
-                                        // higher 4 bits set to 0 to indicate single frame
-                                        // lower 4 bits gives the number of bytes in payload
-                                        for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
+                                        uint payloadSize = listReqDataBytes[0].size();
+
+                                        if(msgFrame.iso15765_splitReqIntoFrames &&
+                                                (payloadSize > 7))
                                         {
-                                            ByteList &reqDataBytes =
-                                                    msgFrame.listMessageData[i].reqDataBytes;
+                                            ByteList emptyByteList;
 
-                                            ubyte pciByte = reqDataBytes.size();
-                                            reqDataBytes.prepend(pciByte);
+                                            // first frame
+                                            ubyte idxFrame = 0;
+                                            ubyte idxBeg = 5;   // FF hold 6 data bytes
+
+                                            // truncate FF and copy to subsequent frame
+                                            listReqDataBytes << emptyByteList;
+                                            for(size_t j=idxBeg; j < listReqDataBytes[idxFrame].size(); j++)   {
+                                                ubyte dataByte = listReqDataBytes[idxFrame].takeAt(idxBeg);
+                                                listReqDataBytes[idxFrame+1] << dataByte;
+                                            }
+
+                                            idxFrame++;
+                                            idxBeg = 6;         // CF hold 7 data bytes
+
+                                            // consecutive frames
+                                            while(1)   {
+                                                // check if we're done
+                                                if(listReqDataBytes[idxFrame].size() <= 7)   {
+                                                    break;
+                                                }
+
+                                                // truncate CF and copy to subsequent frame
+                                                listReqDataBytes << emptyByteList;
+                                                for(size_t j=idxBeg; j < listReqDataBytes[idxFrame].size(); j++)   {
+                                                    ubyte dataByte = listReqDataBytes[idxFrame].takeAt(idxBeg);
+                                                    listReqDataBytes[idxFrame+1] << dataByte;
+                                                }
+                                                idxFrame++;
+                                            }
+                                        }
+
+                                        if(msgFrame.iso15765_addPciByte)
+                                        {
+                                            // [single frame]
+                                            // higher 4 bits set to 0 to indicate single frame
+                                            // lower 4 bits gives the number of bytes in payload
+                                            if(listReqDataBytes.size() == 1)   {
+                                                ubyte pciByte = listReqDataBytes[0].size();
+                                                listReqDataBytes[0].prepend(pciByte);
+                                            }
+                                            // [multi frame]
+                                            else   {
+                                                // first frame
+                                                // higher 4 bits set to 0001
+                                                // lower 12 bits give number of bytes in payload
+                                                ubyte lowerByte = (payloadSize & 0x0FF);
+                                                ubyte upperByte = (payloadSize & 0xF00) >> 8;
+                                                upperByte += 16;    // += 0b1000
+
+                                                listReqDataBytes[0].prepend(lowerByte);
+                                                listReqDataBytes[0].prepend(upperByte);
+
+                                                // consecutive frames
+                                                for(size_t j=1; j < listReqDataBytes.size(); j++)   {
+                                                    ubyte pciByte = 0x20 + (j % 0x10);      // cycle 0x20-0x2F
+                                                                                            // starting w 0x21
+                                                    listReqDataBytes[j].prepend(pciByte);
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -721,7 +775,7 @@ namespace obdref
                                     {
                                         MessageData &msgData = msgFrame.listMessageData[i];
                                         ubyte hSize = msgData.reqHeaderBytes.size();
-                                        ubyte dSize = msgData.reqDataBytes.size();
+                                        ubyte dSize = msgData.listReqDataBytes[0].size();
 
                                         if(dSize > 255)   {
                                             OBDREFDEBUG << "OBDREF: Error: ISO 14230-4,"
@@ -850,6 +904,12 @@ namespace obdref
 
         return true;
     }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
+    QByteArray Parser::ConvValToHexByte(ubyte myVal)
+    {   return m_mapValToHexByte.value(myVal);   }
 
     // ========================================================================== //
     // ========================================================================== //

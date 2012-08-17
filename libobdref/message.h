@@ -73,7 +73,7 @@ public:
 
     // obd request message info
     ByteList            reqHeaderBytes;
-    ByteList            reqDataBytes;
+    QList<ByteList>     listReqDataBytes;
     uint                reqDataDelayMs;
 
     // obd response message info
@@ -113,17 +113,28 @@ public:
 class MessageFrame
 {
 public:
+    MessageFrame() :
+        iso15765_addPciByte(true),
+        iso15765_splitReqIntoFrames(true)
+    {}
+
     QString spec;
     QString protocol;
     QString address;
     QString name;
     uint baudRate;
 
-    // (ISO 15764) true if the request
-    // is a multiframe message; if false,
-    // each message in listMessageData
-    // will be sent as a single frame
-    bool multiFrameReq;
+    // (ISO 15765)
+    // flag to calculate and add pci
+    // bytes to reqDataBytes, true
+    // by default
+    bool iso15765_addPciByte;
+
+    // (ISO 15764)
+    // flag to split request data
+    // into single frame messages,
+    // true by default
+    bool iso15765_splitReqIntoFrames;
 
     // list of message data
     // * includes request/response bytes

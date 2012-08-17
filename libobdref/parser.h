@@ -68,6 +68,12 @@ public:
     bool ParseMessageFrame(MessageFrame &msgFrame,
                            QList<Data> &listDataResults);
 
+    // ConvValToHexByte
+    // * converts a ubyte value to its
+    //   equivalent hex byte characters
+    //   ie 255 -> "FF"
+    QByteArray ConvValToHexByte(ubyte myVal);
+
     // GetParameterNames
     // * returns a list of parameter names from
     //   the definitions file based on input args
@@ -155,8 +161,8 @@ private:
                                 QList<Data> &listDataResults);
     */
 
-    QMap<ubyte,QByteArray> m_mapValToHexByte;
-    QMap<QByteArray,ubyte> m_mapHexByteToVal;
+    QHash<ubyte,QByteArray> m_mapValToHexByte;
+    QHash<QByteArray,ubyte> m_mapHexByteToVal;
 
     // v8 vars
     v8::Persistent<v8::Context> m_v8_context;

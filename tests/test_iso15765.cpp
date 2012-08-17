@@ -77,6 +77,9 @@ int main(int argc, char* argv[])
             return -1;
         }
 
+        qDebug() << "!!!!" << myMsg.listMessageData[0].reqHeaderBytes
+                 << "|" << myMsg.listMessageData[0].reqDataBytes;
+
         // simulate vehicle response
         GetMFResponseFromRandom(myMsg);
         GetSFResponseFromRandom(myMsg);
@@ -91,7 +94,7 @@ int main(int argc, char* argv[])
         }
 
         // print out data
-        PrintData(listData);
+//        PrintData(listData);
     }
 
     return 0;
