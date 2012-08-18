@@ -37,6 +37,12 @@ namespace obdref
         for(int i=0; i < 256; i++)
         {
             QByteArray hexByteStr = QByteArray::number(i,16);
+            hexByteStr = hexByteStr.toUpper();
+
+            // zero pad to two digits for a byte
+            if(hexByteStr.size() < 2)
+            {   hexByteStr.prepend("0");   }
+
             m_mapValToHexByte.insert(ubyte(i),hexByteStr);
             m_mapHexByteToVal.insert(hexByteStr,ubyte(i));
         }
@@ -697,8 +703,6 @@ namespace obdref
 
                                         uint payloadSize = listReqDataBytes[0].size();
 
-                                        qDebug() << "! payloadSize" << payloadSize;
-
                                         if(msgFrame.iso15765_splitReqIntoFrames &&
                                                 (payloadSize > 7))
                                         {
@@ -885,7 +889,7 @@ namespace obdref
             formatOk = cleanRawData_ISO_15765_4(msgFrame);
         }
         else if(msgFrame.protocol == "ISO 14230-4")   {
-            formatOk = cleanRawData_ISO_14230_4(msgFrame);
+            formatOk = cleanRawData_Legacy(msgFrame);
         }
         else   {
             formatOk = cleanRawData_Legacy(msgFrame);
@@ -912,7 +916,16 @@ namespace obdref
     // ========================================================================== //
 
     QByteArray Parser::ConvValToHexByte(ubyte myVal)
-    {   return m_mapValToHexByte.value(myVal);   }
+    {
+        return m_mapValToHexByte.value(myVal);
+    }
+
+    ubyte Parser::ConvHexByteToVal(QByteArray myByte)
+    {
+        // ensure hex letters are in uppercase
+        myByte = myByte.toUpper();
+        return m_mapHexByteToVal.value(myByte,0);
+    }
 
     // ========================================================================== //
     // ========================================================================== //
@@ -1095,189 +1108,6 @@ namespace obdref
         if(!hasData)
         {
             OBDREFDEBUG << "OBDREF: Error: SAE J1850/ISO 9141-2, "
-                           "empty message data after cleaning";
-            return false;
-        }
-        return true;
-    }
-
-    // ========================================================================== //
-    // ========================================================================== //
-
-    bool Parser::cleanRawData_ISO_14230_4(MessageFrame &msgFrame)
-    {
-        bool hasData = false;
-        for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
-        {
-            QList<ByteList> &listRawDataFrames =
-                    msgFrame.listMessageData[i].listRawDataFrames;
-
-            ByteList &msgDataExpHeaderBytes =
-                    msgFrame.listMessageData[i].expHeaderBytes;
-
-            ByteList &msgDataExpHeaderMask =
-                    msgFrame.listMessageData[i].expHeaderMask;
-
-            ByteList const &msgDataExpPrefix =
-                    msgFrame.listMessageData[i].expDataPrefix;
-
-            for(size_t j=0; j < listRawDataFrames.size(); j++)
-            {
-                ByteList &rawFrame = listRawDataFrames[j];
-                if(rawFrame.size() > 259)   {
-                    // message length can't exceed
-                    // 4 header bytes + 255 data bytes
-                    OBDREFDEBUG << "OBDREF: Error: ISO 14230-4 "
-                                   "Message exceeds 259 bytes";
-                    continue;
-                }
-
-                // first we need to determine the number of bytes
-                // in the header since there are four header types:
-                // A [format]
-                // B [format] [target] [source]
-                // C [format] [length]
-                // D [format] [target] [source] [length]
-
-                // we know that the header format is C or D if the six
-                // least significant bits of the format byte are 0
-                uint numHeaderBytes = 0;
-                ubyte hFormatMask = 0x3F;   // 0b00111111
-                ubyte dataLength = rawFrame.at(0) & hFormatMask;
-
-                if(dataLength > 0)
-                {   // frame is A or B
-                    numHeaderBytes = rawFrame.size() - dataLength;
-                }
-                else
-                {   // frame is C or D
-                    // ambiguous so guess and check each type
-                    dataLength = rawFrame.at(3);
-                    if(dataLength + 4 == rawFrame.size())   {
-                        numHeaderBytes = 4;     // frame D
-                    }
-                    else   {
-                        dataLength = rawFrame.at(1);
-                        numHeaderBytes = 2;     // frame C
-                    }
-                }
-
-                // split raw data into header/data bytes
-                ByteList headerBytes,dataBytes;
-                for(size_t k=0; k < rawFrame.size(); k++)   {
-                    if(k < numHeaderBytes)   {   headerBytes << rawFrame.at(k);   }
-                    else                     {   dataBytes << rawFrame.at(k);   }
-                }
-
-                // filter with expHeaderBytes if required
-                if(msgDataExpHeaderBytes.size() > 0)
-                {
-                    // create expHeaderBytes and expHeaderMask to match
-                    // the correct numHeaderBytes (when building the
-                    // message, we pad expHeader[] to assume the largest
-                    // num of header bytes to preserve byte order)
-                    ByteList expHeaderBytes,expHeaderMask;
-                    expHeaderBytes << msgDataExpHeaderBytes.at(0);
-                    expHeaderMask  << msgDataExpHeaderMask.at(0);
-
-                    switch(numHeaderBytes)   {
-                        case 1:   {   // A
-                            break;
-                        }
-                        case 2:   {   // C
-                            expHeaderBytes << msgDataExpHeaderBytes.at(3);
-                            expHeaderMask  << msgDataExpHeaderMask.at(3);
-                            break;
-                        }
-                        case 3:   {   // B
-                            expHeaderBytes << msgDataExpHeaderBytes.at(1)
-                                           << msgDataExpHeaderBytes.at(2);
-                            expHeaderMask  << msgDataExpHeaderMask.at(1)
-                                           << msgDataExpHeaderMask.at(2);
-                            break;
-                        }
-                        case 4:   {   // D
-                            expHeaderBytes << msgDataExpHeaderBytes.at(1)
-                                           << msgDataExpHeaderBytes.at(2)
-                                           << msgDataExpHeaderBytes.at(3);
-                            expHeaderMask  << msgDataExpHeaderMask.at(1)
-                                           << msgDataExpHeaderMask.at(2)
-                                           << msgDataExpHeaderMask.at(3);
-                            break;
-                        }
-                    }
-
-                    // check for expected header bytes
-                    bool headerBytesMatch = true;
-                    for(size_t k=0; k < numHeaderBytes; k++)
-                    {
-                        ubyte byteTest = headerBytes.at(k) &
-                                         expHeaderMask.at(k);
-
-                        ubyte byteMask = expHeaderBytes.at(k) &
-                                         expHeaderMask.at(k);
-
-                        if(byteMask != byteTest)   {
-                            headerBytesMatch = false;
-                            break;
-                        }
-                    }
-
-                    if(!headerBytesMatch)
-                    {
-                        OBDREFDEBUG << "OBDREF: Warn: ISO 14230-4, "
-                                       "header bytes mismatch";
-                        continue;
-                    }
-                }
-
-                // check for expected data prefix bytes
-                bool dataPrefixMatch = true;
-                for(size_t k=0; k < msgDataExpPrefix.size(); k++)
-                {
-                    if(msgDataExpPrefix.at(k) != dataBytes.at(k))   {
-                        dataPrefixMatch = false;
-                        break;
-                    }
-                }
-
-                if(!dataPrefixMatch)
-                {
-                    OBDREFDEBUG << "OBDREF: Warn: ISO 14230-4, "
-                                   "data prefix mismatch";
-                    continue;
-                }
-
-                // remove data prefix bytes
-                for(size_t k=0; k < msgDataExpPrefix.size(); k++)   {
-                    dataBytes.removeAt(0);
-                }
-
-                // save data
-                msgFrame.listMessageData[i].listHeaders << headerBytes;
-                msgFrame.listMessageData[i].listCleanData << dataBytes;
-            }
-
-            // merge nonunique listHeaders and cat
-            // corresponding listCleanData entries
-
-            if(listRawDataFrames.size() > 1)   {
-
-                QList<ByteList> &listHeaders =
-                    msgFrame.listMessageData[i].listHeaders;
-
-                QList<ByteList> &listCleanData =
-                    msgFrame.listMessageData[i].listCleanData;
-
-                groupDataByHeader(listHeaders,listCleanData);
-            }
-
-            if(msgFrame.listMessageData[i].listHeaders.size() > 0)
-            {   hasData = true;   }
-        }
-        if(!hasData)
-        {
-            OBDREFDEBUG << "OBDREF: Error: ISO 14230-4, "
                            "empty message data after cleaning";
             return false;
         }
@@ -1519,6 +1349,190 @@ namespace obdref
         if(!hasData)
         {
             OBDREFDEBUG << "OBDREF: Error: ISO 15765-4, "
+                           "empty message data after cleaning";
+            return false;
+        }
+        return true;
+    }
+
+    // ========================================================================== //
+    // ========================================================================== //
+
+    bool Parser::cleanRawData_ISO_14230(MessageFrame &msgFrame)
+    {
+        bool hasData = false;
+        for(size_t i=0; i < msgFrame.listMessageData.size(); i++)
+        {
+            QList<ByteList> &listRawDataFrames =
+                    msgFrame.listMessageData[i].listRawDataFrames;
+
+            ByteList &msgDataExpHeaderBytes =
+                    msgFrame.listMessageData[i].expHeaderBytes;
+
+            ByteList &msgDataExpHeaderMask =
+                    msgFrame.listMessageData[i].expHeaderMask;
+
+            ByteList const &msgDataExpPrefix =
+                    msgFrame.listMessageData[i].expDataPrefix;
+
+            for(size_t j=0; j < listRawDataFrames.size(); j++)
+            {
+                ByteList &rawFrame = listRawDataFrames[j];
+                if(rawFrame.size() > 259)   {
+                    // message length can't exceed
+                    // 4 header bytes + 255 data bytes
+                    OBDREFDEBUG << "OBDREF: Error: ISO 14230-4 "
+                                   "Message exceeds 259 bytes";
+                    continue;
+                }
+
+                // first we need to determine the number of bytes
+                // in the header since there are four header types:
+                // A [format]
+                // B [format] [target] [source]
+                // C [format] [length]
+                // D [format] [target] [source] [length]
+
+                // we know that the header format is C or D if the six
+                // least significant bits of the format byte are 0
+                uint numHeaderBytes = 0;
+                ubyte hFormatMask = 0x3F;   // 0b00111111
+                ubyte dataLength = rawFrame.at(0) & hFormatMask;
+
+                if(dataLength > 0)
+                {   // frame is A or B
+                    numHeaderBytes = rawFrame.size() - dataLength;
+                    qDebug() << "###### NUM HEADERBYTES" << numHeaderBytes;
+                }
+                else
+                {   // frame is C or D
+                    // ambiguous so guess and check each type
+                    dataLength = rawFrame.at(3);
+                    if(dataLength + 4 == rawFrame.size())   {
+                        numHeaderBytes = 4;     // frame D
+                    }
+                    else   {
+                        dataLength = rawFrame.at(1);
+                        numHeaderBytes = 2;     // frame C
+                    }
+                }
+
+                // split raw data into header/data bytes
+                ByteList headerBytes,dataBytes;
+                for(size_t k=0; k < rawFrame.size(); k++)   {
+                    if(k < numHeaderBytes)   {   headerBytes << rawFrame.at(k);   }
+                    else                     {   dataBytes << rawFrame.at(k);   }
+                }
+
+                // filter with expHeaderBytes if required
+                if(msgDataExpHeaderBytes.size() > 0)
+                {
+                    // create expHeaderBytes and expHeaderMask to match
+                    // the correct numHeaderBytes (when building the
+                    // message, we pad expHeader[] to assume the largest
+                    // num of header bytes to preserve byte order)
+                    ByteList expHeaderBytes,expHeaderMask;
+                    expHeaderBytes << msgDataExpHeaderBytes.at(0);
+                    expHeaderMask  << msgDataExpHeaderMask.at(0);
+
+                    switch(numHeaderBytes)   {
+                        case 1:   {   // A
+                            break;
+                        }
+                        case 2:   {   // C
+                            expHeaderBytes << msgDataExpHeaderBytes.at(3);
+                            expHeaderMask  << msgDataExpHeaderMask.at(3);
+                            break;
+                        }
+                        case 3:   {   // B
+                            expHeaderBytes << msgDataExpHeaderBytes.at(1)
+                                           << msgDataExpHeaderBytes.at(2);
+                            expHeaderMask  << msgDataExpHeaderMask.at(1)
+                                           << msgDataExpHeaderMask.at(2);
+                            break;
+                        }
+                        case 4:   {   // D
+                            expHeaderBytes << msgDataExpHeaderBytes.at(1)
+                                           << msgDataExpHeaderBytes.at(2)
+                                           << msgDataExpHeaderBytes.at(3);
+                            expHeaderMask  << msgDataExpHeaderMask.at(1)
+                                           << msgDataExpHeaderMask.at(2)
+                                           << msgDataExpHeaderMask.at(3);
+                            break;
+                        }
+                    }
+
+                    // check for expected header bytes
+                    bool headerBytesMatch = true;
+                    for(size_t k=0; k < numHeaderBytes; k++)
+                    {
+                        ubyte byteTest = headerBytes.at(k) &
+                                         expHeaderMask.at(k);
+
+                        ubyte byteMask = expHeaderBytes.at(k) &
+                                         expHeaderMask.at(k);
+
+                        if(byteMask != byteTest)   {
+                            headerBytesMatch = false;
+                            break;
+                        }
+                    }
+
+                    if(!headerBytesMatch)
+                    {
+                        OBDREFDEBUG << "OBDREF: Warn: ISO 14230-4, "
+                                       "header bytes mismatch";
+                        continue;
+                    }
+                }
+
+                // check for expected data prefix bytes
+                bool dataPrefixMatch = true;
+                for(size_t k=0; k < msgDataExpPrefix.size(); k++)
+                {
+                    if(msgDataExpPrefix.at(k) != dataBytes.at(k))   {
+                        dataPrefixMatch = false;
+                        break;
+                    }
+                }
+
+                if(!dataPrefixMatch)
+                {
+                    OBDREFDEBUG << "OBDREF: Warn: ISO 14230-4, "
+                                   "data prefix mismatch";
+                    continue;
+                }
+
+                // remove data prefix bytes
+                for(size_t k=0; k < msgDataExpPrefix.size(); k++)   {
+                    dataBytes.removeAt(0);
+                }
+
+                // save data
+                msgFrame.listMessageData[i].listHeaders << headerBytes;
+                msgFrame.listMessageData[i].listCleanData << dataBytes;
+            }
+
+            // merge nonunique listHeaders and cat
+            // corresponding listCleanData entries
+
+            if(listRawDataFrames.size() > 1)   {
+
+                QList<ByteList> &listHeaders =
+                    msgFrame.listMessageData[i].listHeaders;
+
+                QList<ByteList> &listCleanData =
+                    msgFrame.listMessageData[i].listCleanData;
+
+                groupDataByHeader(listHeaders,listCleanData);
+            }
+
+            if(msgFrame.listMessageData[i].listHeaders.size() > 0)
+            {   hasData = true;   }
+        }
+        if(!hasData)
+        {
+            OBDREFDEBUG << "OBDREF: Error: ISO 14230-4, "
                            "empty message data after cleaning";
             return false;
         }

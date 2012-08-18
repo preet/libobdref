@@ -68,11 +68,16 @@ public:
     bool ParseMessageFrame(MessageFrame &msgFrame,
                            QList<Data> &listDataResults);
 
+    // todo inline
     // ConvValToHexByte
-    // * converts a ubyte value to its
-    //   equivalent hex byte characters
-    //   ie 255 -> "FF"
+    // * converts a ubyte value to its equivalent
+    //   hex byte characters ie 255 -> "FF"
+    // * the result is padded with zeros according
+    //   to minDigits
     QByteArray ConvValToHexByte(ubyte myVal);
+
+    // todo inline
+    ubyte ConvHexByteToVal(QByteArray myByte);
 
     // GetParameterNames
     // * returns a list of parameter names from
@@ -91,9 +96,23 @@ private:
     //   expected message bytes and groups/merges
     //   the frames as appropriate to save the
     //   data in listHeaders and listCleanData
+
+    // cleanRawData_Legacy
+    // * includes: SAEJ1850 VPW/PWM,ISO 9141-2,ISO 14230-4
     bool cleanRawData_Legacy(MessageFrame &msgFrame);
-    bool cleanRawData_ISO_14230_4(MessageFrame &msgFrame);
+
+    // cleanRawData_ISO_15765_4
+    // * includes: ISO 15765-4, 11-bit and 29-bit headers
     bool cleanRawData_ISO_15765_4(MessageFrame &msgFrame);
+
+    // cleanRawData_ISO14230 [incomplete]
+    // * generic support for ISO 14230
+    // * ISO 14230-4 mandates 3 header bytes and 7 data bytes
+    //   so cleanRawData_Legacy can be used for OBDII pids
+    // * vehicle/manufacturer unique specs such as SSM
+    //   may use different ISO 14230 message types which
+    //   this method should be able to interpret
+    bool cleanRawData_ISO_14230(MessageFrame &msgFrame);
 
     // groupDataByHeader
     // * helper function to convert a list of data
