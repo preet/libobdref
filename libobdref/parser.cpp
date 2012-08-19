@@ -889,6 +889,10 @@ namespace obdref
             formatOk = cleanRawData_ISO_15765_4(msgFrame);
         }
         else if(msgFrame.protocol == "ISO 14230-4")   {
+            // we can use cleanRawData_Legacy or
+            // cleanRawData_ISO_14230, but the
+            // former should be faster; see parser.h
+            // for more info
             formatOk = cleanRawData_Legacy(msgFrame);
         }
         else   {
@@ -1402,7 +1406,6 @@ namespace obdref
                 if(dataLength > 0)
                 {   // frame is A or B
                     numHeaderBytes = rawFrame.size() - dataLength;
-                    qDebug() << "###### NUM HEADERBYTES" << numHeaderBytes;
                 }
                 else
                 {   // frame is C or D

@@ -17,6 +17,12 @@
       http://www.peak-system.com/produktcd/Pdf/English/PCAN-GPRS_Link_UserMan_eng.pdf
       http://www.drewtech.com/support/obd2/message.html
       https://www.msu.edu/~guentche/guentchev/OBD-II/int-obdii.html
+
+      // a lot of pid,dtc and messaging information is
+      // available from the us govt as public domain:
+      https://law.resource.org/pub/us/cfr/ibr/005/sae.j1979.2002.pdf
+      https://law.resource.org/pub/us/cfr/ibr/005/sae.j2012.2002.pdf
+      https://law.resource.org/pub/us/cfr/ibr/005/sae.j2534.2002.pdf
       -->
 
 <spec name="SAEJ1979" desc="OBDII Standard PIDs">
