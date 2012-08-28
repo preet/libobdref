@@ -71,6 +71,18 @@ namespace obdref
 
         // setup v8
 
+        // apparently we need to use v8::Locker to
+        // signal to the v8 engine that its safe to
+        // use the active v8::Isolate from the thread
+        // that's executing this function
+
+        // see doxy docs in v8::Unlocker (for some
+        // reason, v8::Isolate and v8::Locker don't
+        // have anything useful)
+
+        // lock the default isolate (indicated by NULL)
+        v8::Locker myLocker(NULL);
+
         // create persistent context and enter it
         v8::HandleScope handleScope;
         m_v8_context = v8::Context::New();
