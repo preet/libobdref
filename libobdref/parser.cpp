@@ -123,6 +123,10 @@ namespace obdref
 
     Parser::~Parser()
     {
+        // lock the default isolate (indicated by NULL)
+        // todo verify if I need this in the destructor
+        v8::Locker myLocker(NULL);
+
         // exit and remove context handle
         m_v8_context->Exit();
         m_v8_context.Dispose();
@@ -132,7 +136,7 @@ namespace obdref
     // ========================================================================== //
 
     bool Parser::BuildMessageFrame(MessageFrame &msgFrame)
-    {       
+    {
         bool foundSpec          = false;
         bool foundProtocol      = false;
         bool foundAddress       = false;
@@ -1621,6 +1625,9 @@ namespace obdref
                                QList<Data> &listData,
                                ParseMode parseMode)
     {
+        // lock the default isolate (indicated by NULL)
+        v8::Locker myLocker(NULL);
+
         // todo: support multi-part message frames
         MessageData const &msgData = msgFrame.listMessageData[0];
 
