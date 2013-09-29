@@ -1,6 +1,7 @@
 TEMPLATE = lib
 CONFIG += staticlib
 TARGET = obdref
+DESTDIR = $${OUT_PWD}/lib
 QT += core
 
 SOURCES += \
@@ -15,16 +16,11 @@ HEADERS += \
 
 LIBS += -lv8
 
-H_INSTALLPATH = $${OUT_PWD}/obdref
-L_INSTALLPATH = $${OUT_PWD}/
-DEFINES += H_INSTALLPATH=\\\"$${H_INSTALLPATH}\\\"
-
-headerfiles.path = $${H_INSTALLPATH}
+headerfiles.path = $${OUT_PWD}/include
 headerfiles.files = parser.h \
-                    message.h \
-                    globals.js
+                    message.h
 
-pheaderfiles.path = $${H_INSTALLPATH}/pugixml
+pheaderfiles.path = $${OUT_PWD}/include/pugixml
 pheaderfiles.files = pugixml/pugixml.hpp \
                      pugixml/pugiconfig.hpp
 							

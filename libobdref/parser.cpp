@@ -22,6 +22,7 @@
 */
 
 #include "parser.h"
+#include "globals_js.h"
 
 namespace obdref
 {
@@ -89,18 +90,7 @@ namespace obdref
         m_v8_context->Enter();
 
         // read in and compile globals js
-        QString scriptTxt;
-        QString scriptFilePath = H_INSTALLPATH;
-        scriptFilePath += QString("/globals.js");
-
-        if(convTextFileToQStr(scriptFilePath,scriptTxt))
-        {   initOk = true;   }
-        else
-        {
-            OBDREFDEBUG << "OBDREF: Error: Could not find globals.js\n";
-            initOk = false;
-            return;
-        }
+        QString scriptTxt(globals_js);
 
         // compile and run
         v8::Local<v8::String> scriptStr = v8::String::New(scriptTxt.toLocal8Bit().data());
