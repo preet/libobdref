@@ -17,6 +17,7 @@
       http://www.peak-system.com/produktcd/Pdf/English/PCAN-GPRS_Link_UserMan_eng.pdf
       http://www.drewtech.com/support/obd2/message.html
       https://www.msu.edu/~guentche/guentchev/OBD-II/int-obdii.html
+      http://www.ccs-labs.org/teaching/c2x/2012s/03-proto1.pdf‎
 
       // a lot of pid,dtc and messaging information is
       // available from the us govt as public domain:
@@ -94,14 +95,14 @@
       </address>
    </protocol>
    
-   <protocol name="ISO 14230-4">
+   <protocol name="ISO 14230">
       <baudrate value="10400" />
       <address name="Default">
       <!--  Default ISO 14230-4 OBD message headers
             for functional request/response from scan tool: -->
             
-      <!--  Note: ISO 14230-4 supports longer data frames and
-            faster init communication with the ECU -->
+      <!--  ISO 14230-4 uses three header bytes, like
+            standard/legacy OBD messages -->
             
       <!--  Note: Scan tool might be in range 0xF0-0xFD if
             default 0xF1 doesn't work -->
@@ -121,7 +122,7 @@
       </address>
    </protocol>
    
-   <protocol name="ISO 15765-4 Extended">
+   <protocol name="ISO 15765 Extended Id">
       <baudrate value="250000" />
       <baudrate value="500000" />
       <!--  Identifier Format: [prio] [format] [target] [source] -->
@@ -143,7 +144,7 @@
       </address>
    </protocol>
    
-   <protocol name="ISO 15765-4 Standard">
+   <protocol name="ISO 15765 Standard Id">
       <baudrate value="250000" />
       <baudrate value="500000" />
       <!--  Identifier Format: [11-bit identifier] -->
@@ -1894,7 +1895,7 @@
       </parameter>
       
       <parameter name="Short Term Secondary Oxygen Sensor Fuel Trim - Bank 1 [and Bank 3]"
-         request="0x01 0x55" response.prefix="0x41 0x55" response.bytes="N">
+         request="0x01 0x55" response.prefix="0x41 0x55">
          <script>
             <![CDATA[
             var fuelTrim = new NumericalDataObj();
@@ -1908,7 +1909,7 @@
       </parameter>
       
       <parameter name="Long Term Secondary Oxygen Sensor Fuel Trim - Bank 1 [and Bank 3]"
-         request="0x01 0x56" response.prefix="0x41 0x56" response.bytes="N">
+         request="0x01 0x56" response.prefix="0x41 0x56">
          <script>
             <![CDATA[
             var fuelTrim = new NumericalDataObj();
@@ -1922,7 +1923,7 @@
       </parameter>
       
       <parameter name="Short Term Secondary Oxygen Sensor Fuel Trim - Bank 2 [and Bank 4]"
-         request="0x01 0x57" response.prefix="0x41 0x57" response.bytes="N">
+         request="0x01 0x57" response.prefix="0x41 0x57">
          <script>
             <![CDATA[
             var fuelTrim = new NumericalDataObj();
@@ -1936,7 +1937,7 @@
       </parameter>
       
       <parameter name="Long Term Secondary Oxygen Sensor Fuel Trim - Bank 2 [and Bank 4]"
-         request="0x01 0x58" response.prefix="0x41 0x58" response.bytes="N">
+         request="0x01 0x58" response.prefix="0x41 0x58">
          <script>
             <![CDATA[
             var fuelTrim = new NumericalDataObj();
@@ -2088,7 +2089,7 @@
                possible DTC that would fit into a frame (3 DTCs, 6 bytes all 0x00 in a
                single standard OBD frame), or the vehicle may not respond at all. -->
 
-         <script protocols="SAE J1850 JPW, SAE J1850 PWM, ISO 9141-2, ISO 14230-4">
+         <script protocols="SAE J1850 JPW, SAE J1850 PWM, ISO 9141-2, ISO 14230">
             <![CDATA[
             if((BYTE(0) == 0) && (BYTE(1) == 0))
             {
@@ -2125,7 +2126,7 @@
             ]]>
          </script>
                
-         <script protocols="ISO 15765-4 Standard, ISO 15765-4 Extended">
+         <script protocols="ISO 15765 Standard Id, ISO 15765 Extended Id">
             <![CDATA[
             // for ISO 15765-4, the first byte indicates 
             // the number of DTCs stored
@@ -2166,33 +2167,4 @@
       </parameter>
       <!-- END MODE 03 --> 
    </parameters>
-</spec>
-
-<spec name="NCON3" desc="Nissan Consult III">
-</spec>
-
-<spec name="SSM3" desc="Subaru Select Monitor III">
-      <!--
-      <parameter name="SSM Engine Speed"
-         request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
-         request2="0xA8 0x00 0x00 0x00 0x0F" response2.prefix="0xE8" response2.bytes="1" 
-         request2.delay="100">
-         <script>
-            <![CDATA[
-            var engSpd = new NumericalDataObj();
-            engSpd.units = "rpm";
-            engSpd.min = 0;
-            engSpd.max = 16384;
-            engSpd.value = ((DATA(0).BYTE(0)*256) + DATA(1).BYTE(0))/4;
-            saveNumericalData(engSpd);
-            ]]>
-         </script>
-      </parameter>
-      -->
-</spec>
-
-<spec name="GMLAN" desc="General Motors Local Area Network">
-</spec>
-
-<spec name="MMDS" desc="Mazda Modular Diagnostic System">
 </spec>

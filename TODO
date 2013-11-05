@@ -1,0 +1,3 @@
+* obd2 definitions: clearing DTCs, VIN
+* think about how to implement unit conversion
+* add extended/mixed addressing support for ISO 15765

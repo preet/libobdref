@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<spec name="TEST" desc="libobdref test definitions">
+   
+   <protocol name="SAE J1850 PWM">
+      <address name="Default">           
+         <request prio="0x61" target="0x6A" source="0xF1" />
+         <response prio="0x41" target="0x6B" /> 
+      </address>    
+   </protocol>
+   
+   <protocol name="SAE J1850 VPW">     
+      <address name="Default">
+         <request prio="0x68" target="0x6A" source="0xF1" />
+         <response prio="0x48" target="0x6B" />
+      </address>
+   </protocol>
+   
+   <protocol name="ISO 9141-2">
+      <address name="Default">         
+         <request prio="0x68" target="0x6A" source="0xF1" />
+         <response prio="0x48" target="0x6B" />
+      </address>
+   </protocol>
+   
+   <protocol name="ISO 14230">
+      <!-- use a length byte for request headers -->
+      <option name="Length Byte" value="true" />
+      
+      <address name="Default">
+         <!-- physical request -->
+         <request format="0b10000000" target="0x10" source="0xF0" />
+         
+         <!-- physical response -->
+         <response format="0b10000000" target="0xF1" source="0x10" />
+      </address>
+   </protocol>
+   
+   <protocol name="ISO 15765 Extended Id">
+      <!-- extended addressing: first byte of request data
+           will be used as an additional address -->
+      <option name="Extended Addressing" value="true"/>
+      <!--  Identifier Format: [prio] [format] [target] [source] -->
+      
+      <address name="Default">
+         <request prio="0x18" format="0xDB" target="0x33" source="0xF1" />
+         <response prio="0x18" format="0xDA" target="0xF1" />
+      </address>
+   </protocol>
+   
+   <protocol name="ISO 15765 Standard Id">
+      <!-- extended addressing: first byte of request data
+           will be used as an additional address -->
+      <option name="Extended Addressing" value="true"/>      
+      
+      <address name="Default">
+      <!--  Request Params:
+            identifier: 0x7DF: id for functional request from scan tool -->
+         <request identifier="0x7DF" />
+         <response identifier="0x7E8" />
+      </address>
+      
+      <address name="ECU1">
+         <request identifier="0x7E0" />
+         <response identifier="0x7E8" />
+      </address>
+      
+      <address name="ECU2">
+         <request identifier="0x7E1" />
+         <response identifier="0x7E9" />
+      </address>
+      
+      <address name="ECU3">
+         <request identifier="0x7E2" />
+         <response identifier="0x7EA" />
+      </address>
+      
+      <address name="ECU4">
+         <request identifier="0x7E3" />
+         <response identifier="0x7EB" />
+      </address>
+      
+      <address name="ECU5">
+         <request identifier="0x7E4" />
+         <response identifier="0x7EC" />
+      </address>
+      
+      <address name="ECU6">
+         <request identifier="0x7E5" />
+         <response identifier="0x7ED" />
+      </address>
+      
+      <address name="ECU7">
+         <request identifier="0x7E6" />
+         <response identifier="0x7EE" />
+      </address>
+      
+      <address name="ECU8">
+         <request identifier="0x7E7" />
+         <response identifier="0x7EF" />
+      </address>
+   </protocol>
+   
+   <parameters address="Default">
+      
+      <parameter name="T_REQ_NONE_RESP_SF_PARSE_SEP">        
+         <script>
+            <![CDATA[
+            // save dataBytes as a string
+            var dataBytes = "";
+            for(var i=0; i < LENGTH(); i++)   {
+               dataBytes += BYTE(i).toString(16);
+               dataBytes += " ";
+            }
+            var jsData = new LiteralDataObj();
+            jsData.property = "Received";
+            jsData.valueIfTrue = dataBytes.toUpperCase();
+            jsData.value = true;
+            saveLiteralData(jsData);
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="T_REQ_NON_RESP_MF_PARSE_COMBINED" parse="combined">
+         <script>
+            <![CDATA[
+            
+            for(var i=0; i < NUM_REQ(); i++)   {
+               for(var j=0; j < NUM_RESP(i); j++)   {
+                  var headerBytes="";
+                  for(var k=0; k < REQ(i).HEADER(j).LENGTH(); k++)   {
+                     headerBytes += REQ(i).HEADER(j).BYTE(k).toString(16);
+                     headerBytes += " ";
+                  }
+                  
+                  var dataBytes="";
+                  for(var k=0; k < REQ(i).DATA(j).LENGTH(); k++)   {
+                     dataBytes += REQ(i).DATA(j).BYTE(k).toString(16);
+                     dataBytes += " ";
+                  }
+                  
+                  // save
+                  var i_s = i.toString(10);
+                  var j_s = j.toString(10);
+                  
+                  var jsData = new LiteralDataObj();
+                  jsData.property = "req:"+i_s+" resp:"+j_s;
+                  jsData.valueIfTrue = headerBytes.toUpperCase() + "  " + dataBytes.toUpperCase();
+                  jsData.value = true;
+                  saveLiteralData(jsData);
+               }
+            }
+            
+            ]]>
+         </script>
+      </parameter>      
+
+      <parameter name="T_REQ_SINGLE_RESP_SF_PARSE_SEP"
+         request="0x22 0x04" response.prefix="0x62 0x04" response.bytes="1">        
+         <script>
+            <![CDATA[
+            // save dataBytes as a string
+            var dataBytes = "";
+            for(var i=0; i < LENGTH(); i++)   {
+               dataBytes += BYTE(i).toString(16);
+               dataBytes += " ";
+            }
+            var jsData = new LiteralDataObj();
+            jsData.property = "Received";
+            jsData.valueIfTrue = dataBytes.toUpperCase();
+            jsData.value = true;
+            saveLiteralData(jsData);
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="T_REQ_SINGLE_RESP_MF_PARSE_SEP"
+         request="0x22 0x04" response.prefix="0x62 0x04" response.bytes="2">        
+         <script>
+            <![CDATA[
+            // save dataBytes as a string
+            var dataBytes = "";
+            for(var i=0; i < LENGTH(); i++)   {
+               dataBytes += BYTE(i).toString(16);
+               dataBytes += " ";
+            }
+            var jsData = new LiteralDataObj();
+            jsData.property = "Received";
+            jsData.valueIfTrue = dataBytes.toUpperCase();
+            jsData.value = true;
+            saveLiteralData(jsData);
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="T_REQ_MULTI_RESP_SF_PARSE_SEP"
+         request0="0x22 0x04" response0.prefix="0x62 0x04" response0.bytes="2"
+         request1="0x22 0x05" response1.prefix="0x62 0x05" response1.bytes="2"
+         request2="0x22 0x06" response2.prefix="0x62 0x06" response2.bytes="2">
+         <script>
+            <![CDATA[
+            // save dataBytes as a string
+            var dataBytes = "";
+            for(var i=0; i < LENGTH(); i++)   {
+               dataBytes += BYTE(i).toString(16);
+               dataBytes += " ";
+            }
+            var jsData = new LiteralDataObj();
+            jsData.property = "Received";
+            jsData.valueIfTrue = dataBytes.toUpperCase();
+            jsData.value = true;
+            saveLiteralData(jsData);
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="T_REQ_MULTI_RESP_SF_PARSE_COMBINED"
+         request0="0x22 0x04" response0.prefix="0x62 0x04" response0.bytes="2"
+         request1="0x22 0x05" response1.prefix="0x62 0x05" response1.bytes="2"
+         request2="0x22 0x06" response2.prefix="0x62 0x06" response2.bytes="2"
+         parse="combined">
+         <script>
+            <![CDATA[
+            
+            for(var i=0; i < NUM_REQ(); i++)   {
+               for(var j=0; j < NUM_RESP(i); j++)   {
+                  var headerBytes="";
+                  for(var k=0; k < REQ(i).HEADER(j).LENGTH(); k++)   {
+                     headerBytes += REQ(i).HEADER(j).BYTE(k).toString(16);
+                     headerBytes += " ";
+                  }
+                  
+                  var dataBytes="";
+                  for(var k=0; k < REQ(i).DATA(j).LENGTH(); k++)   {
+                     dataBytes += REQ(i).DATA(j).BYTE(k).toString(16);
+                     dataBytes += " ";
+                  }
+                  
+                  // save
+                  var i_s = i.toString(10);
+                  var j_s = j.toString(10);
+                  
+                  var jsData = new LiteralDataObj();
+                  jsData.property = "req:"+i_s+" resp:"+j_s;
+                  jsData.valueIfTrue = headerBytes.toUpperCase() + "  " + dataBytes.toUpperCase();
+                  jsData.value = true;
+                  saveLiteralData(jsData);
+               }
+            }
+            
+            ]]>
+         </script>
+      </parameter>
+      
+      <parameter name="T_REQ_MULTI_RESP_MF_PARSE_COMBINED"
+         request0="0x22 0x04" response0.prefix="0x62 0x04" response0.bytes="2"
+         request1="0x22 0x05" response1.prefix="0x62 0x05" response1.bytes="2"
+         request2="0x22 0x06" response2.prefix="0x62 0x06" response2.bytes="2"
+         parse="combined">
+         <script>
+            <![CDATA[
+            
+            for(var i=0; i < NUM_REQ(); i++)   {
+               for(var j=0; j < NUM_RESP(i); j++)   {
+                  var headerBytes="";
+                  for(var k=0; k < REQ(i).HEADER(j).LENGTH(); k++)   {
+                     headerBytes += REQ(i).HEADER(j).BYTE(k).toString(16);
+                     headerBytes += " ";
+                  }
+                  
+                  var dataBytes="";
+                  for(var k=0; k < REQ(i).DATA(j).LENGTH(); k++)   {
+                     dataBytes += REQ(i).DATA(j).BYTE(k).toString(16);
+                     dataBytes += " ";
+                  }
+                  
+                  // save
+                  var i_s = i.toString(10);
+                  var j_s = j.toString(10);
+                  
+                  var jsData = new LiteralDataObj();
+                  jsData.property = "req:"+i_s+" resp:"+j_s;
+                  jsData.valueIfTrue = headerBytes.toUpperCase() + "  " + dataBytes.toUpperCase();
+                  jsData.value = true;
+                  saveLiteralData(jsData);
+               }
+            }
+            
+            ]]>
+         </script>
+      </parameter>
+
+   </parameters>
+</spec>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spec name="NCON3" desc="Nissan Consult III">
+</spec>
+
+<!--  try:
+      // parameters address = 7e0?
+      request 0xA8 0x00 0x00 0x00 0x0E 0x00 0x00 0x0F 
+      0xA8: read from ecu
+      0x00: padding byte
+      0x00 0x00 0x0E: ssm request speed high byte (ssm uses three byte requests)
+      0x00 0x00 0x0F: ssm request speed low byte (ssm uses three byte requests)
+-->
+<spec name="SSM3" desc="Subaru Select Monitor III">
+      <!--
+      <parameters address="ECU1"> // REQUIRED! wont work with functional request
+         <parameter name="SSM Engine Speed"
+            request1="0xA8 0x00 0x00 0x00 0x0E" response1.prefix="0xE8" response1.bytes="1"
+            request2="0xA8 0x00 0x00 0x00 0x0F" response2.prefix="0xE8" response2.bytes="1" 
+            request2.delay="100">
+            <script>
+               <![CDATA[
+               var engSpd = new NumericalDataObj();
+               engSpd.units = "rpm";
+               engSpd.min = 0;
+               engSpd.max = 16384;
+               engSpd.value = ((DATA(0).BYTE(0)*256) + DATA(1).BYTE(0))/4;
+               saveNumericalData(engSpd);
+               ]]>
+            </script>
+         </parameter>
+      </parameters>
+      -->
+</spec>
+
+<spec name="GMLAN" desc="General Motors Local Area Network">
+</spec>
+
+<spec name="MMDS" desc="Mazda Modular Diagnostic System">
+</spec>

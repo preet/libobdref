@@ -1,27 +1,19 @@
 TEMPLATE = lib
 CONFIG += staticlib
 TARGET = obdref
-DESTDIR = $${OUT_PWD}/lib
-QT += core
-
-SOURCES += \
-    parser.cpp \
-    pugixml/pugixml.cpp
 
 HEADERS += \
-    parser.h \
-    message.hpp \
+    pugixml/pugiconfig.hpp \
+    duktape/duktape.h \
     pugixml/pugixml.hpp \
-    pugixml/pugiconfig.hpp
+    obdrefdebug.h \
+    datatypes.h \
+    parser.h
 
-LIBS += -lv8
+SOURCES += \
+    pugixml/pugixml.cpp \
+    duktape/duktape.c \
+    obdrefdebug.cpp \
+    parser.cpp
 
-headerfiles.path = $${OUT_PWD}/include
-headerfiles.files = parser.h \
-                    message.h
-
-pheaderfiles.path = $${OUT_PWD}/include/pugixml
-pheaderfiles.files = pugixml/pugixml.hpp \
-                     pugixml/pugiconfig.hpp
-							
-INSTALLS += headerfiles pheaderfiles
+DEFINES += OBDREF_DEBUG_QDEBUG
