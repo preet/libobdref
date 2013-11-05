@@ -1,5 +1,5 @@
 /*
-   This source is part of osmsrender
+   This source is part of libobdref
 
    Copyright (C) 2012,2013 Preet Desai (preet.desai@gmail.com)
 
