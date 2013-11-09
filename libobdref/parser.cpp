@@ -301,6 +301,12 @@ namespace obdref
         // clean message data based on protocol type
         Protocol parseProtocol = msgFrame.parseProtocol;
 
+        // clear any data left over from prior use
+        for(int i=0; i < msgFrame.listMessageData.size(); i++)   {
+            msgFrame.listMessageData[i].listHeaders.clear();
+            msgFrame.listMessageData[i].listData.clear();
+        }
+
         if(parseProtocol < 0xA00)
         {   // SAE_J1850, ISO_9141-2, ISO_14230-4
             for(int i=0; i < msgFrame.listMessageData.size(); i++)   {
@@ -1712,7 +1718,7 @@ namespace obdref
     // ========================================================================== //
     // ========================================================================== //
 
-    bool Parser::convTextFileToQStr(const QString &filePath,
+    bool Parser::convTextFileToQStr(QString const &filePath,
                                     QString & fileDataAsStr)
     {
         QFile file(filePath);
@@ -1722,7 +1728,7 @@ namespace obdref
             return true;
         }
 
-        OBDREFDEBUG << "OBDREF: Could not open file: "
+        OBDREFDEBUG << "Could not open file: "
                     << filePath << "\n";
         return false;
     }
